@@ -1,16 +1,20 @@
-import './globals.css'
-
+import './_styles/globals.css'
 import { Noto_Sans_TC, Lato } from 'next/font/google'
 
-const notoSansTraditionalChinese = Noto_Sans_TC({
-  weight: ['100', '300', '400', '500', '600', '700', '800', '900'],
+export const metadata = {
+  title: 'Treebit | 每天一點點，長出你的習慣之樹',
+  description: '每天一點點，長出你的習慣之樹。',
+}
+
+const noto = Noto_Sans_TC({
+  weight: ['400', '500', '600', '700', '900'],
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-noto',
 })
 
 const lato = Lato({
-  weight: ['100', '300', '400', '700', '900'],
+  weight: ['400', '700'],
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-lato',
@@ -20,7 +24,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="zh-TW" suppressHydrationWarning>
       <body
-        className={`${notoSansTraditionalChinese.variable} ${lato.variable}`}
+        className={`${noto.variable} ${lato.variable} font-noto`}
         suppressHydrationWarning
       >
         {children}
