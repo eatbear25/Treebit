@@ -1,17 +1,10 @@
 @import 'tailwindcss';
 
-/* 定義自訂字體 */
-@theme {
-  --font-family-noto: var(--font-noto), sans-serif;
-  --font-family-lato: var(--font-lato), sans-serif;
-}
-
-/* 或者覆蓋預設字體 */
-@theme {
-  --font-family-sans: var(--font-noto), sans-serif;
-}
-
 body {
   font-family: var(--font-noto);
   color: #343a40;
+}
+
+.inter {
+  font-family: var(--font-inter);
 }

@@ -34,7 +34,10 @@
   `#FEFFF7`
   ``
 - Shades:
+  `#255549`
+
 - Accents:
+
 - Greys:
   `#343A40`
   `#9A9FA5`
