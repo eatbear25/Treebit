@@ -24,7 +24,7 @@ export default function WeeklyNotes({
 
         <button
           onClick={onAddNote}
-          className="mt-6 flex items-center gap-2 text-gray-500 transition-colors hover:text-gray-700"
+          className="mt-6 flex cursor-pointer items-center gap-2 rounded-md border border-gray-400 px-4 py-2 transition hover:bg-gray-100 hover:text-gray-700 active:scale-97"
         >
           <span className="text-lg">+</span>
           <span>新增記事</span>

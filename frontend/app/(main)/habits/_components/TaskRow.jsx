@@ -1,3 +1,5 @@
+import { PiCheckBold } from 'react-icons/pi'
+
 export default function TaskRow({ task, weekDays, onToggleTask }) {
   const getCompletionRate = (task) => {
     return Math.round((task.completedCount / task.targetDays) * 100)
@@ -11,16 +13,16 @@ export default function TaskRow({ task, weekDays, onToggleTask }) {
         </div>
       </td>
       {task.completedDays.map((completed, dayIndex) => (
-        <td key={dayIndex} className="px-2 py-4 text-center">
+        <td key={dayIndex} className="px-5 py-4 text-center md:px-3">
           <button
             onClick={() => onToggleTask(task.id, dayIndex)}
-            className={`flex h-6 w-6 items-center justify-center rounded transition-colors ${
+            className={`mx-auto flex h-7 w-7 cursor-pointer items-center justify-center rounded transition-colors ${
               completed
-                ? 'bg-green-500 text-white'
-                : 'border-2 border-gray-300 hover:border-green-400'
+                ? 'bg-[#B3D8A8] text-white'
+                : 'border-2 border-gray-300 hover:border-[#A3D1C6] hover:bg-[#ecf4f2]'
             }`}
           >
-            {completed && '✓'}
+            {completed && <PiCheckBold />}
           </button>
         </td>
       ))}
@@ -34,9 +36,9 @@ export default function TaskRow({ task, weekDays, onToggleTask }) {
         <span
           className={`font-medium ${
             getCompletionRate(task) === 100
-              ? 'text-green-600'
+              ? 'text-[#3D8D7A]'
               : getCompletionRate(task) >= 50
-                ? 'text-yellow-600'
+                ? 'text-yellow-500'
                 : 'text-red-600'
           }`}
         >
