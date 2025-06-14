@@ -1,6 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+
+import { PiArrowBendUpLeft } from 'react-icons/pi'
+
 import HabitHeader from '../_components/HabitHeader'
 import TaskTable from '../_components/TaskTable'
 import WeeklyNotes from '../_components/WeeklyNotes'
@@ -9,6 +13,12 @@ export default function HabitTracker({ challengeStartDate = '2025-06-12' }) {
   const [currentWeekIndex, setCurrentWeekIndex] = useState(0)
   const totalWeeks = 10
   const challengeName = '學吉他'
+
+  const router = useRouter()
+
+  const handleGoBack = () => {
+    router.push('/habits')
+  }
 
   // ! 假資料，之後替代
   const [tasksByWeek, setTasksByWeek] = useState({
@@ -172,6 +182,18 @@ export default function HabitTracker({ challengeStartDate = '2025-06-12' }) {
           onEditNote={handleEditNote}
           onDeleteNote={handleDeleteNote}
         />
+
+        <div className="my-6 flex justify-end">
+          <button
+            className="flex cursor-pointer items-center gap-2 text-right text-lg hover:opacity-80"
+            onClick={handleGoBack}
+          >
+            返回上一頁
+            <span className="text-2xl font-bold">
+              <PiArrowBendUpLeft />
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   )

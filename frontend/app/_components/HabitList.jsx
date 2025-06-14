@@ -7,9 +7,11 @@ export default function HabitList() {
   ]
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+    <div className="flex flex-wrap gap-4">
       {habits.map((habit, index) => (
-        <HabitCard key={index} {...habit} />
+        <div key={index} className="max-w-[500px] min-w-[300px] flex-1">
+          <HabitCard {...habit} />
+        </div>
       ))}
     </div>
   )
