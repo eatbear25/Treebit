@@ -33,14 +33,14 @@ export default function HabitCard({ title, weeks, percent, times }) {
         </li>
       </ul>
 
-      {/* <button
+      <button
         onClick={handleViewTask}
         className="w-full cursor-pointer rounded-tl-xl rounded-br-xl bg-[#3D8D7A] py-3 text-xl font-[600] text-white shadow-lg transition hover:scale-101 hover:bg-[#509887] active:scale-99"
       >
         查看任務
-      </button> */}
+      </button>
 
-      <button
+      {/* <button
         onClick={handleViewTask}
         className="w-full cursor-pointer rounded-tl-xl rounded-br-xl py-3 text-xl font-[600] text-white shadow-lg transition hover:scale-101 hover:brightness-110 active:scale-99"
         style={{
@@ -48,7 +48,7 @@ export default function HabitCard({ title, weeks, percent, times }) {
         }}
       >
         查看任務
-      </button>
+      </button> */}
     </div>
   )
 }

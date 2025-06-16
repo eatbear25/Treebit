@@ -1,6 +1,8 @@
 'use client'
 
-import React, { useState } from 'react'
+import { useState } from 'react'
+import Link from 'next/link'
+import { PiEye, PiEyeSlash } from 'react-icons/pi'
 
 export default function TreebitLogin() {
   const [email, setEmail] = useState('cute@cat.com')
@@ -14,14 +16,17 @@ export default function TreebitLogin() {
         {/* Welcome Section */}
         <div className="mb-10 text-center">
           <h2 className="mb-4 text-4xl font-bold md:text-5xl">
-            歡迎回來 <span className="inline-block animate-pulse">👋</span>
+            歡迎回到 Treebit{' '}
+            <span className="inline-block animate-pulse">🌱</span>
           </h2>
-          <p className="text-xl text-gray-600">準備好打卡你的習慣了嗎？</p>
+          <p className="text-xl text-gray-600">
+            每一次打勾，讓你的習慣樹更茁壯
+          </p>
         </div>
 
         {/* Login Form */}
         <div className="w-full">
-          <div className="rounded-2xl bg-white p-7 shadow-sm">
+          <div className="rounded-2xl bg-white p-7 shadow-xs">
             {/* Social Login Buttons */}
             <div className="mb-6 space-y-4">
               <button className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-gray-300 px-4 py-3 transition-colors hover:bg-gray-50">
@@ -97,7 +102,7 @@ export default function TreebitLogin() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute top-1/2 right-4 -translate-y-1/2 transform text-lg text-gray-400 hover:text-gray-600"
                 >
-                  {showPassword ? '🙈' : '👁️'}
+                  {showPassword ? <PiEyeSlash /> : <PiEye />}
                 </button>
               </div>
             </div>
@@ -113,7 +118,7 @@ export default function TreebitLogin() {
           <div className="mt-8 text-center">
             <span className="text-gray-600">還沒有任何帳號嗎？ </span>
             <button className="font-medium text-gray-900 hover:underline">
-              註冊
+              <Link href="/register">註冊</Link>
             </button>
           </div>
         </div>
