@@ -1,8 +1,5 @@
 ## 01 TYPOGRAPHY SYSTEM
 
-<!-- {/* 只有想用 Lato 的地方才需要設定 */} -->
-<!-- <button className="font-lato">這裡使用 Lato</button> -->
-
 - **Font Family**
 
   - Primary Font: `Roboto, sans-serif`

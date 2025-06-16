@@ -16,7 +16,7 @@ export default function Sidebar() {
     <>
       <div>
         <Link href="/" className="mb-6 ml-3 block w-10">
-          <img src="../icon.svg" alt="習慣列表" />
+          <img src="../icon.svg" alt="Treebit Logo" />
         </Link>
 
         <ul className="flex w-35 flex-col gap-2 text-lg font-[600]">
