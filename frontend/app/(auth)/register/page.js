@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { PiEye, PiEyeSlash } from 'react-icons/pi'
+import { RegisterForm } from '@/app/_components/RegisterForm'
 
 export default function TreebitLogin() {
   const [name, setName] = useState('')
@@ -66,61 +66,7 @@ export default function TreebitLogin() {
               </div>
             </div>
 
-            {/* Name Input */}
-            <div className="mb-4">
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                名稱
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-[#B3D8A8] focus:outline-none"
-                placeholder="是貓熊不是熊貓"
-              />
-            </div>
-
-            {/* Email Input */}
-            <div className="mb-4">
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                電子信箱
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-[#B3D8A8] focus:outline-none"
-                placeholder="cute@cat.com"
-              />
-            </div>
-
-            {/* Password Input */}
-            <div className="mb-6">
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                密碼
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 pr-12 focus:border-transparent focus:ring-2 focus:ring-[#B3D8A8] focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute top-1/2 right-4 -translate-y-1/2 transform text-lg text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? <PiEyeSlash /> : <PiEye />}
-                </button>
-              </div>
-            </div>
-
-            {/* Sign In Button */}
-            <button className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#3D8D7A] px-4 py-3 font-bold text-white transition-colors hover:opacity-90">
-              註冊
-              <span className="text-lg">→</span>
-            </button>
+            <RegisterForm />
           </div>
 
           {/* Sign Up Link */}

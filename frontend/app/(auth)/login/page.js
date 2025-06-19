@@ -1,14 +1,10 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
-import { PiEye, PiEyeSlash } from 'react-icons/pi'
+
+import { LoginForm } from '@/app/_components/LoginForm'
 
 export default function TreebitLogin() {
-  const [email, setEmail] = useState('cute@cat.com')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-
   return (
     <>
       {/* Main Content */}
@@ -66,52 +62,7 @@ export default function TreebitLogin() {
               </div>
             </div>
 
-            {/* Email Input */}
-            <div className="mb-4">
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-[#B3D8A8] focus:outline-none"
-                placeholder="cute@cat.com"
-              />
-            </div>
-
-            {/* Password Input */}
-            <div className="mb-6">
-              <div className="mb-2 flex items-center justify-between">
-                <label className="block text-sm font-medium text-gray-700">
-                  Password
-                </label>
-                <button className="text-sm text-gray-500 hover:text-gray-700">
-                  忘記密碼？
-                </button>
-              </div>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 pr-12 focus:border-transparent focus:ring-2 focus:ring-[#B3D8A8] focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute top-1/2 right-4 -translate-y-1/2 transform text-lg text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? <PiEyeSlash /> : <PiEye />}
-                </button>
-              </div>
-            </div>
-
-            {/* Sign In Button */}
-            <button className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#3D8D7A] px-4 py-3 font-bold text-white transition-colors hover:opacity-90">
-              登入
-              <span className="text-lg">→</span>
-            </button>
+            <LoginForm />
           </div>
 
           {/* Sign Up Link */}
