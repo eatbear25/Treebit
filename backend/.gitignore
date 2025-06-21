@@ -1,7 +1,9 @@
 node_modules
-.env
 .vercel
-.env*.local
+.env
+.env.local
+.env.production
+*.env
 
 # misc
 .DS_Store
