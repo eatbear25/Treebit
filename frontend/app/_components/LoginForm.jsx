@@ -1,9 +1,13 @@
 'use client'
 
+import { login as loginApi } from '@/utils/auth'
+import { useAuth } from '@/contexts/AuthContext'
+import { useRouter } from 'next/navigation'
 import { forwardRef, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -56,7 +60,10 @@ const loginSchema = z.object({
 
 // 定義表單
 export function LoginForm() {
-  const [showPassword, setShowPassword] = useState(false)
+  const { login } = useAuth()
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const form = useForm({
     resolver: zodResolver(loginSchema),
@@ -66,8 +73,23 @@ export function LoginForm() {
     },
   })
 
-  const onSubmit = (values) => {
-    console.log(values)
+  const onSubmit = async (values) => {
+    console.log('onSubmit called')
+    setLoading(true)
+    setError('')
+
+    try {
+      const res = await loginApi(values.email, values.password)
+      // 假設回傳格式為 { data: { user: {...} } }
+      await login(res.data)
+      toast.success('登入成功')
+      router.push('/habits') // 登入成功導回首頁或其他頁
+    } catch (err) {
+      setError(err.message || '登入失敗')
+      toast.error(err.message || '登入失敗')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (

@@ -10,7 +10,7 @@ export default function AuthHeader() {
     <header className="mx-auto mb-18 flex w-full items-center justify-between rounded-2xl bg-white px-4 py-2 shadow-xs md:w-1/2 xl:w-1/3">
       <div>
         <Link href="/" className="block w-8">
-          <img src="../icon.svg" alt="Treebit Logo" />
+          <img src="/icon.svg" alt="Treebit Logo" />
         </Link>
       </div>
 

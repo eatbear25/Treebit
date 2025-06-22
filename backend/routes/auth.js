@@ -139,7 +139,7 @@ router.post("/login", async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({
         status: "error",
-        message: "找不到該用戶，請檢查電子郵件或密碼",
+        message: "登入失敗，請檢查電子郵件或密碼",
       });
     }
 

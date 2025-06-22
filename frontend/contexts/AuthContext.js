@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import { getCurrentUser } from '../utils/auth'
+import { getCurrentUser, logout as authLogout } from '../utils/auth'
 
 const AuthContext = createContext()
 
@@ -41,10 +41,7 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      })
+      await authLogout()
     } catch (error) {
       console.error('登出請求失敗:', error)
     } finally {
@@ -53,10 +50,22 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // 刷新用戶資料的方法
+  const refreshUser = async () => {
+    try {
+      const userData = await getCurrentUser()
+      setUser(userData.data.user)
+    } catch (error) {
+      console.error('刷新用戶資料失敗:', error)
+      setUser(null)
+    }
+  }
+
   const value = {
     user,
     login,
     logout,
+    refreshUser,
     loading,
     isAuthenticated: !!user,
   }
