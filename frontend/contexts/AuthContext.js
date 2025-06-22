@@ -22,12 +22,32 @@ export function AuthProvider({ children }) {
 
   async function initializeAuth() {
     try {
-      // 直接向伺服器確認 token 是否有效（httpOnly cookie 會自動送出）
+      // 如果是登入/註冊頁面，跳過驗證
+      const currentPath = window.location.pathname
+      const isAuthPage =
+        currentPath === '/login' ||
+        currentPath === '/register' ||
+        currentPath.startsWith('/auth')
+
+      if (isAuthPage) {
+        setUser(null)
+        setLoading(false)
+        return
+      }
+
       const userData = await getCurrentUser()
       setUser(userData.data.user)
     } catch (error) {
-      console.error('初始化認證失敗:', error)
-      // 如果驗證失敗，設為未登入狀態
+      if (
+        error.message === '請先登入以繼續使用' ||
+        error.status === 401 ||
+        error.message.includes('未授權') ||
+        error.message.includes('token')
+      ) {
+        console.log('用戶未登入，設為未登入狀態')
+      } else {
+        console.error('初始化認證時發生意外錯誤:', error)
+      }
       setUser(null)
     } finally {
       setLoading(false)
@@ -45,12 +65,10 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error('登出請求失敗:', error)
     } finally {
-      // 清除前端狀態，httpOnly cookie 會由後端清除
       setUser(null)
     }
   }
 
-  // 刷新用戶資料的方法
   const refreshUser = async () => {
     try {
       const userData = await getCurrentUser()

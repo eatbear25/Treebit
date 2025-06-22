@@ -80,13 +80,13 @@ export function LoginForm() {
 
     try {
       const res = await loginApi(values.email, values.password)
-      // 假設回傳格式為 { data: { user: {...} } }
-      await login(res.data)
+      login(res.data)
       toast.success('登入成功')
       router.push('/habits') // 登入成功導回首頁或其他頁
     } catch (err) {
-      setError(err.message || '登入失敗')
-      toast.error(err.message || '登入失敗')
+      const msg = err.message || '登入失敗'
+      setError(msg)
+      toast.error(msg)
     } finally {
       setLoading(false)
     }

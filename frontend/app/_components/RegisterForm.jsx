@@ -1,9 +1,13 @@
 'use client'
 
+import { register as registerApi } from '@/utils/auth'
+import { useAuth } from '@/contexts/AuthContext'
+import { useRouter } from 'next/navigation'
 import { forwardRef, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -64,6 +68,10 @@ const registerSchema = z
   })
 
 export function RegisterForm() {
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
   const form = useForm({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -74,8 +82,26 @@ export function RegisterForm() {
     },
   })
 
-  const onSubmit = (values) => {
+  const onSubmit = async (values) => {
     console.log('送出資料:', values)
+    setLoading(true)
+    setError('')
+
+    try {
+      const res = await registerApi(
+        values.username,
+        values.email,
+        values.password
+      )
+      toast.success('註冊成功')
+      router.push('/habits')
+    } catch (err) {
+      const msg = err.message || '註冊失敗'
+      setError(msg)
+      toast.error(msg)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
