@@ -2,11 +2,12 @@
 
 import Link from 'next/link'
 
+import GuestGuard from '@/app/_components/GuestGuard'
 import { LoginForm } from '@/app/_components/LoginForm'
 
 export default function TreebitLogin() {
   return (
-    <>
+    <GuestGuard>
       {/* Main Content */}
       <div className="flex flex-col items-center">
         {/* Welcome Section */}
@@ -74,6 +75,6 @@ export default function TreebitLogin() {
           </div>
         </div>
       </div>
-    </>
+    </GuestGuard>
   )
 }
