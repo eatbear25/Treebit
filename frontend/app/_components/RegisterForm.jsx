@@ -88,18 +88,16 @@ export function RegisterForm() {
     setError('')
 
     try {
-      const res = await registerApi(
-        values.username,
-        values.email,
-        values.password
-      )
+      await registerApi(values.username, values.email, values.password)
+
       toast.success('註冊成功')
-      router.push('/habits')
+      router.push('/login')
+
+      return
     } catch (err) {
       const msg = err.message || '註冊失敗'
       setError(msg)
       toast.error(msg)
-    } finally {
       setLoading(false)
     }
   }
@@ -186,7 +184,11 @@ export function RegisterForm() {
         <Button
           type="submit"
           variant="treebit"
-          className="flex w-full cursor-pointer items-center justify-center gap-2"
+          disabled={loading}
+          className={cn(
+            'flex w-full items-center justify-center gap-2',
+            loading && 'cursor-not-allowed opacity-50'
+          )}
         >
           註冊
           <span className="text-lg">→</span>

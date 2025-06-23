@@ -134,7 +134,11 @@ export function LoginForm() {
         <Button
           type="submit"
           variant="treebit"
-          className="flex w-full cursor-pointer items-center justify-center gap-2"
+          disabled={loading}
+          className={cn(
+            'flex w-full items-center justify-center gap-2',
+            loading && 'cursor-not-allowed opacity-50'
+          )}
         >
           登入
           <span className="text-lg">→</span>

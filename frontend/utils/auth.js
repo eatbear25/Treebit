@@ -1,36 +1,28 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
 export async function apiRequest(url, options = {}) {
-  try {
-    // 如果 URL 不是完整路徑，則加上基礎 URL
-    const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`
+  const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`
 
-    const response = await fetch(fullUrl, {
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-      ...options,
-    })
+  const response = await fetch(fullUrl, {
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json', ...options.headers },
+    ...options,
+  })
+  const data = await response.json()
 
-    const data = await response.json()
-
-    // 檢查是否需要重新登入
-    if (response.status === 401) {
+  if (response.status === 401) {
+    if (!url.includes('/me')) {
       handleAuthError()
-      throw new Error(data.message || '請重新登入')
     }
 
-    if (!response.ok) {
-      throw new Error(data.message || '請求失敗')
-    }
-
-    return data
-  } catch (error) {
-    console.error('API 請求錯誤:', error)
-    throw error
+    return { data: { user: null } }
   }
+
+  if (!response.ok) {
+    throw new Error(data.message || '請求失敗')
+  }
+
+  return data
 }
 
 // 處理認證錯誤（token 過期等）

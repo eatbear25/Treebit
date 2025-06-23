@@ -4,6 +4,7 @@ import { z } from "zod";
 import bcrypt from "bcrypt";
 import jsonwebtoken from "jsonwebtoken";
 import authenticate from "../middlewares/authenticate.js";
+import optionalAuthenticate from "../middlewares/authenticate.js";
 
 const router = express.Router();
 
@@ -203,22 +204,23 @@ router.post("/logout", (req, res) => {
   });
 });
 
-// *** 驗證當前用戶 API (需要登入) ***
-router.get("/me", authenticate, async (req, res) => {
+// *** 驗證當前用戶 API  ***
+router.get("/me", optionalAuthenticate, async (req, res) => {
   try {
+    if (!req.user) {
+      return res.status(200).json({ data: { user: null } });
+    }
+
     const [users] = await db.query(
       "SELECT id, username, email, created_at, last_login FROM users WHERE id = ?",
       [req.user.id]
     );
 
     if (users.length === 0) {
-      return res.status(404).json({
-        status: "error",
-        message: "用戶不存在",
-      });
+      return res.status(200).json({ data: { user: null } });
     }
 
-    return res.json({
+    return res.status(200).json({
       status: "success",
       data: {
         user: users[0],

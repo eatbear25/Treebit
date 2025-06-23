@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { RegisterForm } from '@/app/_components/RegisterForm'
 import GuestGuard from '@/app/_components/GuestGuard'
 
-export default function TreebitLogin() {
+export default function TreebitRegister() {
   return (
     <GuestGuard>
       {/* Main Content */}

@@ -74,23 +74,28 @@ export function optionalAuthenticate(req, res, next) {
       token = req.cookies.accessToken;
     }
 
-    // 如果沒有 token，直接繼續，不設定 req.user
     if (!token) {
+      req.user = null;
       return next();
     }
 
-    // 如果有 token，就繼續進行驗證
     jsonwebtoken.verify(token, accessTokenSecret, (err, user) => {
       if (!err && user) {
         req.user = user;
-      } else if (err && err.name === "TokenExpiredError") {
-        res.clearCookie("accessToken");
+      } else {
+        // 驗證失敗時還是設定為 null，避免前端誤會
+        req.user = null;
+
+        if (err.name === "TokenExpiredError") {
+          res.clearCookie("accessToken");
+        }
       }
 
       next();
     });
   } catch (error) {
     console.error("可選認證中間件錯誤:", error);
+    req.user = null;
     next();
   }
 }
