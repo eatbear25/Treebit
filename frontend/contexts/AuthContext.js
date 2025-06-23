@@ -55,9 +55,15 @@ export function AuthProvider({ children }) {
     initializeAuth()
   }, [initializeAuth])
 
-  const login = useCallback(async (userData) => {
-    setUser(userData.user)
-  }, [])
+  const login = useCallback(
+    async (userData) => {
+      setUser(userData.user)
+      if (!initialized) {
+        setInitialized(true)
+      }
+    },
+    [initialized]
+  )
 
   const logout = useCallback(async () => {
     try {

@@ -5,17 +5,24 @@ export async function apiRequest(url, options = {}) {
 
   const response = await fetch(fullUrl, {
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json', ...options.headers },
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
     ...options,
   })
   const data = await response.json()
 
   if (response.status === 401) {
-    if (!url.includes('/me')) {
+    const isLogin = url.includes('/api/auth/login')
+    const isRegister = url.includes('/api/auth/register')
+    const isMe = url.includes('/api/auth/me')
+
+    if (!isLogin && !isRegister && !isMe) {
       handleAuthError()
     }
 
-    return { data: { user: null } }
+    throw new Error(data.message || '請重新登入')
   }
 
   if (!response.ok) {

@@ -3,8 +3,9 @@ import db from "../config/connect-mysql.js";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import jsonwebtoken from "jsonwebtoken";
-import authenticate from "../middlewares/authenticate.js";
-import optionalAuthenticate from "../middlewares/authenticate.js";
+import authenticate, {
+  optionalAuthenticate,
+} from "../middlewares/authenticate.js";
 
 const router = express.Router();
 
