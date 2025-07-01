@@ -32,7 +32,7 @@ export default function HabitTracker({ challengeStartDate = '2025-06-12' }) {
       },
       {
         id: 2,
-        name: '學習繪畫技巧',
+        name: '學習繪畫技巧每天至少20分鐘學習繪畫技巧每天至少20分鐘畫技巧每天至少20分鐘',
         completedDays: [true, true, true, false, false, false, false],
         targetDays: 7,
         completedCount: 3,
@@ -155,45 +155,43 @@ export default function HabitTracker({ challengeStartDate = '2025-06-12' }) {
   }
 
   return (
-    <div className="min-h-screen">
-      <div className="mx-auto max-w-6xl">
-        <HabitHeader
-          challengeName={challengeName}
-          totalWeeks={totalWeeks}
-          currentWeek={currentWeek}
-          weekRange={weekRange}
-          onPreviousWeek={goToPreviousWeek}
-          onNextWeek={goToNextWeek}
-          canGoPrevious={currentWeekIndex > 0}
-          canGoNext={currentWeekIndex < totalWeeks - 1}
-          currentWeekIndex={currentWeekIndex}
-        />
+    <div>
+      <HabitHeader
+        challengeName={challengeName}
+        totalWeeks={totalWeeks}
+        currentWeek={currentWeek}
+        weekRange={weekRange}
+        onPreviousWeek={goToPreviousWeek}
+        onNextWeek={goToNextWeek}
+        canGoPrevious={currentWeekIndex > 0}
+        canGoNext={currentWeekIndex < totalWeeks - 1}
+        currentWeekIndex={currentWeekIndex}
+      />
 
-        <TaskTable
-          tasks={tasks}
-          weekDays={weekDays}
-          onToggleTask={handleToggleTask}
-          onAddTask={handleAddTask}
-        />
+      <TaskTable
+        tasks={tasks}
+        weekDays={weekDays}
+        onToggleTask={handleToggleTask}
+        onAddTask={handleAddTask}
+      />
 
-        <WeeklyNotes
-          notes={weeklyNotes}
-          onAddNote={handleAddNote}
-          onEditNote={handleEditNote}
-          onDeleteNote={handleDeleteNote}
-        />
+      <WeeklyNotes
+        notes={weeklyNotes}
+        onAddNote={handleAddNote}
+        onEditNote={handleEditNote}
+        onDeleteNote={handleDeleteNote}
+      />
 
-        <div className="my-6 flex justify-end">
-          <button
-            className="flex cursor-pointer items-center gap-2 text-right text-lg hover:opacity-80"
-            onClick={handleGoBack}
-          >
-            返回上一頁
-            <span className="text-2xl font-bold">
-              <PiArrowBendUpLeft />
-            </span>
-          </button>
-        </div>
+      <div className="my-6 flex justify-end">
+        <button
+          className="flex cursor-pointer items-center gap-2 text-right text-lg hover:opacity-80"
+          onClick={handleGoBack}
+        >
+          返回上一頁
+          <span className="text-2xl font-bold">
+            <PiArrowBendUpLeft />
+          </span>
+        </button>
       </div>
     </div>
   )

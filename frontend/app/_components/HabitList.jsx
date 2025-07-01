@@ -9,7 +9,7 @@ export default function HabitList() {
   return (
     <div className="flex flex-wrap gap-4">
       {habits.map((habit, index) => (
-        <div key={index} className="max-w-[500px] min-w-[300px] flex-1">
+        <div key={index} className="mx-auto max-w-full min-w-[300px] flex-1">
           <HabitCard {...habit} />
         </div>
       ))}

@@ -8,7 +8,7 @@ export default function WeeklyNotes({
 }) {
   return (
     <div className="rounded-lg bg-white shadow-sm">
-      <div className="p-6">
+      <div className="p-5 lg:p-6">
         <h2 className="mb-6 text-xl font-bold text-[#3D8D7A]">每週記事</h2>
 
         <div className="space-y-4">

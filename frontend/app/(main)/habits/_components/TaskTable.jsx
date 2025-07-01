@@ -8,16 +8,17 @@ export default function TaskTable({
 }) {
   return (
     <div className="mb-8 rounded-lg bg-white shadow-sm">
-      <div className="p-6">
+      <div className="p-5 lg:p-6">
         <h2 className="mb-6 text-xl font-bold text-[#3D8D7A]">每日任務</h2>
 
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200">
-                <th className="sticky left-0 z-10 w-48 border-r border-gray-200 bg-white px-4 py-3 text-left font-bold">
+                <th className="sticky left-0 z-10 w-48 border-r border-gray-200 bg-white p-1 text-left font-bold md:px-4 md:py-3">
                   習慣
                 </th>
+
                 {weekDays.map((day, index) => (
                   <th
                     key={index}

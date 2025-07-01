@@ -7,10 +7,11 @@ export default function Layout({ children }) {
   return (
     <>
       <AuthProvider>
-        <div className="min-h-screen bg-[#F2F2F2] px-6 pt-12">
+        <div className="min-h-screen bg-[#F2F2F2] px-2 pt-8 md:px-6 md:pt-12">
           <div className="container mx-auto flex flex-col gap-8 lg:flex-row">
             <Sidebar />
-            <main className="w-full lg:w-2/3">{children}</main>
+            {/* lg:w-2/3 */}
+            <main className="w-full max-w-6xl">{children}</main>
           </div>
         </div>
       </AuthProvider>

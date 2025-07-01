@@ -7,9 +7,9 @@ export default function TaskRow({ task, weekDays, onToggleTask }) {
 
   return (
     <tr className="border-b border-gray-100 hover:bg-gray-50">
-      <td className="sticky left-0 z-10 border-r border-gray-200 bg-white px-4 py-4">
+      <td className="sticky left-0 z-10 max-w-[180px] min-w-[120px] border-r border-gray-200 bg-white p-1 md:p-4">
         <div className="flex items-center gap-3">
-          <span className="whitespace-nowrap">{task.name}</span>
+          <span className="break-words whitespace-normal">{task.name}</span>
         </div>
       </td>
       {task.completedDays.map((completed, dayIndex) => (
@@ -18,7 +18,7 @@ export default function TaskRow({ task, weekDays, onToggleTask }) {
             onClick={() => onToggleTask(task.id, dayIndex)}
             className={`mx-auto flex h-7 w-7 cursor-pointer items-center justify-center rounded transition-colors ${
               completed
-                ? 'bg-[#B3D8A8] text-white'
+                ? 'bg-[#317162] text-white'
                 : 'border-2 border-gray-300 hover:border-[#A3D1C6] hover:bg-[#ecf4f2]'
             }`}
           >
