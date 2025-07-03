@@ -6,7 +6,7 @@ import db from "./config/connect-mysql.js";
 
 // 引入路由
 import authRoutes from "./routes/auth.js";
-// import habitRoutes from "./routes/habits.js";
+import habitRoutes from "./routes/habits.js";
 // import logRoutes from "./routes/logs.js";
 // import noteRoutes from "./routes/notes.js";
 
@@ -44,7 +44,7 @@ app.get("/", (req, res) => {
 
 // *** 自訂路由 ***
 app.use("/api/auth", authRoutes);
-// app.use("/api/habits", habitRoutes);
+app.use("/api/habits", habitRoutes);
 // app.use("/api/logs", logRoutes);
 // app.use("/api/notes", noteRoutes);
 
