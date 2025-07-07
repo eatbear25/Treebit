@@ -122,17 +122,47 @@ router.delete("/:habitId", authenticate, async (req, res) => {
     const habitId = req.params.habitId;
     const userId = req.user.id;
 
-    await db.query(
-      `DELETE hw, hwt, htl, hwn
-      FROM habits h
-      LEFT JOIN habit_weeks hw ON hw.habit_id = h.id
-      LEFT JOIN habit_week_tasks hwt ON hwt.habit_week_id = hw.id
-      LEFT JOIN habit_task_logs htl ON htl.task_id = hwt.id
-      LEFT JOIN habit_weekly_notes hwn ON hwn.habit_week_id = hw.id
-      WHERE h.id = ? AND h.user_id = ?`,
-      [habitId, userId]
+    // 先找 habit 所有 week id
+    const [weeks] = await db.query(
+      `SELECT id FROM habit_weeks WHERE habit_id = ?`,
+      [habitId]
     );
 
+    const weekIds = weeks.map((w) => w.id);
+
+    if (weekIds.length > 0) {
+      // 找所有 task id
+      const [tasks] = await db.query(
+        `SELECT id FROM habit_week_tasks WHERE habit_week_id IN (?)`,
+        [weekIds]
+      );
+
+      const taskIds = tasks.map((t) => t.id);
+
+      if (taskIds.length > 0) {
+        // 刪 logs
+        await db.query(`DELETE FROM habit_task_logs WHERE task_id IN (?)`, [
+          taskIds,
+        ]);
+      }
+
+      // 刪 tasks
+      await db.query(
+        `DELETE FROM habit_week_tasks WHERE habit_week_id IN (?)`,
+        [weekIds]
+      );
+
+      // 刪 notes
+      await db.query(
+        `DELETE FROM habit_weekly_notes WHERE habit_week_id IN (?)`,
+        [weekIds]
+      );
+
+      // 刪 weeks
+      await db.query(`DELETE FROM habit_weeks WHERE id IN (?)`, [weekIds]);
+    }
+
+    // 最後刪 habit
     await db.query(`DELETE FROM habits WHERE id = ? AND user_id = ?`, [
       habitId,
       userId,

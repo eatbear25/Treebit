@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { useRouter, useParams } from 'next/navigation'
 
 import { PiArrowBendUpLeft } from 'react-icons/pi'
 
@@ -9,88 +9,358 @@ import HabitHeader from '../_components/HabitHeader'
 import TaskTable from '../_components/TaskTable'
 import WeeklyNotes from '../_components/WeeklyNotes'
 
-export default function HabitTracker({ challengeStartDate = '2025-06-12' }) {
-  const [currentWeekIndex, setCurrentWeekIndex] = useState(0)
-  const totalWeeks = 10
-  const challengeName = '學吉他'
-
+export default function HabitTracker() {
+  const params = useParams()
+  const habitId = params.habitId
   const router = useRouter()
 
-  const handleGoBack = () => {
-    router.push('/habits')
+  const [currentWeekIndex, setCurrentWeekIndex] = useState(0)
+  const [habit, setHabit] = useState(null)
+  const [allWeeks, setAllWeeks] = useState([])
+  const [currentWeekData, setCurrentWeekData] = useState(null)
+  const [tasks, setTasks] = useState([])
+  const [weeklyNotes, setWeeklyNotes] = useState([])
+  const [taskLogs, setTaskLogs] = useState({})
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [isWeekDataLoading, setIsWeekDataLoading] = useState(true)
+
+  const API_BASE = 'http://localhost:3001/api/habits'
+
+  const fetchHabit = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/${habitId}`, {
+        credentials: 'include',
+      })
+      const data = await res.json()
+      if (data.success) {
+        setHabit(data.data)
+      } else {
+        setError('找不到該習慣')
+      }
+    } catch (err) {
+      console.error('獲取習慣資訊錯誤:', err)
+      setError('載入習慣資訊失敗')
+    }
   }
 
-  // ! 假資料，之後替代
-  const [tasksByWeek, setTasksByWeek] = useState({
-    0: [
-      {
-        id: 1,
-        name: '畫畫30分鐘',
-        completedDays: [true, false, true, true, true, false, false],
-        targetDays: 4,
-        completedCount: 4,
-      },
-      {
-        id: 2,
-        name: '學習繪畫技巧每天至少20分鐘學習繪畫技巧每天至少20分鐘畫技巧每天至少20分鐘',
-        completedDays: [true, true, true, false, false, false, false],
-        targetDays: 7,
-        completedCount: 3,
-      },
-      {
-        id: 3,
-        name: '運動',
-        completedDays: [true, false, true, false, false, false, false],
-        targetDays: 7,
-        completedCount: 2,
-      },
-    ],
-  })
+  const fetchAllWeeks = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/${habitId}/weeks`, {
+        credentials: 'include',
+      })
+      const data = await res.json()
+      if (data.success) {
+        setAllWeeks(data.data)
+      }
+    } catch (err) {
+      console.error('獲取週次資料錯誤:', err)
+      setError('載入週次資料失敗')
+    }
+  }
 
-  const [weeklyNotesByWeek, setWeeklyNotesByWeek] = useState({
-    0: [
-      {
-        id: 1,
-        date: '2025-06-11',
-        content: '這禮拜要記得企鵝造型',
-      },
-    ],
-  })
+  const fetchCurrentWeekTasks = async (weekId) => {
+    try {
+      const res = await fetch(`${API_BASE}/weeks/${weekId}/tasks`, {
+        credentials: 'include',
+      })
+      const data = await res.json()
+      if (data.success) {
+        setTasks(data.data)
+      }
+    } catch (err) {
+      console.error('獲取任務資料錯誤:', err)
+    }
+  }
 
-  // 計算當前週的日期範圍
+  const fetchCurrentWeekNotes = async (weekId) => {
+    try {
+      const res = await fetch(`${API_BASE}/weeks/${weekId}/notes`, {
+        credentials: 'include',
+      })
+      const data = await res.json()
+      if (data.success) {
+        setWeeklyNotes(data.data)
+      }
+    } catch (err) {
+      console.error('獲取筆記資料錯誤:', err)
+    }
+  }
+
+  const fetchCurrentWeekLogs = async (weekId) => {
+    try {
+      const res = await fetch(`${API_BASE}/weeks/${weekId}/logs`, {
+        credentials: 'include',
+      })
+      const data = await res.json()
+      if (data.success) {
+        console.log('獲取的打卡記錄:', data.data)
+
+        const logsMap = {}
+        data.data.forEach((log) => {
+          const taskId = Number(log.task_id)
+          if (!logsMap[taskId]) {
+            logsMap[taskId] = {}
+          }
+
+          const tzDate = new Date(log.date)
+          tzDate.setHours(tzDate.getHours() + 8)
+
+          const year = tzDate.getFullYear()
+          const month = String(tzDate.getMonth() + 1).padStart(2, '0')
+          const day = String(tzDate.getDate()).padStart(2, '0')
+
+          const dateStr = `${year}-${month}-${day}`
+
+          logsMap[taskId][dateStr] = log.is_completed === 1
+        })
+
+        console.log('轉換後的打卡記錄:', logsMap)
+        setTaskLogs(logsMap)
+      }
+    } catch (err) {
+      console.error('獲取打卡記錄錯誤:', err)
+    }
+  }
+
   const getCurrentWeekDates = () => {
-    const startDate = new Date(challengeStartDate)
-    const currentWeekStart = new Date(startDate)
-    currentWeekStart.setDate(startDate.getDate() + currentWeekIndex * 7)
+    if (!currentWeekData) return []
 
+    const startDate = new Date(currentWeekData.start_date)
     const weekDates = []
+
     for (let i = 0; i < 7; i++) {
-      const date = new Date(currentWeekStart)
-      date.setDate(currentWeekStart.getDate() + i)
+      const date = new Date(startDate)
+      date.setDate(startDate.getDate() + i)
+
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+
       weekDates.push({
         short: `${date.getMonth() + 1}/${date.getDate()}`,
-        full: date.toISOString().split('T')[0],
+        full: `${year}-${month}-${day}`,
       })
     }
 
     return weekDates
   }
 
-  const weekDates = getCurrentWeekDates()
-  const weekDays = weekDates.map((d) => d.short)
-  const currentWeek = `第 ${currentWeekIndex + 1} 週`
-  const weekRange = `${weekDates[0].short} - ${weekDates[6].short}`
+  const getFormattedTasks = () => {
+    const weekDates = getCurrentWeekDates()
 
-  const getCurrentWeekTasks = () => {
-    return tasksByWeek[currentWeekIndex] || []
+    return tasks.map((task) => {
+      const completedDays = weekDates.map((date) => {
+        const isCompleted = taskLogs[task.id]?.[date.full] || false
+        return isCompleted
+      })
+
+      const completedCount = completedDays.filter(Boolean).length
+
+      return {
+        id: task.id,
+        name: task.name,
+        completedDays,
+        targetDays: task.target_days,
+        completedCount,
+      }
+    })
   }
 
-  const getCurrentWeekNotes = () => {
-    return weeklyNotesByWeek[currentWeekIndex] || []
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true)
+      await Promise.all([fetchHabit(), fetchAllWeeks()])
+      setLoading(false)
+    }
+
+    if (habitId) {
+      loadData()
+    }
+  }, [habitId])
+
+  useEffect(() => {
+    if (allWeeks.length > 0 && currentWeekIndex < allWeeks.length) {
+      const currentWeek = allWeeks[currentWeekIndex]
+      setCurrentWeekData(currentWeek)
+
+      const loadCurrentWeekData = async () => {
+        setIsWeekDataLoading(true)
+        await fetchCurrentWeekTasks(currentWeek.id)
+        await fetchCurrentWeekNotes(currentWeek.id)
+        await fetchCurrentWeekLogs(currentWeek.id)
+        setIsWeekDataLoading(false)
+      }
+
+      loadCurrentWeekData()
+    }
+  }, [allWeeks, currentWeekIndex])
+
+  const handleToggleTask = async (taskId, dayIndex) => {
+    const weekDates = getCurrentWeekDates()
+    if (!weekDates[dayIndex]) return
+
+    const date = weekDates[dayIndex].full
+    const currentStatus = taskLogs[taskId]?.[date] || false
+    const newStatus = !currentStatus
+
+    try {
+      const res = await fetch(`${API_BASE}/tasks/${taskId}/logs`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          date,
+          is_completed: newStatus,
+        }),
+      })
+
+      const data = await res.json()
+      if (data.success) {
+        setTaskLogs((prev) => ({
+          ...prev,
+          [taskId]: {
+            ...prev[taskId],
+            [date]: newStatus,
+          },
+        }))
+      } else {
+        console.error('更新打卡失敗:', data.message)
+      }
+    } catch (err) {
+      console.error('更新打卡錯誤:', err)
+    }
   }
 
-  const tasks = getCurrentWeekTasks()
-  const weeklyNotes = getCurrentWeekNotes()
+  const handleAddTask = async () => {
+    const taskName = prompt('請輸入任務名稱:')
+    if (!taskName || !taskName.trim()) return
+
+    const targetDays = prompt('請輸入目標天數 (1-7):', '7')
+    if (!targetDays || isNaN(targetDays) || targetDays < 1 || targetDays > 7) {
+      alert('目標天數必須是 1-7 之間的數字')
+      return
+    }
+
+    if (!currentWeekData) return
+
+    try {
+      const res = await fetch(`${API_BASE}/weeks/${currentWeekData.id}/tasks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          name: taskName.trim(),
+          target_days: parseInt(targetDays),
+        }),
+      })
+
+      const data = await res.json()
+      if (data.success) {
+        await fetchCurrentWeekTasks(currentWeekData.id)
+        await fetchCurrentWeekLogs(currentWeekData.id)
+      } else {
+        alert('新增任務失敗: ' + data.message)
+      }
+    } catch (err) {
+      console.error('新增任務錯誤:', err)
+      alert('新增任務失敗，請稍後再試')
+    }
+  }
+
+  const handleAddNote = async () => {
+    const noteContent = prompt('請輸入筆記內容:')
+    if (!noteContent || !noteContent.trim()) return
+
+    if (!currentWeekData) return
+
+    try {
+      const res = await fetch(`${API_BASE}/weeks/${currentWeekData.id}/notes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          content: noteContent.trim(),
+        }),
+      })
+
+      const data = await res.json()
+      if (data.success) {
+        fetchCurrentWeekNotes(currentWeekData.id)
+      } else {
+        alert('新增筆記失敗: ' + data.message)
+      }
+    } catch (err) {
+      console.error('新增筆記錯誤:', err)
+      alert('新增筆記失敗，請稍後再試')
+    }
+  }
+
+  const handleEditNote = async (noteId) => {
+    const currentNote = weeklyNotes.find((note) => note.id === noteId)
+    if (!currentNote) return
+
+    const noteContent = prompt('請編輯筆記內容:', currentNote.content)
+    if (noteContent === null) return
+    if (!noteContent.trim()) {
+      alert('筆記內容不能為空')
+      return
+    }
+
+    if (!currentWeekData) return
+
+    try {
+      const res = await fetch(`${API_BASE}/weeks/${currentWeekData.id}/notes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          content: noteContent.trim(),
+        }),
+      })
+
+      const data = await res.json()
+      if (data.success) {
+        fetchCurrentWeekNotes(currentWeekData.id)
+      } else {
+        alert('編輯筆記失敗: ' + data.message)
+      }
+    } catch (err) {
+      console.error('編輯筆記錯誤:', err)
+      alert('編輯筆記失敗，請稍後再試')
+    }
+  }
+
+  const handleDeleteNote = async (noteId) => {
+    if (!confirm('確定要刪除這則筆記嗎？')) return
+
+    if (!currentWeekData) return
+
+    try {
+      const res = await fetch(`${API_BASE}/weeks/${currentWeekData.id}/notes`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+
+      const data = await res.json()
+      if (data.success) {
+        fetchCurrentWeekNotes(currentWeekData.id)
+      } else {
+        alert('刪除筆記失敗: ' + data.message)
+      }
+    } catch (err) {
+      console.error('刪除筆記錯誤:', err)
+      alert('刪除筆記失敗，請稍後再試')
+    }
+  }
 
   const goToPreviousWeek = () => {
     if (currentWeekIndex > 0) {
@@ -99,77 +369,68 @@ export default function HabitTracker({ challengeStartDate = '2025-06-12' }) {
   }
 
   const goToNextWeek = () => {
-    if (currentWeekIndex < totalWeeks - 1) {
+    if (currentWeekIndex < allWeeks.length - 1) {
       setCurrentWeekIndex(currentWeekIndex + 1)
-
-      if (!tasksByWeek[currentWeekIndex + 1]) {
-        const newWeekTasks = tasksByWeek[0].map((task) => ({
-          ...task,
-          completedDays: [false, false, false, false, false, false, false],
-          completedCount: 0,
-        }))
-
-        setTasksByWeek((prev) => ({
-          ...prev,
-          [currentWeekIndex + 1]: newWeekTasks,
-        }))
-      }
     }
   }
 
-  const handleToggleTask = (taskId, dayIndex) => {
-    const updatedTasks = tasks.map((task) => {
-      if (task.id === taskId) {
-        const newCompletedDays = [...task.completedDays]
-        newCompletedDays[dayIndex] = !newCompletedDays[dayIndex]
-        const newCompletedCount = newCompletedDays.filter(Boolean).length
-        return {
-          ...task,
-          completedDays: newCompletedDays,
-          completedCount: newCompletedCount,
-        }
-      }
-      return task
-    })
-
-    setTasksByWeek((prev) => ({
-      ...prev,
-      [currentWeekIndex]: updatedTasks,
-    }))
+  const handleGoBack = () => {
+    router.push('/habits')
   }
 
-  const handleAddTask = () => {
-    console.log('增加新任務')
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">載入中...</div>
+    )
   }
 
-  const handleAddNote = () => {
-    console.log('增加筆記')
+  if (error) {
+    return (
+      <div className="flex h-screen items-center justify-center text-red-500">
+        {error}
+      </div>
+    )
   }
 
-  const handleEditNote = (noteId) => {
-    console.log('編輯筆記:', noteId)
+  if (!habit || !currentWeekData) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        找不到資料
+      </div>
+    )
   }
 
-  const handleDeleteNote = (noteId) => {
-    console.log('刪除筆記:', noteId)
+  if (isWeekDataLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        載入本週資料中...
+      </div>
+    )
   }
+
+  const weekDates = getCurrentWeekDates()
+  const weekDays = weekDates.map((d) => d.short)
+  const currentWeek = `第 ${currentWeekIndex + 1} 週`
+  const weekRange =
+    weekDates.length > 0 ? `${weekDates[0].short} - ${weekDates[6].short}` : ''
+  const formattedTasks = getFormattedTasks()
 
   return (
     <div>
       <HabitHeader
-        challengeName={challengeName}
-        totalWeeks={totalWeeks}
+        challengeName={habit.title}
+        totalWeeks={habit.total_weeks}
         currentWeek={currentWeek}
         weekRange={weekRange}
         onPreviousWeek={goToPreviousWeek}
         onNextWeek={goToNextWeek}
         canGoPrevious={currentWeekIndex > 0}
-        canGoNext={currentWeekIndex < totalWeeks - 1}
+        canGoNext={currentWeekIndex < allWeeks.length - 1}
         currentWeekIndex={currentWeekIndex}
       />
 
       <TaskTable
-        tasks={tasks}
+        tasks={formattedTasks}
         weekDays={weekDays}
         onToggleTask={handleToggleTask}
         onAddTask={handleAddTask}

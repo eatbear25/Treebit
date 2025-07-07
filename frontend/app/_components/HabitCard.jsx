@@ -26,7 +26,7 @@ export default function HabitCard({
   const router = useRouter()
 
   const handleViewTask = () => {
-    router.push(`/habits/${title}`)
+    router.push(`/habits/${id}`)
   }
 
   const deleteHabit = async function (habitId) {
