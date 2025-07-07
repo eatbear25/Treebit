@@ -2,6 +2,7 @@
 
 import Sidebar from '../_components/Sidebar'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { Toaster } from 'sonner'
 
 export default function Layout({ children }) {
   return (
@@ -11,7 +12,10 @@ export default function Layout({ children }) {
           <div className="container mx-auto flex flex-col gap-8 lg:flex-row">
             <Sidebar />
             {/* lg:w-2/3 */}
-            <main className="w-full max-w-6xl">{children}</main>
+            <main className="w-full max-w-6xl">
+              {children}
+              <Toaster position="top-center" richColors />
+            </main>
           </div>
         </div>
       </AuthProvider>

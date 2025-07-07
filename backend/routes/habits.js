@@ -54,13 +54,7 @@ router.post("/", authenticate, async (req, res) => {
       );
     }
 
-    sendResponse(
-      res,
-      201,
-      true,
-      { habit_id: habitId },
-      "新增習慣成功，已建立對應週次"
-    );
+    sendResponse(res, 201, true, { habit_id: habitId }, "新增習慣成功");
   } catch (error) {
     console.error(error);
     sendResponse(res, 500, false, null, "建立習慣失敗");
