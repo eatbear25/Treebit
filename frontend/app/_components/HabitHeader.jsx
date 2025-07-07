@@ -2,6 +2,7 @@
 import { logout as logoutApi } from '@/utils/auth'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { HabitForm } from './HabitForm'
 
 import { PiGearBold } from 'react-icons/pi'
 
@@ -17,10 +18,10 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 
-export default function HabitHeader() {
+export default function HabitHeader({ habitsNum, onHabitAdded }) {
   const router = useRouter()
 
-  const handleLogout = async (values) => {
+  const handleLogout = async () => {
     console.log('按下登出')
     try {
       await logoutApi()
@@ -34,10 +35,11 @@ export default function HabitHeader() {
   return (
     <div className="mb-8 flex items-center justify-between">
       <div className="flex items-center gap-1 text-xl font-bold">
-        2個習慣
-        <button className="cursor-pointer rounded-lg px-3 py-1 text-3xl transition hover:bg-[#C8CACD] active:scale-95">
+        {habitsNum} 個習慣
+        {/* <button className="cursor-pointer rounded-lg px-3 py-1 text-3xl transition hover:bg-[#C8CACD] active:scale-95">
           +
-        </button>
+        </button> */}
+        <HabitForm onHabitAdded={onHabitAdded} />
       </div>
 
       <div>
@@ -47,8 +49,10 @@ export default function HabitHeader() {
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>待完工區域</AlertDialogTitle>
-              <AlertDialogDescription>親愛的歡迎你!</AlertDialogDescription>
+              <AlertDialogTitle>登出</AlertDialogTitle>
+              <AlertDialogDescription>
+                您即將登出，確定要繼續嗎？
+              </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>關閉</AlertDialogCancel>
