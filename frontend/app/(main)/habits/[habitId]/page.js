@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import { toast } from 'sonner'
 
 import { PiArrowBendUpLeft } from 'react-icons/pi'
 
@@ -234,16 +235,7 @@ export default function HabitTracker() {
     }
   }
 
-  const handleAddTask = async () => {
-    const taskName = prompt('請輸入任務名稱:')
-    if (!taskName || !taskName.trim()) return
-
-    const targetDays = prompt('請輸入目標天數 (1-7):', '7')
-    if (!targetDays || isNaN(targetDays) || targetDays < 1 || targetDays > 7) {
-      alert('目標天數必須是 1-7 之間的數字')
-      return
-    }
-
+  const handleAddTask = async (values) => {
     if (!currentWeekData) return
 
     try {
@@ -254,21 +246,23 @@ export default function HabitTracker() {
         },
         credentials: 'include',
         body: JSON.stringify({
-          name: taskName.trim(),
-          target_days: parseInt(targetDays),
+          name: values.name,
+          target_days: parseInt(values.target_days),
         }),
       })
 
       const data = await res.json()
+
       if (data.success) {
+        toast.success('新增任務成功！')
         await fetchCurrentWeekTasks(currentWeekData.id)
         await fetchCurrentWeekLogs(currentWeekData.id)
       } else {
-        alert('新增任務失敗: ' + data.message)
+        toast.error(data.message || '新增任務失敗')
       }
     } catch (err) {
       console.error('新增任務錯誤:', err)
-      alert('新增任務失敗，請稍後再試')
+      toast.error('新增任務失敗，請稍後再試')
     }
   }
 
