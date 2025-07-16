@@ -18,6 +18,61 @@ const sendResponse = (
   res.status(status).json(response);
 };
 
+/**
+ * 檢查 habit 是否屬於該 user
+ */
+async function checkHabitOwner(habitId, userId) {
+  const [rows] = await db.query(
+    `SELECT * FROM habits WHERE id = ? AND user_id = ?`,
+    [habitId, userId]
+  );
+  return rows.length > 0;
+}
+
+/**
+ * 檢查 week 是否屬於該 user
+ */
+async function checkWeekOwner(weekId, userId) {
+  const [rows] = await db.query(
+    `SELECT h.* 
+     FROM habit_weeks hw
+     JOIN habits h ON h.id = hw.habit_id
+     WHERE hw.id = ? AND h.user_id = ?`,
+    [weekId, userId]
+  );
+  return rows.length > 0;
+}
+
+/**
+ * 檢查 task 是否屬於該 user
+ */
+async function checkTaskOwner(taskId, userId) {
+  const [rows] = await db.query(
+    `SELECT h.*
+     FROM habit_week_tasks hwt
+     JOIN habit_weeks hw ON hw.id = hwt.habit_week_id
+     JOIN habits h ON h.id = hw.habit_id
+     WHERE hwt.id = ? AND h.user_id = ?`,
+    [taskId, userId]
+  );
+  return rows.length > 0;
+}
+
+/**
+ * 檢查 note 是否屬於該 user
+ */
+async function checkNoteOwner(noteId, userId) {
+  const [rows] = await db.query(
+    `SELECT h.*
+     FROM habit_weekly_notes hwn
+     JOIN habit_weeks hw ON hw.id = hwn.habit_week_id
+     JOIN habits h ON h.id = hw.habit_id
+     WHERE hwn.id = ? AND h.user_id = ?`,
+    [noteId, userId]
+  );
+  return rows.length > 0;
+}
+
 // --- 習慣 ---
 
 // 建立習慣
@@ -122,6 +177,11 @@ router.delete("/:habitId", authenticate, async (req, res) => {
     const habitId = req.params.habitId;
     const userId = req.user.id;
 
+    const isOwner = await checkHabitOwner(habitId, userId);
+    if (!isOwner) {
+      return sendResponse(res, 403, false, null, "無權刪除此習慣");
+    }
+
     // 先找 habit 所有 week id
     const [weeks] = await db.query(
       `SELECT id FROM habit_weeks WHERE habit_id = ?`,
@@ -179,6 +239,12 @@ router.delete("/:habitId", authenticate, async (req, res) => {
 router.get("/:habitId/weeks", authenticate, async (req, res) => {
   try {
     const habitId = req.params.habitId;
+    const userId = req.user.id;
+
+    const isOwner = await checkHabitOwner(habitId, userId);
+    if (!isOwner) {
+      return sendResponse(res, 403, false, null, "無權存取此習慣");
+    }
 
     const [rows] = await db.query(
       `SELECT * FROM habit_weeks WHERE habit_id = ?`,
@@ -196,6 +262,12 @@ router.get("/:habitId/weeks", authenticate, async (req, res) => {
 router.delete("/weeks/:weekId", authenticate, async (req, res) => {
   try {
     const weekId = req.params.weekId;
+    const userId = req.user.id;
+
+    const isOwner = await checkWeekOwner(weekId, userId);
+    if (!isOwner) {
+      return sendResponse(res, 403, false, null, "無權刪除此週次");
+    }
 
     await db.query(
       `DELETE hwt, htl, hwn
@@ -222,8 +294,14 @@ router.delete("/weeks/:weekId", authenticate, async (req, res) => {
 router.post("/weeks/:weekId/tasks", authenticate, async (req, res) => {
   try {
     const weekId = req.params.weekId;
-    const { name, target_days } = req.body;
+    const userId = req.user.id;
 
+    const isOwner = await checkWeekOwner(weekId, userId);
+    if (!isOwner) {
+      return sendResponse(res, 403, false, null, "無權新增任務至此週次");
+    }
+
+    const { name, target_days } = req.body;
     if (!name || !target_days) {
       return sendResponse(res, 400, false, null, "任務名稱和目標天數必填");
     }
@@ -245,6 +323,12 @@ router.post("/weeks/:weekId/tasks", authenticate, async (req, res) => {
 router.get("/weeks/:weekId/tasks", authenticate, async (req, res) => {
   try {
     const weekId = req.params.weekId;
+    const userId = req.user.id;
+
+    const isOwner = await checkWeekOwner(weekId, userId);
+    if (!isOwner) {
+      return sendResponse(res, 403, false, null, "無權查詢此週次的任務");
+    }
 
     const [rows] = await db.query(
       `SELECT * FROM habit_week_tasks WHERE habit_week_id = ?`,
@@ -261,10 +345,15 @@ router.get("/weeks/:weekId/tasks", authenticate, async (req, res) => {
 // 編輯任務
 router.patch("/weeks/:weekId/tasks/:taskId", authenticate, async (req, res) => {
   try {
-    const weekId = req.params.weekId;
     const taskId = req.params.taskId;
-    const { name, target_days } = req.body;
+    const userId = req.user.id;
 
+    const isOwner = await checkTaskOwner(taskId, userId);
+    if (!isOwner) {
+      return sendResponse(res, 403, false, null, "無權編輯此任務");
+    }
+
+    const { name, target_days } = req.body;
     if (!name || !target_days) {
       return sendResponse(res, 400, false, null, "任務名稱和目標次數必填");
     }
@@ -272,8 +361,8 @@ router.patch("/weeks/:weekId/tasks/:taskId", authenticate, async (req, res) => {
     await db.query(
       `UPDATE habit_week_tasks
        SET name = ?, target_days = ?
-       WHERE id = ? AND habit_week_id = ?`,
-      [name, target_days, taskId, weekId]
+       WHERE id = ?`,
+      [name, target_days, taskId]
     );
 
     sendResponse(res, 200, true, null, "編輯任務成功");
@@ -287,6 +376,12 @@ router.patch("/weeks/:weekId/tasks/:taskId", authenticate, async (req, res) => {
 router.delete("/tasks/:taskId", authenticate, async (req, res) => {
   try {
     const taskId = req.params.taskId;
+    const userId = req.user.id;
+
+    const isOwner = await checkTaskOwner(taskId, userId);
+    if (!isOwner) {
+      return sendResponse(res, 403, false, null, "無權刪除此任務");
+    }
 
     await db.query(`DELETE FROM habit_task_logs WHERE task_id = ?`, [taskId]);
     await db.query(`DELETE FROM habit_week_tasks WHERE id = ?`, [taskId]);
@@ -304,13 +399,18 @@ router.delete("/tasks/:taskId", authenticate, async (req, res) => {
 router.patch("/tasks/:taskId/logs", authenticate, async (req, res) => {
   try {
     const taskId = req.params.taskId;
-    const { date, is_completed } = req.body;
+    const userId = req.user.id;
 
+    const isOwner = await checkTaskOwner(taskId, userId);
+    if (!isOwner) {
+      return sendResponse(res, 403, false, null, "無權修改此任務打卡");
+    }
+
+    const { date, is_completed } = req.body;
     if (!date) {
       return sendResponse(res, 400, false, null, "日期必填");
     }
 
-    // 強制轉成 0 或 1
     const completedValue =
       is_completed === true || is_completed === "true" ? 1 : 0;
 
@@ -326,7 +426,8 @@ router.patch("/tasks/:taskId/logs", authenticate, async (req, res) => {
       );
     } else {
       await db.query(
-        `INSERT INTO habit_task_logs (task_id, date, is_completed) VALUES (?, ?, ?)`,
+        `INSERT INTO habit_task_logs (task_id, date, is_completed)
+         VALUES (?, ?, ?)`,
         [taskId, date, completedValue]
       );
     }
@@ -344,8 +445,14 @@ router.patch("/tasks/:taskId/logs", authenticate, async (req, res) => {
 router.post("/weeks/:weekId/notes", authenticate, async (req, res) => {
   try {
     const weekId = req.params.weekId;
-    const { content } = req.body;
+    const userId = req.user.id;
 
+    const isOwner = await checkWeekOwner(weekId, userId);
+    if (!isOwner) {
+      return sendResponse(res, 403, false, null, "無權新增此週次筆記");
+    }
+
+    const { content } = req.body;
     if (!content) {
       return sendResponse(res, 400, false, null, "筆記內容不能為空");
     }
@@ -366,9 +473,15 @@ router.post("/weeks/:weekId/notes", authenticate, async (req, res) => {
 router.get("/weeks/:weekId/notes", authenticate, async (req, res) => {
   try {
     const weekId = req.params.weekId;
+    const userId = req.user.id;
+
+    const isOwner = await checkWeekOwner(weekId, userId);
+    if (!isOwner) {
+      return sendResponse(res, 403, false, null, "無權查詢此週次筆記");
+    }
 
     const [rows] = await db.query(
-      `SELECT * FROM habit_weekly_notes WHERE habit_week_id = ?`,
+      `SELECT * FROM habit_weekly_notes WHERE habit_week_id = ? ORDER BY created_at ASC`,
       [weekId]
     );
 
@@ -385,14 +498,15 @@ router.delete(
   authenticate,
   async (req, res) => {
     try {
-      const weekId = req.params.weekId;
       const noteId = req.params.noteId;
+      const userId = req.user.id;
 
-      await db.query(
-        `DELETE FROM habit_weekly_notes
-       WHERE id = ? AND habit_week_id = ?`,
-        [noteId, weekId]
-      );
+      const isOwner = await checkNoteOwner(noteId, userId);
+      if (!isOwner) {
+        return sendResponse(res, 403, false, null, "無權刪除此筆記");
+      }
+
+      await db.query(`DELETE FROM habit_weekly_notes WHERE id = ?`, [noteId]);
 
       sendResponse(res, 200, true, null, "刪除筆記成功");
     } catch (error) {
@@ -405,10 +519,15 @@ router.delete(
 // 編輯筆記
 router.patch("/weeks/:weekId/notes/:noteId", authenticate, async (req, res) => {
   try {
-    const weekId = req.params.weekId;
     const noteId = req.params.noteId;
-    const { content } = req.body;
+    const userId = req.user.id;
 
+    const isOwner = await checkNoteOwner(noteId, userId);
+    if (!isOwner) {
+      return sendResponse(res, 403, false, null, "無權編輯此筆記");
+    }
+
+    const { content } = req.body;
     if (!content) {
       return sendResponse(res, 400, false, null, "筆記內容不能為空");
     }
@@ -416,8 +535,8 @@ router.patch("/weeks/:weekId/notes/:noteId", authenticate, async (req, res) => {
     await db.query(
       `UPDATE habit_weekly_notes
        SET content = ?, updated_at = NOW()
-       WHERE id = ? AND habit_week_id = ?`,
-      [content, noteId, weekId]
+       WHERE id = ?`,
+      [content, noteId]
     );
 
     sendResponse(res, 200, true, null, "更新筆記成功");
@@ -431,10 +550,18 @@ router.patch("/weeks/:weekId/notes/:noteId", authenticate, async (req, res) => {
 router.get("/tasks/:taskId/logs", authenticate, async (req, res) => {
   try {
     const taskId = req.params.taskId;
+    const userId = req.user.id;
+
+    const isOwner = await checkTaskOwner(taskId, userId);
+    if (!isOwner) {
+      return sendResponse(res, 403, false, null, "無權查詢此任務的打卡紀錄");
+    }
+
     const [rows] = await db.query(
       `SELECT * FROM habit_task_logs WHERE task_id = ? ORDER BY date`,
       [taskId]
     );
+
     sendResponse(res, 200, true, rows);
   } catch (error) {
     console.error(error);
@@ -446,6 +573,13 @@ router.get("/tasks/:taskId/logs", authenticate, async (req, res) => {
 router.get("/weeks/:weekId/logs", authenticate, async (req, res) => {
   try {
     const weekId = req.params.weekId;
+    const userId = req.user.id;
+
+    const isOwner = await checkWeekOwner(weekId, userId);
+    if (!isOwner) {
+      return sendResponse(res, 403, false, null, "無權查看此週次資料");
+    }
+
     const [rows] = await db.query(
       `SELECT htl.*, hwt.name as task_name 
        FROM habit_task_logs htl
@@ -454,10 +588,11 @@ router.get("/weeks/:weekId/logs", authenticate, async (req, res) => {
        ORDER BY hwt.id, htl.date`,
       [weekId]
     );
+
     sendResponse(res, 200, true, rows);
   } catch (error) {
     console.error(error);
-    sendResponse(res, 500, false, null, "查詢打卡記錄失敗");
+    sendResponse(res, 500, false, null, "查詢打卡紀錄失敗");
   }
 });
 
@@ -467,14 +602,9 @@ router.get("/:habitId/stats", authenticate, async (req, res) => {
     const habitId = req.params.habitId;
     const userId = req.user.id;
 
-    // 確認習慣歸屬
-    const [habitCheck] = await db.query(
-      `SELECT * FROM habits WHERE id = ? AND user_id = ?`,
-      [habitId, userId]
-    );
-
-    if (habitCheck.length === 0) {
-      return sendResponse(res, 404, false, null, "找不到該習慣");
+    const isOwner = await checkHabitOwner(habitId, userId);
+    if (!isOwner) {
+      return sendResponse(res, 403, false, null, "無權查看此習慣統計");
     }
 
     // 計算統計資料

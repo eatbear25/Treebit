@@ -349,15 +349,7 @@ export default function HabitTracker() {
       if (data.success) {
         toast.success(data.message || '新增記事成功！')
 
-        // 新增成功，建立一個新 note
-        const newNote = {
-          id: data.data.note_id,
-          habit_week_id: currentWeekData.id,
-          content: content.trim(),
-          created_at: new Date().toISOString(), // 或者讓後端回傳 created_at
-        }
-
-        setWeeklyNotes((prev) => [newNote, ...prev])
+        await fetchCurrentWeekNotes(currentWeekData.id)
       } else {
         toast.error(data.message || '新增記事失敗')
         throw new Error(data.message || '新增記事失敗')

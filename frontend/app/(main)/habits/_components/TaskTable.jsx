@@ -75,7 +75,6 @@ export default function TaskTable({
       } else {
         // 新增
         await onAddTask(values)
-        toast.success('新增任務成功！')
       }
 
       setOpen(false)
