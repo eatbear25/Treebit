@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+
 import {
   Select,
   SelectContent,
@@ -50,6 +51,7 @@ export default function TaskTable({
   weekDays,
   onToggleTask,
   onAddTask,
+  onDeleteTask,
 }) {
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
@@ -117,6 +119,7 @@ export default function TaskTable({
                   task={task}
                   weekDays={weekDays}
                   onToggleTask={onToggleTask}
+                  onDeleteTask={onDeleteTask}
                 />
               ))}
             </tbody>

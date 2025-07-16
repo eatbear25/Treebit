@@ -4,6 +4,7 @@ import HabitHeader from '@/app/_components/HabitHeader'
 import HabitList from '@/app/_components/HabitList'
 import AuthGuard from '@/app/_components/AuthGuard'
 import { useEffect, useState } from 'react'
+import Loader from '@/app/_components/Loader'
 
 export default function Habits() {
   const [habits, setHabits] = useState([])
@@ -42,8 +43,8 @@ export default function Habits() {
     <AuthGuard>
       <HabitHeader habitsNum={habits.length} onHabitAdded={refreshHabits} />
       {loading ? (
-        <div className="flex h-32 items-center justify-center">
-          <div className="text-gray-500">載入中...</div>
+        <div className="flex justify-center">
+          <Loader />
         </div>
       ) : (
         <HabitList habits={habits} onHabitsChanged={refreshHabits} />

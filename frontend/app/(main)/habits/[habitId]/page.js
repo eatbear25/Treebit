@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { toast } from 'sonner'
 
 import { PiArrowBendUpLeft } from 'react-icons/pi'
-
+import Loader from '@/app/_components/Loader'
 import HabitHeader from '../_components/HabitHeader'
 import TaskTable from '../_components/TaskTable'
 import WeeklyNotes from '../_components/WeeklyNotes'
@@ -296,6 +296,32 @@ export default function HabitTracker() {
     }
   }
 
+  const handleDeleteTask = async (taskId) => {
+    // if (!confirm('確定要刪除這個任務嗎？')) return
+
+    if (!currentWeekData) return
+
+    try {
+      const res = await fetch(`${API_BASE}/tasks/${taskId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+
+      const data = await res.json()
+
+      if (data.success) {
+        toast.success('刪除任務成功！')
+        await fetchCurrentWeekTasks(currentWeekData.id)
+        await fetchCurrentWeekLogs(currentWeekData.id)
+      } else {
+        toast.error(data.message || '刪除任務失敗')
+      }
+    } catch (err) {
+      console.error('刪除任務錯誤:', err)
+      toast.error('刪除任務失敗，請稍後再試')
+    }
+  }
+
   const handleEditNote = async (noteId) => {
     const currentNote = weeklyNotes.find((note) => note.id === noteId)
     if (!currentNote) return
@@ -374,7 +400,9 @@ export default function HabitTracker() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center">載入中...</div>
+      <div className="flex justify-center">
+        <Loader />
+      </div>
     )
   }
 
@@ -428,6 +456,7 @@ export default function HabitTracker() {
         weekDays={weekDays}
         onToggleTask={handleToggleTask}
         onAddTask={handleAddTask}
+        onDeleteTask={handleDeleteTask}
       />
 
       <WeeklyNotes
