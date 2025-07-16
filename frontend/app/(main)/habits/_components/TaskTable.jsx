@@ -14,7 +14,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 
 import {
   Select,
@@ -126,6 +125,7 @@ export default function TaskTable({
           </table>
         </div>
 
+        {/* 新增任務彈窗 */}
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <button className="mt-6 flex cursor-pointer items-center gap-2 rounded-md border border-gray-400 px-4 py-2 transition hover:bg-gray-100 hover:text-gray-700 active:scale-97">

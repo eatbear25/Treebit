@@ -266,10 +266,7 @@ export default function HabitTracker() {
     }
   }
 
-  const handleAddNote = async () => {
-    const noteContent = prompt('請輸入筆記內容:')
-    if (!noteContent || !noteContent.trim()) return
-
+  const handleAddNote = async (content) => {
     if (!currentWeekData) return
 
     try {
@@ -280,19 +277,30 @@ export default function HabitTracker() {
         },
         credentials: 'include',
         body: JSON.stringify({
-          content: noteContent.trim(),
+          content: content.trim(),
         }),
       })
 
       const data = await res.json()
       if (data.success) {
-        fetchCurrentWeekNotes(currentWeekData.id)
+        toast.success(data.message || '新增記事成功！')
+
+        // 新增成功，建立一個新 note
+        const newNote = {
+          id: data.data.note_id,
+          habit_week_id: currentWeekData.id,
+          content: content.trim(),
+          created_at: new Date().toISOString(), // 或者讓後端回傳 created_at
+        }
+
+        setWeeklyNotes((prev) => [newNote, ...prev])
       } else {
-        alert('新增筆記失敗: ' + data.message)
+        toast.error(data.message || '新增記事失敗')
+        throw new Error(data.message || '新增記事失敗')
       }
     } catch (err) {
-      console.error('新增筆記錯誤:', err)
-      alert('新增筆記失敗，請稍後再試')
+      console.error('新增記事錯誤:', err)
+      throw err
     }
   }
 
@@ -322,63 +330,69 @@ export default function HabitTracker() {
     }
   }
 
-  const handleEditNote = async (noteId) => {
-    const currentNote = weeklyNotes.find((note) => note.id === noteId)
-    if (!currentNote) return
-
-    const noteContent = prompt('請編輯筆記內容:', currentNote.content)
-    if (noteContent === null) return
-    if (!noteContent.trim()) {
-      alert('筆記內容不能為空')
-      return
-    }
-
+  const handleEditNote = async (noteId, newContent) => {
     if (!currentWeekData) return
 
     try {
-      const res = await fetch(`${API_BASE}/weeks/${currentWeekData.id}/notes`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          content: noteContent.trim(),
-        }),
-      })
+      const res = await fetch(
+        `${API_BASE}/weeks/${currentWeekData.id}/notes/${noteId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            content: newContent,
+          }),
+        }
+      )
 
       const data = await res.json()
       if (data.success) {
-        fetchCurrentWeekNotes(currentWeekData.id)
+        setWeeklyNotes((prev) =>
+          prev.map((n) =>
+            n.id === noteId
+              ? {
+                  ...n,
+                  content: newContent,
+                  updated_at: new Date().toISOString(),
+                }
+              : n
+          )
+        )
+        return data.message || '編輯記事成功！'
       } else {
-        alert('編輯筆記失敗: ' + data.message)
+        throw new Error(data.message || '編輯記事失敗')
       }
     } catch (err) {
       console.error('編輯筆記錯誤:', err)
-      alert('編輯筆記失敗，請稍後再試')
+      throw err
     }
   }
 
   const handleDeleteNote = async (noteId) => {
-    if (!confirm('確定要刪除這則筆記嗎？')) return
-
     if (!currentWeekData) return
 
     try {
-      const res = await fetch(`${API_BASE}/weeks/${currentWeekData.id}/notes`, {
-        method: 'DELETE',
-        credentials: 'include',
-      })
+      const res = await fetch(
+        `${API_BASE}/weeks/${currentWeekData.id}/notes/${noteId}`,
+        {
+          method: 'DELETE',
+          credentials: 'include',
+        }
+      )
 
       const data = await res.json()
       if (data.success) {
-        fetchCurrentWeekNotes(currentWeekData.id)
+        setWeeklyNotes((prev) => prev.filter((n) => n.id !== noteId))
+        return data.message || '刪除記事成功！'
       } else {
-        alert('刪除筆記失敗: ' + data.message)
+        throw new Error(data.message || '刪除記事失敗')
       }
     } catch (err) {
-      console.error('刪除筆記錯誤:', err)
-      alert('刪除筆記失敗，請稍後再試')
+      console.error('刪除記事錯誤:', err)
+      throw err
     }
   }
 

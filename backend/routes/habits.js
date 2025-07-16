@@ -315,7 +315,7 @@ router.patch("/tasks/:taskId/logs", authenticate, async (req, res) => {
 
 // --- 每週筆記 ---
 
-// 新增/更新每週筆記
+// 新增每週筆記
 router.post("/weeks/:weekId/notes", authenticate, async (req, res) => {
   try {
     const weekId = req.params.weekId;
@@ -325,24 +325,12 @@ router.post("/weeks/:weekId/notes", authenticate, async (req, res) => {
       return sendResponse(res, 400, false, null, "筆記內容不能為空");
     }
 
-    const [exist] = await db.query(
-      `SELECT * FROM habit_weekly_notes WHERE habit_week_id = ?`,
-      [weekId]
+    const [result] = await db.query(
+      `INSERT INTO habit_weekly_notes (habit_week_id, content) VALUES (?, ?)`,
+      [weekId, content]
     );
 
-    if (exist.length > 0) {
-      await db.query(
-        `UPDATE habit_weekly_notes SET content = ?, updated_at = NOW() WHERE habit_week_id = ?`,
-        [content, weekId]
-      );
-      sendResponse(res, 200, true, null, "更新筆記成功");
-    } else {
-      await db.query(
-        `INSERT INTO habit_weekly_notes (habit_week_id, content) VALUES (?, ?)`,
-        [weekId, content]
-      );
-      sendResponse(res, 201, true, null, "新增筆記成功");
-    }
+    sendResponse(res, 201, true, { note_id: result.insertId }, "新增筆記成功");
   } catch (error) {
     console.error(error);
     sendResponse(res, 500, false, null, "筆記操作失敗");
@@ -367,18 +355,50 @@ router.get("/weeks/:weekId/notes", authenticate, async (req, res) => {
 });
 
 // 刪除每週筆記
-router.delete("/weeks/:weekId/notes", authenticate, async (req, res) => {
+router.delete(
+  "/weeks/:weekId/notes/:noteId",
+  authenticate,
+  async (req, res) => {
+    try {
+      const weekId = req.params.weekId;
+      const noteId = req.params.noteId;
+
+      await db.query(
+        `DELETE FROM habit_weekly_notes
+       WHERE id = ? AND habit_week_id = ?`,
+        [noteId, weekId]
+      );
+
+      sendResponse(res, 200, true, null, "刪除筆記成功");
+    } catch (error) {
+      console.error(error);
+      sendResponse(res, 500, false, null, "刪除筆記失敗");
+    }
+  }
+);
+
+// 編輯筆記
+router.patch("/weeks/:weekId/notes/:noteId", authenticate, async (req, res) => {
   try {
     const weekId = req.params.weekId;
+    const noteId = req.params.noteId;
+    const { content } = req.body;
 
-    await db.query(`DELETE FROM habit_weekly_notes WHERE habit_week_id = ?`, [
-      weekId,
-    ]);
+    if (!content) {
+      return sendResponse(res, 400, false, null, "筆記內容不能為空");
+    }
 
-    sendResponse(res, 200, true, null, "刪除筆記成功");
+    await db.query(
+      `UPDATE habit_weekly_notes
+       SET content = ?, updated_at = NOW()
+       WHERE id = ? AND habit_week_id = ?`,
+      [content, noteId, weekId]
+    );
+
+    sendResponse(res, 200, true, null, "更新筆記成功");
   } catch (error) {
     console.error(error);
-    sendResponse(res, 500, false, null, "刪除筆記失敗");
+    sendResponse(res, 500, false, null, "筆記更新失敗");
   }
 });
 
