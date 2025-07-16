@@ -51,9 +51,11 @@ export default function TaskTable({
   onToggleTask,
   onAddTask,
   onDeleteTask,
+  onEditTask,
 }) {
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
+  const [editingTask, setEditingTask] = useState(null)
 
   const form = useForm({
     resolver: zodResolver(taskSchema),
@@ -67,13 +69,21 @@ export default function TaskTable({
     setLoading(true)
 
     try {
-      await onAddTask(values)
+      if (editingTask) {
+        // 編輯
+        await onEditTask(editingTask.id, values)
+      } else {
+        // 新增
+        await onAddTask(values)
+        toast.success('新增任務成功！')
+      }
 
       setOpen(false)
+      setEditingTask(null)
       form.reset()
     } catch (err) {
       console.error(err)
-      toast.error('新增任務失敗')
+      toast.error(editingTask ? '編輯任務失敗' : '新增任務失敗')
     } finally {
       setLoading(false)
     }
@@ -119,25 +129,40 @@ export default function TaskTable({
                   weekDays={weekDays}
                   onToggleTask={onToggleTask}
                   onDeleteTask={onDeleteTask}
+                  onEditTask={(task) => {
+                    setEditingTask(task)
+                    setOpen(true)
+                    form.setValue('name', task.name)
+                    form.setValue('target_days', String(task.targetDays))
+                  }}
                 />
               ))}
             </tbody>
           </table>
         </div>
 
-        {/* 新增任務彈窗 */}
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <button className="mt-6 flex cursor-pointer items-center gap-2 rounded-md border border-gray-400 px-4 py-2 transition hover:bg-gray-100 hover:text-gray-700 active:scale-97">
+            <button
+              onClick={() => {
+                setEditingTask(null)
+                form.reset()
+                setOpen(true)
+              }}
+              className="mt-6 flex cursor-pointer items-center gap-2 rounded-md border border-gray-400 px-4 py-2 transition hover:bg-gray-100 hover:text-gray-700 active:scale-97"
+            >
               <span className="text-lg">+</span>
               <span>新增任務</span>
             </button>
           </DialogTrigger>
+
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>新增任務</DialogTitle>
+              <DialogTitle>{editingTask ? '編輯任務' : '新增任務'}</DialogTitle>
               <DialogDescription>
-                在這裡新增任務，完成後請點擊新增。
+                {editingTask
+                  ? '修改任務資料後，請點擊保存。'
+                  : '在這裡新增任務，完成後請點擊新增。'}
               </DialogDescription>
             </DialogHeader>
 
@@ -195,7 +220,13 @@ export default function TaskTable({
                     </Button>
                   </DialogClose>
                   <Button type="submit" disabled={loading}>
-                    {loading ? '新增中...' : '新增'}
+                    {loading
+                      ? editingTask
+                        ? '儲存中...'
+                        : '新增中...'
+                      : editingTask
+                        ? '保存'
+                        : '新增'}
                   </Button>
                 </DialogFooter>
               </form>

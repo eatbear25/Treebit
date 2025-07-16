@@ -258,6 +258,31 @@ router.get("/weeks/:weekId/tasks", authenticate, async (req, res) => {
   }
 });
 
+// 編輯任務
+router.patch("/weeks/:weekId/tasks/:taskId", authenticate, async (req, res) => {
+  try {
+    const weekId = req.params.weekId;
+    const taskId = req.params.taskId;
+    const { name, target_days } = req.body;
+
+    if (!name || !target_days) {
+      return sendResponse(res, 400, false, null, "任務名稱和目標次數必填");
+    }
+
+    await db.query(
+      `UPDATE habit_week_tasks
+       SET name = ?, target_days = ?
+       WHERE id = ? AND habit_week_id = ?`,
+      [name, target_days, taskId, weekId]
+    );
+
+    sendResponse(res, 200, true, null, "編輯任務成功");
+  } catch (error) {
+    console.error(error);
+    sendResponse(res, 500, false, null, "編輯任務失敗");
+  }
+});
+
 // 刪除任務
 router.delete("/tasks/:taskId", authenticate, async (req, res) => {
   try {

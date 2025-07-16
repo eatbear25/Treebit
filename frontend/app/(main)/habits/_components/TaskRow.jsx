@@ -24,6 +24,7 @@ export default function TaskRow({
   weekDays,
   onToggleTask,
   onDeleteTask,
+  onEditTask,
 }) {
   const [openConfirm, setOpenConfirm] = useState(false)
 
@@ -50,6 +51,13 @@ export default function TaskRow({
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
+                <DropdownMenuItem
+                  onClick={() => onEditTask(task)}
+                  className="cursor-pointer"
+                >
+                  編輯
+                </DropdownMenuItem>
+
                 <DropdownMenuItem
                   onClick={() => setOpenConfirm(true)}
                   className="cursor-pointer text-red-500"

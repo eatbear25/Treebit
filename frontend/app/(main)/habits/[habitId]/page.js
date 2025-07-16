@@ -235,6 +235,7 @@ export default function HabitTracker() {
     }
   }
 
+  // 任務 CRUD
   const handleAddTask = async (values) => {
     if (!currentWeekData) return
 
@@ -266,6 +267,69 @@ export default function HabitTracker() {
     }
   }
 
+  const handleEditTask = async (taskId, values) => {
+    if (!currentWeekData) return
+
+    try {
+      const res = await fetch(
+        `${API_BASE}/weeks/${currentWeekData.id}/tasks/${taskId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            name: values.name,
+            target_days: parseInt(values.target_days),
+          }),
+        }
+      )
+
+      const data = await res.json()
+      if (data.success) {
+        toast.success(data.message || '編輯任務成功！')
+        await fetchCurrentWeekTasks(currentWeekData.id)
+        await fetchCurrentWeekLogs(currentWeekData.id)
+        return data.message || '編輯任務成功！'
+      } else {
+        toast.error(data.message || '編輯任務失敗')
+        throw new Error(data.message || '編輯任務失敗')
+      }
+    } catch (err) {
+      console.error('編輯任務錯誤:', err)
+      toast.error('編輯任務失敗，請稍後再試')
+      throw err
+    }
+  }
+
+  const handleDeleteTask = async (taskId) => {
+    // if (!confirm('確定要刪除這個任務嗎？')) return
+
+    if (!currentWeekData) return
+
+    try {
+      const res = await fetch(`${API_BASE}/tasks/${taskId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+
+      const data = await res.json()
+
+      if (data.success) {
+        toast.success('刪除任務成功！')
+        await fetchCurrentWeekTasks(currentWeekData.id)
+        await fetchCurrentWeekLogs(currentWeekData.id)
+      } else {
+        toast.error(data.message || '刪除任務失敗')
+      }
+    } catch (err) {
+      console.error('刪除任務錯誤:', err)
+      toast.error('刪除任務失敗，請稍後再試')
+    }
+  }
+
+  // 記事 CRUD
   const handleAddNote = async (content) => {
     if (!currentWeekData) return
 
@@ -301,32 +365,6 @@ export default function HabitTracker() {
     } catch (err) {
       console.error('新增記事錯誤:', err)
       throw err
-    }
-  }
-
-  const handleDeleteTask = async (taskId) => {
-    // if (!confirm('確定要刪除這個任務嗎？')) return
-
-    if (!currentWeekData) return
-
-    try {
-      const res = await fetch(`${API_BASE}/tasks/${taskId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      })
-
-      const data = await res.json()
-
-      if (data.success) {
-        toast.success('刪除任務成功！')
-        await fetchCurrentWeekTasks(currentWeekData.id)
-        await fetchCurrentWeekLogs(currentWeekData.id)
-      } else {
-        toast.error(data.message || '刪除任務失敗')
-      }
-    } catch (err) {
-      console.error('刪除任務錯誤:', err)
-      toast.error('刪除任務失敗，請稍後再試')
     }
   }
 
@@ -471,6 +509,7 @@ export default function HabitTracker() {
         onToggleTask={handleToggleTask}
         onAddTask={handleAddTask}
         onDeleteTask={handleDeleteTask}
+        onEditTask={handleEditTask}
       />
 
       <WeeklyNotes
