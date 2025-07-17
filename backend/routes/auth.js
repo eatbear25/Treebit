@@ -14,7 +14,7 @@ const saltRounds = 10;
 const JWT_SECRET = process.env.JWT_SECRET || "JWT_SECRET";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
 
-// zod 驗證 登入+註冊
+// zod 驗證
 const registerSchema = z.object({
   username: z
     .string({ message: "用戶名稱為必填欄位" })
@@ -35,6 +35,12 @@ const loginSchema = z.object({
   password: z
     .string({ message: "密碼為必填欄位" })
     .min(1, { message: "請輸入密碼" }),
+});
+
+const updateProfileSchema = z.object({
+  username: z.string().min(2, { message: "用戶名稱至少需 2 個字" }),
+  email: z.string().email("請輸入有效的電子郵件"),
+  password: z.string().min(6).max(20).optional(),
 });
 
 router.use((req, res, next) => {
@@ -232,6 +238,66 @@ router.get("/me", optionalAuthenticate, async (req, res) => {
     return res.status(500).json({
       status: "error",
       message: "伺服器內部錯誤",
+    });
+  }
+});
+
+// *** 修改會員資料 ***
+router.put("/profile", authenticate, async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+
+    // 沒有任何欄位就不處理
+    if (!username && !email && !password) {
+      return res.status(400).json({
+        status: "error",
+        message: "請至少填寫一個欄位進行修改",
+      });
+    }
+
+    const updateFields = [];
+    const updateValues = [];
+
+    if (username) {
+      updateFields.push("username = ?");
+      updateValues.push(username);
+    }
+
+    if (email) {
+      updateFields.push("email = ?");
+      updateValues.push(email);
+    }
+
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      updateFields.push("password_hash = ?");
+      updateValues.push(hashedPassword);
+    }
+
+    // 加上 updated_at 欄位更新時間
+    updateFields.push("updated_at = CURRENT_TIMESTAMP");
+
+    // 加入 user id 作為 where 條件
+    updateValues.push(req.user.id);
+
+    await db.query(
+      `UPDATE users SET ${updateFields.join(", ")} WHERE id = ?`,
+      updateValues
+    );
+
+    // 清除舊的 JWT cookie，強制重新登入
+    res.clearCookie("accessToken");
+
+    return res.json({
+      status: "success",
+      message: "會員資料已更新，請重新登入",
+      requireRelogin: true,
+    });
+  } catch (error) {
+    console.error("更新會員資料失敗:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "伺服器錯誤，更新失敗",
     });
   }
 });
