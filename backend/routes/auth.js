@@ -78,8 +78,6 @@ router.post("/register", async (req, res) => {
     // 產生 JWT token
     const data = {
       id: result.insertId,
-      username,
-      email,
     };
 
     const token = jsonwebtoken.sign(data, JWT_SECRET, {
@@ -159,8 +157,6 @@ router.post("/login", async (req, res) => {
     // 產生 JWT token
     const data = {
       id: user.id,
-      username: user.username,
-      email: user.email,
     };
 
     const token = jsonwebtoken.sign(data, JWT_SECRET, {
@@ -245,7 +241,8 @@ router.get("/me", optionalAuthenticate, async (req, res) => {
 // *** 修改會員資料 ***
 router.put("/profile", authenticate, async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const validatedData = updateProfileSchema.parse(req.body);
+    const { username, email, password } = validatedData;
 
     // 沒有任何欄位就不處理
     if (!username && !email && !password) {
@@ -285,19 +282,73 @@ router.put("/profile", authenticate, async (req, res) => {
       updateValues
     );
 
-    // 清除舊的 JWT cookie，強制重新登入
-    res.clearCookie("accessToken");
-
     return res.json({
       status: "success",
-      message: "會員資料已更新，請重新登入",
-      requireRelogin: true,
+      message: "會員資料已更新",
     });
   } catch (error) {
     console.error("更新會員資料失敗:", error);
+
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        status: "error",
+        message: "輸入資料驗證失敗",
+        errors: error.errors,
+      });
+    }
+  }
+});
+
+// *** 更改密碼 ***
+router.put("/change-password", authenticate, async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+
+  if (!oldPassword || !newPassword) {
+    return res.status(400).json({
+      status: "error",
+      message: "請輸入舊密碼與新密碼",
+    });
+  }
+
+  try {
+    const [users] = await db.query(
+      "SELECT password_hash FROM users WHERE id = ?",
+      [req.user.id]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({
+        status: "error",
+        message: "找不到用戶",
+      });
+    }
+
+    const user = users[0];
+    const isValid = await bcrypt.compare(oldPassword, user.password_hash);
+
+    if (!isValid) {
+      return res.status(401).json({
+        status: "error",
+        message: "舊密碼錯誤",
+      });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, saltRounds);
+
+    await db.query(
+      "UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+      [hashed, req.user.id]
+    );
+
+    return res.json({
+      status: "success",
+      message: "密碼更新成功",
+    });
+  } catch (error) {
+    console.error("修改密碼失敗:", error);
     return res.status(500).json({
       status: "error",
-      message: "伺服器錯誤，更新失敗",
+      message: "伺服器錯誤，無法修改密碼",
     });
   }
 });
