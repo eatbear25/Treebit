@@ -21,11 +21,15 @@ const sendResponse = (
 /**
  * 檢查 habit 是否屬於該 user
  */
-async function checkHabitOwner(habitId, userId) {
-  const [rows] = await db.query(
-    `SELECT * FROM habits WHERE id = ? AND user_id = ?`,
-    [habitId, userId]
-  );
+async function checkHabitOwner(habitId, userId, includeArchived = false) {
+  let query = `SELECT * FROM habits WHERE id = ? AND user_id = ?`;
+  const params = [habitId, userId];
+
+  if (!includeArchived) {
+    query += ` AND is_archived = 0`;
+  }
+
+  const [rows] = await db.query(query, params);
   return rows.length > 0;
 }
 
@@ -131,6 +135,68 @@ router.get("/", authenticate, async (req, res) => {
   }
 });
 
+// 獲取封存的習慣列表
+router.get("/archived", authenticate, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const [rows] = await db.query(
+      `SELECT * FROM habits WHERE user_id = ? AND is_archived = 1 ORDER BY updated_at DESC`,
+      [userId]
+    );
+    sendResponse(res, 200, true, rows);
+  } catch (error) {
+    console.error(error);
+    sendResponse(res, 500, false, null, "查詢封存習慣失敗");
+  }
+});
+
+// 封存習慣
+router.patch("/:habitId/archive", authenticate, async (req, res) => {
+  try {
+    const habitId = req.params.habitId;
+    const userId = req.user.id;
+
+    const isOwner = await checkHabitOwner(habitId, userId);
+    if (!isOwner) {
+      return sendResponse(res, 403, false, null, "無權封存此習慣");
+    }
+
+    await db.query(
+      `UPDATE habits SET is_archived = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?`,
+      [habitId, userId]
+    );
+
+    sendResponse(res, 200, true, null, "封存習慣成功");
+  } catch (error) {
+    console.error(error);
+    sendResponse(res, 500, false, null, "封存習慣失敗");
+  }
+});
+
+// 恢復習慣
+router.patch("/:habitId/restore", authenticate, async (req, res) => {
+  try {
+    const habitId = req.params.habitId;
+    const userId = req.user.id;
+
+    // 檢查是否為該用戶的習慣（包含已封存的）
+    const isOwner = await checkHabitOwner(habitId, userId, true);
+    if (!isOwner) {
+      return sendResponse(res, 403, false, null, "無權恢復此習慣");
+    }
+
+    await db.query(
+      `UPDATE habits SET is_archived = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?`,
+      [habitId, userId]
+    );
+
+    sendResponse(res, 200, true, null, "恢復習慣成功");
+  } catch (error) {
+    console.error(error);
+    sendResponse(res, 500, false, null, "恢復習慣失敗");
+  }
+});
+
 // 查看單一習慣
 router.get("/:habitId", authenticate, async (req, res) => {
   try {
@@ -153,31 +219,14 @@ router.get("/:habitId", authenticate, async (req, res) => {
   }
 });
 
-// 封存習慣
-router.patch("/:habitId/archive", authenticate, async (req, res) => {
-  try {
-    const habitId = req.params.habitId;
-    const userId = req.user.id;
-
-    await db.query(
-      `UPDATE habits SET is_archived = 1 WHERE id = ? AND user_id = ?`,
-      [habitId, userId]
-    );
-
-    sendResponse(res, 200, true, null, "習慣已封存");
-  } catch (error) {
-    console.error(error);
-    sendResponse(res, 500, false, null, "封存失敗");
-  }
-});
-
 // 刪除習慣（連帶刪除所有週、任務、筆記、打卡）
 router.delete("/:habitId", authenticate, async (req, res) => {
   try {
     const habitId = req.params.habitId;
     const userId = req.user.id;
 
-    const isOwner = await checkHabitOwner(habitId, userId);
+    // 檢查是否為該用戶的習慣（包含已封存的）
+    const isOwner = await checkHabitOwner(habitId, userId, true);
     if (!isOwner) {
       return sendResponse(res, 403, false, null, "無權刪除此習慣");
     }

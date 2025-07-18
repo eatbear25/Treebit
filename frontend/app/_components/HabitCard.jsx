@@ -33,6 +33,7 @@ export default function HabitCard({
 }) {
   const router = useRouter()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showArchiveDialog, setShowArchiveDialog] = useState(false)
 
   const handleViewTask = () => {
     router.push(`/habits/${id}`)
@@ -62,13 +63,49 @@ export default function HabitCard({
     }
   }
 
+  const archiveHabit = async function (habitId) {
+    try {
+      const res = await fetch(
+        `http://localhost:3001/api/habits/${habitId}/archive`,
+        {
+          method: 'PATCH',
+          credentials: 'include',
+        }
+      )
+
+      const data = await res.json()
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || '封存習慣失敗')
+      }
+
+      toast.success(data.message || '封存成功')
+      if (onHabitsChanged) onHabitsChanged()
+
+      return data.message || '封存成功'
+    } catch (err) {
+      console.error('封存習慣失敗', err)
+      toast.error(err.message || '封存失敗')
+      throw err
+    }
+  }
+
   const handleDeleteClick = () => {
     setShowDeleteDialog(true)
+  }
+
+  const handleArchiveClick = () => {
+    setShowArchiveDialog(true)
   }
 
   const handleConfirmDelete = async () => {
     await deleteHabit(id)
     setShowDeleteDialog(false)
+  }
+
+  const handleConfirmArchive = async () => {
+    await archiveHabit(id)
+    setShowArchiveDialog(false)
   }
 
   return (
@@ -82,7 +119,12 @@ export default function HabitCard({
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem className="cursor-pointer">封存</DropdownMenuItem>
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={handleArchiveClick}
+            >
+              封存
+            </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer text-red-500"
               onClick={handleDeleteClick}
@@ -135,6 +177,24 @@ export default function HabitCard({
             <AlertDialogCancel>取消</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmDelete}>
               刪除 {title}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* 封存確認對話框 */}
+      <AlertDialog open={showArchiveDialog} onOpenChange={setShowArchiveDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>您確定要封存嗎?</AlertDialogTitle>
+            <AlertDialogDescription>
+              封存後的習慣將移至歷史頁面，您可以隨時恢復。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmArchive}>
+              封存 {title}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
