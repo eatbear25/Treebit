@@ -330,7 +330,26 @@ export default function HabitHeader({ habitsNum, onHabitAdded }) {
             <AlertDialogFooter>
               <AlertDialogCancel>關閉</AlertDialogCancel>
 
-              <AlertDialogAction onClick={handleLogout}>登出</AlertDialogAction>
+              <AlertDialog>
+                <AlertDialogTrigger>
+                  <Button>登出</Button>
+                </AlertDialogTrigger>
+
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>登出</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      您即將登出，確定要繼續嗎？
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>關閉</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleLogout}>
+                      確定登出
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </AlertDialogFooter>
           )}
         </AlertDialogContent>
