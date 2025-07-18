@@ -21,6 +21,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from '@/components/ui/alert-dialog'
+
 import { PiGearBold, PiNotePencilBold, PiArrowBendUpLeft } from 'react-icons/pi'
 import {
   Form,
@@ -38,6 +39,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { HabitForm } from './HabitForm'
 
 import { PiEye, PiEyeSlash } from 'react-icons/pi'
 import { cn } from '@/lib/utils'
@@ -181,6 +183,7 @@ export default function HabitHeader({ habitsNum, onHabitAdded }) {
     <div className="mb-8 flex items-center justify-between">
       <div className="flex items-center gap-1 text-xl font-bold">
         {habitsNum} 個習慣
+        <HabitForm onHabitAdded={onHabitAdded} />
       </div>
 
       <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -331,7 +334,7 @@ export default function HabitHeader({ habitsNum, onHabitAdded }) {
               <AlertDialogCancel>關閉</AlertDialogCancel>
 
               <AlertDialog>
-                <AlertDialogTrigger>
+                <AlertDialogTrigger asChild>
                   <Button>登出</Button>
                 </AlertDialogTrigger>
 
