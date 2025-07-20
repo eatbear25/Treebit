@@ -62,7 +62,7 @@ export default function Sidebar() {
           <img src="/icon.svg" alt="Treebit Logo" />
         </Link>
 
-        <div className="flex justify-around border-t text-lg font-[600] lg:w-35 lg:flex-col lg:gap-4">
+        <div className="flex justify-around border-t text-lg font-[600] lg:w-35 lg:flex-col lg:gap-4 lg:border-none">
           <Link
             href="/habits"
             className={`flex items-center justify-center gap-2 rounded-lg p-5 transition lg:flex-row lg:px-0 lg:py-3 ${

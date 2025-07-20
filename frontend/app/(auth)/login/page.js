@@ -3,7 +3,7 @@
 import Link from 'next/link'
 
 import GuestGuard from '@/app/_components/GuestGuard'
-import { LoginForm } from '@/app/_components/LoginForm'
+import { LoginForm } from '@/app/(auth)/_components/LoginForm'
 
 export default function TreebitLogin() {
   return (

@@ -1,7 +1,7 @@
 'use client'
 
-import HabitHeader from '@/app/_components/HabitHeader'
-import HabitList from '@/app/_components/HabitList'
+import HabitHeader from '@/app/(main)/habits/_components/HabitListHeader'
+import HabitList from '@/app/(main)/habits/_components/HabitList'
 import AuthGuard from '@/app/_components/AuthGuard'
 import { useEffect, useState } from 'react'
 import Loader from '@/app/_components/Loader'
@@ -47,7 +47,15 @@ export default function Habits() {
           <Loader />
         </div>
       ) : (
-        <HabitList habits={habits} onHabitsChanged={refreshHabits} />
+        <>
+          {habits.length === 0 ? (
+            <div className="py-12 text-center">
+              <div className="text-lg text-gray-500">目前沒有任何習慣</div>
+            </div>
+          ) : (
+            <HabitList habits={habits} onHabitsChanged={refreshHabits} />
+          )}
+        </>
       )}
     </AuthGuard>
   )

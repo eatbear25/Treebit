@@ -180,7 +180,7 @@ export default function HabitHeader({ habitsNum, onHabitAdded }) {
   }
 
   return (
-    <div className="mb-8 flex items-center justify-between">
+    <div className="mb-6 flex h-12 items-center justify-between">
       <div className="flex items-center gap-1 text-xl font-bold">
         {habitsNum} 個習慣
         <HabitForm onHabitAdded={onHabitAdded} />
