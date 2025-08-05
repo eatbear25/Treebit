@@ -57,7 +57,7 @@ export default function Sidebar() {
         </ul>
       </div> */}
 
-      <div className="lg:flex lg:flex-col lg:justify-between">
+      <div className="bg-white lg:flex lg:flex-col lg:justify-between lg:bg-transparent">
         <Link href="/" className="mb-6 ml-3 hidden w-10 lg:block">
           <img src="/icon.svg" alt="Treebit Logo" />
         </Link>

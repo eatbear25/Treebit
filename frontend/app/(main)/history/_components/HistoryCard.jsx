@@ -39,9 +39,8 @@ export default function HistoryCard({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showArchiveDialog, setShowArchiveDialog] = useState(false)
 
-  // TODO: 點進封存頁面
   const handleViewTask = () => {
-    router.push(`/habits/${id}`)
+    router.push(`/history/${id}`)
   }
 
   const handleDeleteClick = () => {

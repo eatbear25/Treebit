@@ -290,7 +290,7 @@ router.get("/:habitId/weeks", authenticate, async (req, res) => {
     const habitId = req.params.habitId;
     const userId = req.user.id;
 
-    const isOwner = await checkHabitOwner(habitId, userId);
+    const isOwner = await checkHabitOwner(habitId, userId, true);
     if (!isOwner) {
       return sendResponse(res, 403, false, null, "無權存取此習慣");
     }

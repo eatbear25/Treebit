@@ -112,23 +112,27 @@ export default function WeeklyNotes({
       <div className="p-5 lg:p-6">
         <h2 className="mb-6 text-xl font-bold text-[#3D8D7A]">每週記事</h2>
 
-        <div className="space-y-4">
-          {notes.map((note) => (
-            <NoteItem
-              key={note.id}
-              note={note}
-              onEditNote={() => {
-                setNoteToEdit(note)
-                editForm.setValue('content', note.content)
-                setEditOpen(true)
-              }}
-              onDeleteNote={() => {
-                setNoteToDelete(note)
-                setDeleteDialogOpen(true)
-              }}
-            />
-          ))}
-        </div>
+        {notes.length > 0 ? (
+          <div className="space-y-4">
+            {notes.map((note) => (
+              <NoteItem
+                key={note.id}
+                note={note}
+                onEditNote={() => {
+                  setNoteToEdit(note)
+                  editForm.setValue('content', note.content)
+                  setEditOpen(true)
+                }}
+                onDeleteNote={() => {
+                  setNoteToDelete(note)
+                  setDeleteDialogOpen(true)
+                }}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="py-8 text-center text-gray-500">尚未新增記事</div>
+        )}
 
         {/* 新增記事 Dialog */}
         <Dialog open={open} onOpenChange={setOpen}>

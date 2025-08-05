@@ -120,6 +120,7 @@ export default function TaskTable({
                 </th>
               </tr>
             </thead>
+
             <tbody>
               {tasks.map((task) => (
                 <TaskRow
@@ -139,6 +140,10 @@ export default function TaskTable({
             </tbody>
           </table>
         </div>
+
+        {tasks.length === 0 && (
+          <div className="py-8 text-center text-gray-500">尚未新增任務</div>
+        )}
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
