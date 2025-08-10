@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, forwardRef } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -21,6 +21,8 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from '@/components/ui/alert-dialog'
+
+import { PiGearBold, PiNotePencilBold, PiArrowBendUpLeft } from 'react-icons/pi'
 import {
   Form,
   FormField,
@@ -29,6 +31,7 @@ import {
   FormControl,
   FormMessage,
 } from '@/components/ui/form'
+
 import {
   Dialog,
   DialogTrigger,
@@ -37,16 +40,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { HabitForm } from './HabitForm'
-import {
-  PiGearBold,
-  PiNotePencilBold,
-  PiArrowBendUpLeft,
-  PiEye,
-  PiEyeSlash,
-} from 'react-icons/pi'
-import { cn } from '@/lib/utils'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002'
+import { PiEye, PiEyeSlash } from 'react-icons/pi'
+import { cn } from '@/lib/utils'
+import { forwardRef } from 'react'
 
 const PasswordInput = forwardRef(({ className, ...props }, ref) => {
   const [showPassword, setShowPassword] = useState(false)
@@ -73,31 +70,27 @@ PasswordInput.displayName = 'PasswordInput'
 
 export default function HabitHeader({ habitsNum, onHabitAdded }) {
   const router = useRouter()
-  const { user, refreshUser } = useAuth()
-  const isGoogle = user?.provider === 'google'
+  const { user, logout, refreshUser } = useAuth()
 
   const [isEditing, setIsEditing] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
 
-  // 基本資料（username / email 只有 local 可以改）
   const formSchema = z.object({
     username: z.string().optional(),
     email: z.string().email({ message: '請輸入正確的 Email 格式' }).optional(),
   })
 
-  // 改密碼（只有 local 才會顯示）
   const passwordSchema = z
     .object({
       currentPassword: z.string().min(6, { message: '請輸入當前密碼' }),
       newPassword: z
-        .string()
+        .string({ message: '密碼為必填欄位' })
         .min(6, { message: '密碼至少需 6 個字' })
         .max(20, { message: '密碼最多 20 個字' }),
-      confirmPassword: z.string(),
+      confirmPassword: z.string({ message: '請再次輸入密碼' }),
     })
-    .refine((d) => d.newPassword === d.confirmPassword, {
+    .refine((data) => data.newPassword === data.confirmPassword, {
       message: '兩次輸入的密碼不一致',
       path: ['confirmPassword'],
     })
@@ -110,6 +103,8 @@ export default function HabitHeader({ habitsNum, onHabitAdded }) {
       confirmPassword: '',
     },
   })
+
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -132,29 +127,22 @@ export default function HabitHeader({ habitsNum, onHabitAdded }) {
   const handleSubmit = async (values) => {
     setLoading(true)
     try {
-      // 只有 local 才送 email；google 不允許更新 email
-      const payload = {
-        ...(values.username ? { username: values.username.trim() } : {}),
-        ...(values.email && !isGoogle
-          ? { email: values.email.trim().toLowerCase() }
-          : {}),
-      }
-
-      const res = await fetch(`${API_URL}/api/auth/profile`, {
+      const res = await fetch('http://localhost:3001/api/auth/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(values),
         credentials: 'include',
       })
       const result = await res.json()
 
       if (!res.ok) {
+        // 處理驗證錯誤
         if (result.errors) {
-          result.errors.forEach((e) =>
-            form.setError(e.path[0], { message: e.message })
-          )
+          result.errors.forEach((error) => {
+            form.setError(error.path[0], { message: error.message })
+          })
         }
-        throw new Error(result.message || '更新失敗')
+        throw new Error(result.message)
       }
 
       toast.success('更新成功')
@@ -169,15 +157,18 @@ export default function HabitHeader({ habitsNum, onHabitAdded }) {
 
   const handleChangePassword = async (values) => {
     try {
-      const res = await fetch(`${API_URL}/api/auth/change-password`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          oldPassword: values.currentPassword,
-          newPassword: values.newPassword,
-        }),
-      })
+      const res = await fetch(
+        'http://localhost:3001/api/auth/change-password',
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            oldPassword: values.currentPassword,
+            newPassword: values.newPassword,
+          }),
+        }
+      )
       const result = await res.json()
       if (!res.ok) throw new Error(result.message)
       toast.success('密碼更新成功，請重新登入')
@@ -237,30 +228,6 @@ export default function HabitHeader({ habitsNum, onHabitAdded }) {
                     </FormItem>
                   )}
                 />
-
-                {/* 只有本地帳號可改 Email */}
-                {!isGoogle && (
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>電子郵件</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="請輸入電子郵件" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
-                {isGoogle && (
-                  <p className="text-sm text-gray-500">
-                    你是使用 <b>Google</b> 登入，因此不可修改 Email。
-                  </p>
-                )}
-
                 <AlertDialogFooter>
                   <AlertDialogCancel>取消</AlertDialogCancel>
                   <Button type="submit" disabled={loading}>
@@ -277,97 +244,92 @@ export default function HabitHeader({ habitsNum, onHabitAdded }) {
               </li>
               <li>
                 <p className="font-bold text-[#3D8D7A]">電子郵件</p>
-                <p>{user?.email || '—'}</p>
+                <p>{user?.email}</p>
               </li>
-
-              {/* 只有本地帳號顯示「修改密碼」；Google 顯示提示 */}
-              {!isGoogle ? (
-                <li>
-                  <Dialog
-                    open={passwordDialogOpen}
-                    onOpenChange={setPasswordDialogOpen}
-                  >
-                    <DialogTrigger asChild>
-                      <p className="cursor-pointer font-bold text-[#3D8D7A] hover:opacity-90">
-                        點此修改密碼
-                      </p>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>修改密碼</DialogTitle>
-                      </DialogHeader>
-                      <Form {...passwordForm}>
-                        <form
-                          onSubmit={passwordForm.handleSubmit(
-                            handleChangePassword
+              <li>
+                <Dialog
+                  open={passwordDialogOpen}
+                  onOpenChange={setPasswordDialogOpen}
+                >
+                  <DialogTrigger asChild>
+                    <p className="cursor-pointer font-bold text-[#3D8D7A] hover:opacity-90">
+                      點此修改密碼
+                    </p>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>修改密碼</DialogTitle>
+                    </DialogHeader>
+                    <Form {...passwordForm}>
+                      <form
+                        onSubmit={passwordForm.handleSubmit(
+                          handleChangePassword
+                        )}
+                        className="space-y-4"
+                      >
+                        <FormField
+                          control={passwordForm.control}
+                          name="currentPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>當前密碼</FormLabel>
+                              <FormControl>
+                                <PasswordInput
+                                  {...field}
+                                  placeholder="請輸入目前密碼"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
                           )}
-                          className="space-y-4"
-                        >
-                          <FormField
-                            control={passwordForm.control}
-                            name="currentPassword"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>當前密碼</FormLabel>
-                                <FormControl>
-                                  <PasswordInput
-                                    {...field}
-                                    placeholder="請輸入目前密碼"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={passwordForm.control}
-                            name="newPassword"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>新密碼</FormLabel>
-                                <FormControl>
-                                  <PasswordInput
-                                    {...field}
-                                    placeholder="請輸入新密碼"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={passwordForm.control}
-                            name="confirmPassword"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>確認新密碼</FormLabel>
-                                <FormControl>
-                                  <PasswordInput
-                                    {...field}
-                                    placeholder="請再次輸入新密碼"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <AlertDialogFooter>
-                            <Button type="submit">更新密碼</Button>
-                          </AlertDialogFooter>
-                        </form>
-                      </Form>
-                    </DialogContent>
-                  </Dialog>
-                </li>
-              ) : (
-                <li className="rounded-lg bg-gray-50 p-3 text-sm text-gray-600">
-                  您是使用 <b>Google</b> 登入。
-                </li>
-              )}
+                        />
+
+                        <FormField
+                          control={passwordForm.control}
+                          name="newPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>新密碼</FormLabel>
+                              <FormControl>
+                                <PasswordInput
+                                  {...field}
+                                  placeholder="請輸入新密碼"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={passwordForm.control}
+                          name="confirmPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>確認新密碼</FormLabel>
+                              <FormControl>
+                                <PasswordInput
+                                  {...field}
+                                  placeholder="請再次輸入新密碼"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <AlertDialogFooter>
+                          <Button type="submit">更新密碼</Button>
+                        </AlertDialogFooter>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+              </li>
             </ul>
           )}
 
-          {!isEditing && (
+          {isEditing ? null : (
             <AlertDialogFooter>
               <AlertDialogCancel>關閉</AlertDialogCancel>
 
@@ -375,6 +337,7 @@ export default function HabitHeader({ habitsNum, onHabitAdded }) {
                 <AlertDialogTrigger asChild>
                   <Button>登出</Button>
                 </AlertDialogTrigger>
+
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>登出</AlertDialogTitle>

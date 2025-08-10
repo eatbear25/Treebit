@@ -39,17 +39,18 @@ passport.use(
           userId = rows[0].id;
           // 更新展示資訊（不更新 email）
           await db.query(
-            "UPDATE users SET username=?, avatar_url=?, email_verified=?, updated_at=CURRENT_TIMESTAMP WHERE id=?",
-            [username, avatar, emailVerified, userId]
+            "UPDATE users SET username=?, email_verified=?, updated_at=CURRENT_TIMESTAMP WHERE id=?",
+            [username, emailVerified, userId]
           );
           console.log(`Google 用戶登入成功: ${userId}`);
         } else {
           // 新用戶註冊
           const [r] = await db.query(
-            `INSERT INTO users (provider, provider_user_id, username, email, email_verified, avatar_url, created_at)
-             VALUES ('google', ?, ?, ?, ?, ?, NOW())`,
-            [googleId, username, email, emailVerified, avatar]
+            `INSERT INTO users (provider, provider_user_id, username, email, email_verified, password_hash)
+   VALUES ('google', ?, ?, ?, ?, NULL)`,
+            [googleId, username, email, emailVerified]
           );
+
           userId = r.insertId;
           console.log(`新 Google 用戶註冊成功: ${userId}`);
         }

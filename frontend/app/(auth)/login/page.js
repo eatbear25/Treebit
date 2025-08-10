@@ -6,6 +6,8 @@ import GuestGuard from '@/app/_components/GuestGuard'
 import { LoginForm } from '@/app/(auth)/_components/LoginForm'
 
 export default function TreebitLogin() {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002'
+
   return (
     <GuestGuard>
       {/* Main Content */}
@@ -27,7 +29,7 @@ export default function TreebitLogin() {
             {/* Social Login Buttons */}
             <div className="mb-6 space-y-4">
               <a
-                href="http://localhost:3001/api/auth/google"
+                href={`${API_URL}/api/auth/google`}
                 className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-gray-300 px-4 py-3 transition-colors hover:bg-gray-50"
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24">
