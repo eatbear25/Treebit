@@ -14,7 +14,7 @@ export default function GuestGuard({ children }) {
   // ✅ 只在 initialized 完成後再跳轉
   useEffect(() => {
     if (initialized && isAuthenticated) {
-      router.replace('/')
+      router.replace('/habits')
     }
   }, [initialized, isAuthenticated, router])
 

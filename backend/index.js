@@ -3,12 +3,12 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import "dotenv/config.js";
 import db from "./config/connect-mysql.js";
+import passport from "passport";
+import "./config/passport.js";
 
 // 引入路由
 import authRoutes from "./routes/auth.js";
 import habitRoutes from "./routes/habits.js";
-// import logRoutes from "./routes/logs.js";
-// import noteRoutes from "./routes/notes.js";
 
 const app = express();
 
@@ -18,6 +18,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.set("view engine", "ejs");
 app.use(express.static("public"));
+app.use(passport.initialize());
 
 // cors 設定白名單，只允許特定網址存取
 const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
@@ -45,8 +46,6 @@ app.get("/", (req, res) => {
 // *** 自訂路由 ***
 app.use("/api/auth", authRoutes);
 app.use("/api/habits", habitRoutes);
-// app.use("/api/logs", logRoutes);
-// app.use("/api/notes", noteRoutes);
 
 // *** 全域錯誤處理中間件 ***
 app.use((error, req, res, next) => {

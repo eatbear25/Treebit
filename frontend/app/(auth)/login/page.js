@@ -26,7 +26,10 @@ export default function TreebitLogin() {
           <div className="rounded-2xl bg-white p-7 shadow-xs">
             {/* Social Login Buttons */}
             <div className="mb-6 space-y-4">
-              <button className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-gray-300 px-4 py-3 transition-colors hover:bg-gray-50">
+              <a
+                href="http://localhost:3001/api/auth/google"
+                className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-gray-300 px-4 py-3 transition-colors hover:bg-gray-50"
+              >
                 <svg className="h-5 w-5" viewBox="0 0 24 24">
                   <path
                     fill="#4285F4"
@@ -48,7 +51,7 @@ export default function TreebitLogin() {
                 <span className="font-medium text-gray-700">
                   使用 GOOGLE 帳戶登入
                 </span>
-              </button>
+              </a>
             </div>
 
             {/* OR Divider */}

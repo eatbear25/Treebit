@@ -42,7 +42,7 @@ export default function TreebitRegister() {
                   />
                 </svg>
                 <span className="font-medium text-gray-700">
-                  使用 GOOGLE 帳戶註冊
+                  使用 GOOGLE 帳戶繼續
                 </span>
               </button>
             </div>
