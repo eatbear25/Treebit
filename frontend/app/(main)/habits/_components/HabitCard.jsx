@@ -22,12 +22,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
+import { formatDateToLocalYMD } from '@/lib/utils'
 
 export default function HabitCard({
   title,
   total_weeks,
-  percent,
-  times,
+  created_at,
   id,
   onHabitsChanged,
 }) {
@@ -136,23 +136,25 @@ export default function HabitCard({
 
         <div className="mb-6 text-2xl font-bold">{title}</div>
 
-        <ul className="mb-8 flex justify-between text-sm">
+        <ul className="mb-8 flex justify-around text-sm">
           <li className="flex flex-col items-center justify-center">
             <span className="inter text-3xl font-[700]">{total_weeks}</span>
-            <span className="text-xl text-[#9A9FA5]">週</span>
+            <span className="text-xl text-[#9A9FA5]">總週數</span>
           </li>
 
-          <li className="flex flex-col items-center justify-center">
+          {/* <li className="flex flex-col items-center justify-center">
             <span className="inter text-3xl font-[700]">
               {percent}
               <span className="ml-1 text-xl font-[700] text-[#9A9FA5]">%</span>
             </span>
             <span className="text-xl text-[#9A9FA5]">達成率</span>
-          </li>
+          </li> */}
 
           <li className="flex flex-col items-center justify-center">
-            <span className="inter text-3xl font-[700]">{times}</span>
-            <span className="text-xl text-[#9A9FA5]">次數</span>
+            <span className="inter text-3xl font-[700]">
+              {formatDateToLocalYMD(created_at)}
+            </span>
+            <span className="text-xl text-[#9A9FA5]">創立時間</span>
           </li>
         </ul>
 

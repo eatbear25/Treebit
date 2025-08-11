@@ -452,7 +452,7 @@ export default function HabitTracker() {
 
   if (error) {
     return (
-      <div className="flex h-screen items-center justify-center text-red-500">
+      <div className="flex h-screen items-center justify-center text-xl font-bold">
         {error}
       </div>
     )

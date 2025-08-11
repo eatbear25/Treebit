@@ -442,9 +442,7 @@ export default function HabitHistoryTracker() {
 
   if (error) {
     return (
-      <div className="flex h-screen items-center justify-center text-red-500">
-        {error}
-      </div>
+      <div className="flex h-screen items-center justify-center">{error}</div>
     )
   }
 

@@ -257,7 +257,7 @@ export default function HabitHeader({ habitsNum, onHabitAdded }) {
 
                 {isGoogle && (
                   <p className="text-sm text-gray-500">
-                    你是使用 <b>Google</b> 登入，因此不可修改 Email。
+                    您是使用 <b>Google</b> 登入，因此不可修改 Email。
                   </p>
                 )}
 
