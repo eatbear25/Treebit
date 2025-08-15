@@ -1,4 +1,3 @@
-// config/passport.js
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import db from "../config/connect-mysql.js";
@@ -6,7 +5,7 @@ import "dotenv/config.js";
 
 const GOOGLE_CALLBACK_URL =
   process.env.GOOGLE_CALLBACK_URL ||
-  "http://localhost:3002/api/auth/google/redirect"; // 修正 port
+  "http://localhost:3001/api/auth/google/redirect";
 
 passport.use(
   new GoogleStrategy(
@@ -20,10 +19,9 @@ passport.use(
         const googleId = profile.id;
         const email = profile.emails?.[0]?.value?.toLowerCase() || null;
         const emailVerified = profile.emails?.[0]?.verified ? 1 : 0;
-        const username = (profile.displayName || "Google User").trim(); // 提供預設值
+        const username = (profile.displayName || "Google User").trim();
         const avatar = profile.photos?.[0]?.value || null;
 
-        // 檢查必要欄位
         if (!googleId) {
           return done(new Error("Google ID 遺失"));
         }
@@ -37,17 +35,18 @@ passport.use(
         let userId;
         if (rows.length) {
           userId = rows[0].id;
-          // 更新展示資訊（不更新 email）
+
+          // *** 修正：現有用戶不要更新 username，只更新其他欄位 ***
           await db.query(
-            "UPDATE users SET username=?, email_verified=?, updated_at=CURRENT_TIMESTAMP WHERE id=?",
-            [username, emailVerified, userId]
+            "UPDATE users SET email_verified=?, last_login=NOW(), updated_at=CURRENT_TIMESTAMP WHERE id=?",
+            [emailVerified, userId]
           );
           console.log(`Google 用戶登入成功: ${userId}`);
         } else {
-          // 新用戶註冊
+          // 新用戶註冊時才設定預設 username
           const [r] = await db.query(
-            `INSERT INTO users (provider, provider_user_id, username, email, email_verified, password_hash)
-   VALUES ('google', ?, ?, ?, ?, NULL)`,
+            `INSERT INTO users (provider, provider_user_id, username, email, email_verified, password_hash, last_login)
+             VALUES ('google', ?, ?, ?, ?, NULL, NOW())`,
             [googleId, username, email, emailVerified]
           );
 
