@@ -104,7 +104,10 @@ router.post("/", authenticate, async (req, res) => {
     for (let i = 0; i < total_weeks; i++) {
       const weekStart = new Date(today);
       weekStart.setDate(weekStart.getDate() + i * 7);
-      const weekStartStr = weekStart.toISOString().slice(0, 10);
+      const year = weekStart.getFullYear();
+      const month = String(weekStart.getMonth() + 1).padStart(2, "0");
+      const day = String(weekStart.getDate()).padStart(2, "0");
+      const weekStartStr = `${year}-${month}-${day}`;
 
       await db.query(
         `INSERT INTO habit_weeks (habit_id, week_number, start_date)

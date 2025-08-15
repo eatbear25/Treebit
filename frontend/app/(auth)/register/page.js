@@ -47,7 +47,7 @@ export default function TreebitRegister() {
                   />
                 </svg>
                 <span className="font-medium text-gray-700">
-                  使用 Google 繼續（首次登入會自動建立帳號）
+                  使用 Google 繼續
                 </span>
               </a>
             </div>
