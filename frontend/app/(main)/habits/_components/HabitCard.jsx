@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
 import { formatDateToLocalYMD } from '@/lib/utils'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
 export default function HabitCard({
   title,
@@ -41,7 +42,7 @@ export default function HabitCard({
 
   const deleteHabit = async function (habitId) {
     try {
-      const res = await fetch(`http://localhost:3001/api/habits/${habitId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/habits/${habitId}`, {
         method: 'DELETE',
         credentials: 'include',
       })
@@ -62,16 +63,12 @@ export default function HabitCard({
       throw err
     }
   }
-
   const archiveHabit = async function (habitId) {
     try {
-      const res = await fetch(
-        `http://localhost:3001/api/habits/${habitId}/archive`,
-        {
-          method: 'PATCH',
-          credentials: 'include',
-        }
-      )
+      const res = await fetch(`${API_BASE_URL}/api/habits/${habitId}/archive`, {
+        method: 'PATCH',
+        credentials: 'include',
+      })
 
       const data = await res.json()
 

@@ -32,6 +32,12 @@ app.use(
   })
 );
 
+app.get("/test", (req, res) => {
+  res.json({
+    message: "test work!",
+  });
+});
+
 // 基本路由
 app.get("/", (req, res) => {
   res.json({
@@ -70,15 +76,3 @@ const port = process.env.PORT || 3002;
 app.listen(port, () => {
   console.log(`Express Server 啟動: http://localhost:${port}`);
 });
-
-// 測試資料庫連線
-const testDB = async () => {
-  try {
-    await db.query("SELECT 1");
-    console.log("資料庫連線成功");
-  } catch (err) {
-    console.error("資料庫連線失敗：", err);
-  }
-};
-
-testDB();

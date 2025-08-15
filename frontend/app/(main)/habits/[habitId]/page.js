@@ -26,11 +26,12 @@ export default function HabitTracker() {
   const [error, setError] = useState(null)
   const [isWeekDataLoading, setIsWeekDataLoading] = useState(true)
 
-  const API_BASE = 'http://localhost:3001/api/habits'
+  const API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
   const fetchHabit = async () => {
     try {
-      const res = await fetch(`${API_BASE}/${habitId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/habits/${habitId}`, {
         credentials: 'include',
       })
       const data = await res.json()
@@ -47,7 +48,7 @@ export default function HabitTracker() {
 
   const fetchAllWeeks = async () => {
     try {
-      const res = await fetch(`${API_BASE}/${habitId}/weeks`, {
+      const res = await fetch(`${API_BASE_URL}/api/habits/${habitId}/weeks`, {
         credentials: 'include',
       })
       const data = await res.json()
@@ -62,9 +63,12 @@ export default function HabitTracker() {
 
   const fetchCurrentWeekTasks = async (weekId) => {
     try {
-      const res = await fetch(`${API_BASE}/weeks/${weekId}/tasks`, {
-        credentials: 'include',
-      })
+      const res = await fetch(
+        `${API_BASE_URL}/api/habits/weeks/${weekId}/tasks`,
+        {
+          credentials: 'include',
+        }
+      )
       const data = await res.json()
       if (data.success) {
         setTasks(data.data)
@@ -76,9 +80,12 @@ export default function HabitTracker() {
 
   const fetchCurrentWeekNotes = async (weekId) => {
     try {
-      const res = await fetch(`${API_BASE}/weeks/${weekId}/notes`, {
-        credentials: 'include',
-      })
+      const res = await fetch(
+        `${API_BASE_URL}/api/habits/weeks/${weekId}/notes`,
+        {
+          credentials: 'include',
+        }
+      )
       const data = await res.json()
       if (data.success) {
         setWeeklyNotes(data.data)
@@ -90,9 +97,12 @@ export default function HabitTracker() {
 
   const fetchCurrentWeekLogs = async (weekId) => {
     try {
-      const res = await fetch(`${API_BASE}/weeks/${weekId}/logs`, {
-        credentials: 'include',
-      })
+      const res = await fetch(
+        `${API_BASE_URL}/api/habits/weeks/${weekId}/logs`,
+        {
+          credentials: 'include',
+        }
+      )
       const data = await res.json()
       if (data.success) {
         console.log('獲取的打卡記錄:', data.data)
@@ -206,17 +216,20 @@ export default function HabitTracker() {
     const newStatus = !currentStatus
 
     try {
-      const res = await fetch(`${API_BASE}/tasks/${taskId}/logs`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          date,
-          is_completed: newStatus,
-        }),
-      })
+      const res = await fetch(
+        `${API_BASE_URL}/api/habits/tasks/${taskId}/logs`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            date,
+            is_completed: newStatus,
+          }),
+        }
+      )
 
       const data = await res.json()
       if (data.success) {
@@ -240,17 +253,20 @@ export default function HabitTracker() {
     if (!currentWeekData) return
 
     try {
-      const res = await fetch(`${API_BASE}/weeks/${currentWeekData.id}/tasks`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          name: values.name,
-          target_days: parseInt(values.target_days),
-        }),
-      })
+      const res = await fetch(
+        `${API_BASE_URL}/api/habits/weeks/${currentWeekData.id}/tasks`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            name: values.name,
+            target_days: parseInt(values.target_days),
+          }),
+        }
+      )
 
       const data = await res.json()
 
@@ -272,7 +288,7 @@ export default function HabitTracker() {
 
     try {
       const res = await fetch(
-        `${API_BASE}/weeks/${currentWeekData.id}/tasks/${taskId}`,
+        `${API_BASE_URL}/api/habits/weeks/${currentWeekData.id}/tasks/${taskId}`,
         {
           method: 'PATCH',
           headers: {
@@ -309,7 +325,7 @@ export default function HabitTracker() {
     if (!currentWeekData) return
 
     try {
-      const res = await fetch(`${API_BASE}/tasks/${taskId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/habits/tasks/${taskId}`, {
         method: 'DELETE',
         credentials: 'include',
       })
@@ -334,16 +350,19 @@ export default function HabitTracker() {
     if (!currentWeekData) return
 
     try {
-      const res = await fetch(`${API_BASE}/weeks/${currentWeekData.id}/notes`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          content: content.trim(),
-        }),
-      })
+      const res = await fetch(
+        `${API_BASE_URL}/api/habits/weeks/${currentWeekData.id}/notes`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            content: content.trim(),
+          }),
+        }
+      )
 
       const data = await res.json()
       if (data.success) {
@@ -365,7 +384,7 @@ export default function HabitTracker() {
 
     try {
       const res = await fetch(
-        `${API_BASE}/weeks/${currentWeekData.id}/notes/${noteId}`,
+        `${API_BASE_URL}/api/habits/weeks/${currentWeekData.id}/notes/${noteId}`,
         {
           method: 'PATCH',
           headers: {
@@ -406,7 +425,7 @@ export default function HabitTracker() {
 
     try {
       const res = await fetch(
-        `${API_BASE}/weeks/${currentWeekData.id}/notes/${noteId}`,
+        `${API_BASE_URL}/api/habits/weeks/${currentWeekData.id}/notes/${noteId}`,
         {
           method: 'DELETE',
           credentials: 'include',

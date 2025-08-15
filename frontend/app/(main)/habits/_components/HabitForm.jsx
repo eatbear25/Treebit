@@ -31,6 +31,8 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+
 const habitsSchema = z.object({
   title: z
     .string({ message: '習慣名稱為必填欄位' })
@@ -54,7 +56,7 @@ export function HabitForm({ onHabitAdded }) {
     setLoading(true)
 
     try {
-      const res = await fetch('http://localhost:3001/api/habits', {
+      const res = await fetch(`${API_BASE_URL}/api/habits`, {
         method: 'POST',
         credentials: 'include',
         headers: {

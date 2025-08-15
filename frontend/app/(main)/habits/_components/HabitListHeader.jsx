@@ -46,7 +46,7 @@ import {
 } from 'react-icons/pi'
 import { cn } from '@/lib/utils'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
 const PasswordInput = forwardRef(({ className, ...props }, ref) => {
   const [showPassword, setShowPassword] = useState(false)
@@ -140,7 +140,7 @@ export default function HabitHeader({ habitsNum, onHabitAdded }) {
           : {}),
       }
 
-      const res = await fetch(`${API_URL}/api/auth/profile`, {
+      const res = await fetch(`${API_BASE_URL}/api/auth/profile`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -169,7 +169,7 @@ export default function HabitHeader({ habitsNum, onHabitAdded }) {
 
   const handleChangePassword = async (values) => {
     try {
-      const res = await fetch(`${API_URL}/api/auth/change-password`, {
+      const res = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

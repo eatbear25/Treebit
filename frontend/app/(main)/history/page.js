@@ -6,6 +6,8 @@ import Loader from '@/app/_components/Loader'
 import HistoryList from './_components/HistoryList'
 import { toast } from 'sonner'
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+
 export default function History() {
   const [archivedHabits, setArchivedHabits] = useState([])
   const [loading, setLoading] = useState(false)
@@ -14,7 +16,7 @@ export default function History() {
   const fetchArchivedHabits = async () => {
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:3001/api/habits/archived', {
+      const res = await fetch(`${API_BASE_URL}/api/habits/archived`, {
         credentials: 'include',
       })
       const json = await res.json()
@@ -33,13 +35,10 @@ export default function History() {
   // 恢復習慣
   const restoreHabit = async (habitId) => {
     try {
-      const res = await fetch(
-        `http://localhost:3001/api/habits/${habitId}/restore`,
-        {
-          method: 'PATCH',
-          credentials: 'include',
-        }
-      )
+      const res = await fetch(`${API_BASE_URL}/api/habits/${habitId}/restore`, {
+        method: 'PATCH',
+        credentials: 'include',
+      })
       const json = await res.json()
       if (json.success) {
         toast.success('習慣已恢復')
@@ -56,7 +55,7 @@ export default function History() {
   // 永久刪除習慣
   const deleteHabit = async (habitId) => {
     try {
-      const res = await fetch(`http://localhost:3001/api/habits/${habitId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/habits/${habitId}`, {
         method: 'DELETE',
         credentials: 'include',
       })

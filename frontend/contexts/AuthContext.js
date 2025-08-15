@@ -1,4 +1,3 @@
-// contexts/AuthContext.js
 import {
   createContext,
   useContext,
@@ -59,7 +58,7 @@ export function AuthProvider({ children }) {
     try {
       await authLogout()
     } catch (e) {
-      // ignore
+      console.error('登出失敗:', e)
     } finally {
       setUser(null)
       router.replace('/login')

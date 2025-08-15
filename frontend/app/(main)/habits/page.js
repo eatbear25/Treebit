@@ -6,6 +6,8 @@ import AuthGuard from '@/app/_components/AuthGuard'
 import { useEffect, useState } from 'react'
 import Loader from '@/app/_components/Loader'
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+
 export default function Habits() {
   const [habits, setHabits] = useState([])
   const [loading, setLoading] = useState(false)
@@ -14,7 +16,7 @@ export default function Habits() {
   const fetchHabits = async () => {
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:3001/api/habits', {
+      const res = await fetch(`${API_BASE_URL}/api/habits`, {
         credentials: 'include',
       })
       const json = await res.json()
