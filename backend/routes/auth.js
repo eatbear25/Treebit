@@ -15,6 +15,30 @@ const saltRounds = 10;
 const JWT_SECRET = process.env.JWT_SECRET || "JWT_SECRET";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
+const isProd = process.env.NODE_ENV === "production";
+
+/** ------------------------- 共用：Cookie 相關 ------------------------- */
+// 不同網域（Vercel 前端 + Render 後端）上線時：sameSite 一定要 'none'、secure 一定要 true
+// 本地開發可維持 lax/secure:false，避免 http 下瀏覽器丟棄 cookie。
+const cookieBaseOptions = {
+  httpOnly: true,
+  secure: isProd,
+  sameSite: isProd ? "none" : "lax",
+  path: "/", // 確保所有子路徑都能帶到 cookie，也能正確清除
+};
+
+function setAuthCookie(res, token, maxAgeMs = 7 * 24 * 60 * 60 * 1000) {
+  res.cookie("accessToken", token, {
+    ...cookieBaseOptions,
+    maxAge: maxAgeMs,
+  });
+}
+
+function clearAuthCookie(res) {
+  // 清除時務必帶相同 options（特別是 path/sameSite/secure），否則可能清不掉
+  res.clearCookie("accessToken", { ...cookieBaseOptions });
+}
+/** ------------------------------------------------------------------- */
 
 // 本地 zod 驗證
 const registerSchema = z.object({
@@ -71,28 +95,19 @@ router.post("/register", async (req, res) => {
       });
     }
 
-    // 用戶不存在就創建新用戶
+    // 建立用戶
     const hashedPassword = await bcrypt.hash(password, saltRounds);
-
     const [result] = await db.query(
       "INSERT INTO users (provider, username, email, password_hash) VALUES ('local', ?, ?, ?)",
       [normalizedUsername, normalizedEmail, hashedPassword]
     );
 
-    // 產生 JWT token
+    // 產生 JWT & 設定 Cookie
     const data = { id: result.insertId, provider: "local" };
-
     const token = jsonwebtoken.sign(data, JWT_SECRET, {
       expiresIn: JWT_EXPIRES_IN,
     });
-
-    // 設定cookie
-    res.cookie("accessToken", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    setAuthCookie(res, token);
 
     return res.status(201).json({
       status: "success",
@@ -143,7 +158,6 @@ router.post("/login", async (req, res) => {
 
     // 驗證密碼
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
-
     if (!isPasswordValid) {
       return res.status(401).json({
         status: "error",
@@ -156,20 +170,12 @@ router.post("/login", async (req, res) => {
       user.id,
     ]);
 
-    // 產生 JWT token
+    // 產生 JWT & 設定 Cookie
     const data = { id: user.id, provider: "local" };
-
     const token = jsonwebtoken.sign(data, JWT_SECRET, {
       expiresIn: JWT_EXPIRES_IN,
     });
-
-    // 設定 cookie
-    res.cookie("accessToken", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    setAuthCookie(res, token);
 
     return res.json({
       status: "success",
@@ -199,8 +205,7 @@ router.post("/login", async (req, res) => {
 
 // *** 登出 API ***
 router.post("/logout", (req, res) => {
-  res.clearCookie("accessToken");
-
+  clearAuthCookie(res);
   return res.json({
     status: "success",
     message: "登出成功",
@@ -211,7 +216,7 @@ router.post("/logout", (req, res) => {
 router.get("/me", optionalAuthenticate, async (req, res) => {
   try {
     if (!req.user) {
-      return res.status(200).json({ data: { user: null } });
+      return res.status(200).json({ status: "success", data: { user: null } });
     }
 
     const [users] = await db.query(
@@ -220,14 +225,12 @@ router.get("/me", optionalAuthenticate, async (req, res) => {
     );
 
     if (users.length === 0) {
-      return res.status(200).json({ data: { user: null } });
+      return res.status(200).json({ status: "success", data: { user: null } });
     }
 
     return res.status(200).json({
       status: "success",
-      data: {
-        user: users[0],
-      },
+      data: { user: users[0] },
     });
   } catch (error) {
     console.error("獲取用戶資料錯誤:", error);
@@ -315,10 +318,7 @@ router.put("/profile", authenticate, async (req, res) => {
       updateValues
     );
 
-    return res.json({
-      status: "success",
-      message: "會員資料已更新",
-    });
+    return res.json({ status: "success", message: "會員資料已更新" });
   } catch (error) {
     console.error("更新會員資料失敗:", error);
 
@@ -338,59 +338,6 @@ router.put("/profile", authenticate, async (req, res) => {
 });
 
 // *** 更改密碼 ***
-// router.put("/change-password", authenticate, async (req, res) => {
-//   const { oldPassword, newPassword } = req.body;
-
-//   if (!oldPassword || !newPassword) {
-//     return res.status(400).json({
-//       status: "error",
-//       message: "請輸入舊密碼與新密碼",
-//     });
-//   }
-
-//   try {
-//     const [users] = await db.query(
-//       "SELECT password_hash FROM users WHERE id = ?",
-//       [req.user.id]
-//     );
-
-//     if (users.length === 0) {
-//       return res.status(404).json({
-//         status: "error",
-//         message: "找不到用戶",
-//       });
-//     }
-
-//     const user = users[0];
-//     const isValid = await bcrypt.compare(oldPassword, user.password_hash);
-
-//     if (!isValid) {
-//       return res.status(401).json({
-//         status: "error",
-//         message: "舊密碼錯誤",
-//       });
-//     }
-
-//     const hashed = await bcrypt.hash(newPassword, saltRounds);
-
-//     await db.query(
-//       "UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-//       [hashed, req.user.id]
-//     );
-
-//     return res.json({
-//       status: "success",
-//       message: "密碼更新成功",
-//     });
-//   } catch (error) {
-//     console.error("修改密碼失敗:", error);
-//     return res.status(500).json({
-//       status: "error",
-//       message: "伺服器錯誤，無法修改密碼",
-//     });
-//   }
-// });
-
 router.put("/change-password", authenticate, async (req, res) => {
   const { oldPassword, newPassword } = req.body;
   if (!oldPassword || !newPassword)
@@ -442,12 +389,7 @@ router.get("/google/redirect", (req, res, next) => {
       expiresIn: JWT_EXPIRES_IN,
     });
 
-    res.cookie("accessToken", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    setAuthCookie(res, token); // ← 統一用共用函式
 
     await db
       .query("UPDATE users SET last_login = NOW() WHERE id = ?", [user.id])
