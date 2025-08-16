@@ -3,12 +3,12 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import "dotenv/config.js";
 import db from "./config/connect-mysql.js";
+import passport from "passport";
+import "./config/passport.js";
 
 // 引入路由
 import authRoutes from "./routes/auth.js";
-// import habitRoutes from "./routes/habits.js";
-// import logRoutes from "./routes/logs.js";
-// import noteRoutes from "./routes/notes.js";
+import habitRoutes from "./routes/habits.js";
 
 const app = express();
 
@@ -18,6 +18,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.set("view engine", "ejs");
 app.use(express.static("public"));
+app.use(passport.initialize());
 
 // cors 設定白名單，只允許特定網址存取
 const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
@@ -26,10 +27,16 @@ const whiteList = frontendUrl.split(",");
 app.use(
   cors({
     origin: whiteList,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,
   })
 );
+
+app.get("/test", (req, res) => {
+  res.json({
+    message: "test work!",
+  });
+});
 
 // 基本路由
 app.get("/", (req, res) => {
@@ -44,9 +51,7 @@ app.get("/", (req, res) => {
 
 // *** 自訂路由 ***
 app.use("/api/auth", authRoutes);
-// app.use("/api/habits", habitRoutes);
-// app.use("/api/logs", logRoutes);
-// app.use("/api/notes", noteRoutes);
+app.use("/api/habits", habitRoutes);
 
 // *** 全域錯誤處理中間件 ***
 app.use((error, req, res, next) => {
@@ -71,15 +76,3 @@ const port = process.env.PORT || 3002;
 app.listen(port, () => {
   console.log(`Express Server 啟動: http://localhost:${port}`);
 });
-
-// 測試資料庫連線
-const testDB = async () => {
-  try {
-    await db.query("SELECT 1");
-    console.log("資料庫連線成功");
-  } catch (err) {
-    console.error("資料庫連線失敗：", err);
-  }
-};
-
-testDB();

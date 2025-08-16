@@ -45,7 +45,10 @@ export function handleAuthError() {
 export async function login(email, password) {
   return apiRequest('/api/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({
+      email: String(email).trim().toLowerCase(),
+      password,
+    }),
   })
 }
 
@@ -53,7 +56,11 @@ export async function login(email, password) {
 export async function register(username, email, password) {
   return apiRequest('/api/auth/register', {
     method: 'POST',
-    body: JSON.stringify({ username, email, password }),
+    body: JSON.stringify({
+      username: String(username).trim(),
+      email: String(email).trim().toLowerCase(),
+      password,
+    }),
   })
 }
 
