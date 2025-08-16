@@ -1,7 +1,7 @@
 {
   "workbench.colorCustomizations": {
-    "activityBar.background": "#44363baa",
-    "titleBar.activeBackground": "#504247dd",
+    "activityBar.background": "#473434aa",
+    "titleBar.activeBackground": "#534040dd",
     "titleBar.activeForeground": "#FBFAFA"
   },
   "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -29,5 +29,6 @@
   },
   "[prisma]": {
     "editor.defaultFormatter": "Prisma.prisma"
-  }
+  },
+  "cSpell.words": ["Treebit"]
 }
