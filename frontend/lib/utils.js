@@ -5,22 +5,20 @@ export function cn(...inputs) {
   return twMerge(clsx(inputs))
 }
 
-// lib/utils.js
-export function formatDateToLocalYMD(dateString, timezone = 'Asia/Taipei') {
+export function formatDateSimple(dateString) {
   if (!dateString) return ''
 
   try {
     const date = new Date(dateString)
     if (isNaN(date)) return '無效日期'
 
-    // 使用 Intl.DateTimeFormat 處理時區
-    return new Intl.DateTimeFormat('zh-TW', {
-      timeZone: timezone,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    })
-      .format(date)
+    // 直接使用 toLocaleDateString
+    return date
+      .toLocaleDateString('zh-TW', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      })
       .replace(/\//g, '-')
   } catch (error) {
     console.error('日期格式化錯誤:', error)
