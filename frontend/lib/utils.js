@@ -5,14 +5,13 @@ export function cn(...inputs) {
   return twMerge(clsx(inputs))
 }
 
-export function formatDateSimple(dateString) {
+export function formatDateToLocalYMD(dateString) {
   if (!dateString) return ''
 
   try {
     const date = new Date(dateString)
     if (isNaN(date)) return '無效日期'
 
-    // 直接使用 toLocaleDateString
     return date
       .toLocaleDateString('zh-TW', {
         year: 'numeric',
