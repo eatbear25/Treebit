@@ -24,17 +24,15 @@ const nextConfig = {
     ],
     unoptimized: true,
   },
-  // output: 'export', // 導出靜態頁面(SPA) 無法使用`next start`或 api路由
-  // distDir: 'dist', // 導出路徑
-  // 以下為使用proxy來避免cors
-  // async rewrites() {
-  //   return [
-  //     {
-  //       source: '/api/:path*',
-  //       destination: 'http://localhost:3005/:path*', // 代理Proxy到其它伺服器
-  //     },
-  //   ]
-  // },
+  // 使用proxy來避免cors和cookie問題
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'https://treebit-backend.vercel.app/api/:path*',
+      },
+    ]
+  },
 }
 
 export default nextConfig
