@@ -27,7 +27,7 @@ const nextConfig = {
         destination:
           process.env.NODE_ENV === 'production'
             ? 'https://treebit-backend.vercel.app/api/:path*'
-            : 'http://localhost:3002/api/:path*',
+            : 'http://localhost:3001/api/:path*',
       },
     ]
   },
