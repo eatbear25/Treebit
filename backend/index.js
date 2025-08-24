@@ -23,14 +23,41 @@ app.set("trust proxy", 1);
 
 // cors 設定白名單，只允許特定網址存取
 const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
-const whiteList = frontendUrl.split(",");
+const whiteList = frontendUrl
+  .split(",")
+  .map((url) => url.trim().replace(/\/$/, ""));
+
+console.log("🔍 CORS 設定檢查:");
+console.log("FRONTEND_URL 環境變數:", process.env.FRONTEND_URL);
+console.log("處理後的白名單:", whiteList);
 
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin) return callback(null, true); // Postman / curl 無 origin
-      if (whiteList.includes(origin)) return callback(null, true);
-      return callback(new Error("Not allowed by CORS"));
+      console.log("🌐 CORS Origin 檢查:");
+      console.log("  請求來源 origin:", JSON.stringify(origin));
+      console.log("  origin 類型:", typeof origin);
+      console.log("  白名單:", JSON.stringify(whiteList));
+      console.log("  是否包含:", whiteList.includes(origin));
+
+      if (!origin) {
+        console.log("  ✅ 無 origin，允許通過");
+        return callback(null, true);
+      }
+
+      if (whiteList.includes(origin)) {
+        console.log("  ✅ Origin 在白名單中，允許通過");
+        return callback(null, true);
+      }
+
+      console.log("  ❌ Origin 不在白名單中，拒絕");
+      return callback(
+        new Error(
+          `Not allowed by CORS. Origin: ${origin}, WhiteList: ${JSON.stringify(
+            whiteList
+          )}`
+        )
+      );
     },
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,
