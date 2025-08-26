@@ -17,7 +17,7 @@ Treebit，一個專注於習慣養成的網站，幫助使用者建立每日與�
 ```bash
 # 測試帳號
 帳號：wang@test.com
-密碼：123456
+密碼：Ss5566123
 ```
 
 ![Treebit 首頁](./docs/home.png)
