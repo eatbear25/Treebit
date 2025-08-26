@@ -17,14 +17,11 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 const isProd = process.env.NODE_ENV === "production";
 
-/** ------------------------- 共用：Cookie 相關 ------------------------- */
-// 不同網域（Vercel 前端 + Render 後端）上線時：sameSite 一定要 'none'、secure 一定要 true
-// 本地開發可維持 lax/secure:false，避免 http 下瀏覽器丟棄 cookie。
 const cookieBaseOptions = {
   httpOnly: true,
   secure: isProd,
-  sameSite: isProd ? "none" : "lax",
-  path: "/", // 確保所有子路徑都能帶到 cookie，也能正確清除
+  sameSite: "lax",
+  path: "/",
 };
 
 function setAuthCookie(res, token, maxAgeMs = 7 * 24 * 60 * 60 * 1000) {
@@ -35,7 +32,6 @@ function setAuthCookie(res, token, maxAgeMs = 7 * 24 * 60 * 60 * 1000) {
 }
 
 function clearAuthCookie(res) {
-  // 清除時務必帶相同 options（特別是 path/sameSite/secure），否則可能清不掉
   res.clearCookie("accessToken", { ...cookieBaseOptions });
 }
 /** ------------------------------------------------------------------- */

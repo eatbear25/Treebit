@@ -4,6 +4,17 @@ import authenticate from "../middlewares/authenticate.js";
 
 const router = express.Router();
 
+function getTaiwanDate() {
+  const now = new Date();
+  // 取得當前 UTC 時間
+  const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
+  // 加上台灣時差 (UTC+8 = 8小時 = 8*60*60*1000毫秒)
+  const taiwanTime = new Date(utcTime + 8 * 60 * 60 * 1000);
+  // 設定為當天 00:00:00
+  taiwanTime.setHours(0, 0, 0, 0);
+  return taiwanTime;
+}
+
 // 統一回傳格式
 const sendResponse = (
   res,
@@ -97,17 +108,22 @@ router.post("/", authenticate, async (req, res) => {
 
     const habitId = result.insertId;
 
-    // 建立 habit_weeks
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // 建立 habit_weeks - 使用台灣時區
+    const today = getTaiwanDate();
+
+    console.log("Taiwan today:", today); // 加入 debug log
+    console.log("Taiwan today string:", today.toISOString().split("T")[0]); // 查看實際日期
 
     for (let i = 0; i < total_weeks; i++) {
       const weekStart = new Date(today);
       weekStart.setDate(weekStart.getDate() + i * 7);
+
       const year = weekStart.getFullYear();
       const month = String(weekStart.getMonth() + 1).padStart(2, "0");
       const day = String(weekStart.getDate()).padStart(2, "0");
       const weekStartStr = `${year}-${month}-${day}`;
+
+      console.log(`Week ${i + 1} start date: ${weekStartStr}`); // debug log
 
       await db.query(
         `INSERT INTO habit_weeks (habit_id, week_number, start_date)
