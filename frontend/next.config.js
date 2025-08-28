@@ -19,18 +19,6 @@ const nextConfig = {
     ],
     unoptimized: true,
   },
-  // 使用proxy來避免cors和cookie問題
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination:
-          process.env.NODE_ENV === 'production'
-            ? 'https://treebit-backend.vercel.app/api/:path*'
-            : 'http://localhost:3001/api/:path*',
-      },
-    ]
-  },
 }
 
 export default nextConfig
