@@ -45,7 +45,8 @@ import { PiEye, PiEyeSlash } from 'react-icons/pi'
 import { cn } from '@/lib/utils'
 import { forwardRef } from 'react'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+const API_BASE_URL =
+  process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3001'
 
 const PasswordInput = forwardRef(({ className, ...props }, ref) => {
   const [showPassword, setShowPassword] = useState(false)

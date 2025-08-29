@@ -6,7 +6,8 @@ import Loader from '@/app/_components/Loader'
 import HistoryList from './_components/HistoryList'
 import { toast } from 'sonner'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+const API_BASE_URL =
+  process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3001'
 
 export default function History() {
   const [archivedHabits, setArchivedHabits] = useState([])
