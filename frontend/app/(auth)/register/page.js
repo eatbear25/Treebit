@@ -3,7 +3,10 @@ import { RegisterForm } from '@/app/(auth)/_components/RegisterForm'
 import GuestGuard from '@/app/_components/GuestGuard'
 
 export default function TreebitRegister() {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002'
+  // const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+
+  const API_URL =
+    process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3001'
 
   return (
     <GuestGuard>
