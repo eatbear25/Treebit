@@ -19,12 +19,6 @@ const nextConfig = {
     ],
     unoptimized: true,
   },
-  rewrites: [
-    {
-      source: '/api/(.*)',
-      destination: 'https://treebit-backend.vercel.app/api/$1',
-    },
-  ],
 }
 
 export default nextConfig
