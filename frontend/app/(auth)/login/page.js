@@ -6,7 +6,10 @@ import GuestGuard from '@/app/_components/GuestGuard'
 import { LoginForm } from '@/app/(auth)/_components/LoginForm'
 
 export default function TreebitLogin() {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002'
+  // const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+
+  const API_URL =
+    process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3001'
 
   return (
     <GuestGuard>
