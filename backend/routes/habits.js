@@ -259,35 +259,39 @@ router.delete("/:habitId", authenticate, async (req, res) => {
     const weekIds = weeks.map((w) => w.id);
 
     if (weekIds.length > 0) {
+      // 建立 IN 查詢的佔位符
+      const weekPlaceholders = weekIds.map(() => '?').join(',');
+
       // 找所有 task id
       const [tasks] = await db.query(
-        `SELECT id FROM habit_week_tasks WHERE habit_week_id IN (?)`,
-        [weekIds]
+        `SELECT id FROM habit_week_tasks WHERE habit_week_id IN (${weekPlaceholders})`,
+        weekIds
       );
 
       const taskIds = tasks.map((t) => t.id);
 
       if (taskIds.length > 0) {
+        const taskPlaceholders = taskIds.map(() => '?').join(',');
         // 刪 logs
-        await db.query(`DELETE FROM habit_task_logs WHERE task_id IN (?)`, [
-          taskIds,
-        ]);
+        await db.query(`DELETE FROM habit_task_logs WHERE task_id IN (${taskPlaceholders})`,
+          taskIds
+        );
       }
 
       // 刪 tasks
       await db.query(
-        `DELETE FROM habit_week_tasks WHERE habit_week_id IN (?)`,
-        [weekIds]
+        `DELETE FROM habit_week_tasks WHERE habit_week_id IN (${weekPlaceholders})`,
+        weekIds
       );
 
       // 刪 notes
       await db.query(
-        `DELETE FROM habit_weekly_notes WHERE habit_week_id IN (?)`,
-        [weekIds]
+        `DELETE FROM habit_weekly_notes WHERE habit_week_id IN (${weekPlaceholders})`,
+        weekIds
       );
 
       // 刪 weeks
-      await db.query(`DELETE FROM habit_weeks WHERE id IN (?)`, [weekIds]);
+      await db.query(`DELETE FROM habit_weeks WHERE id IN (${weekPlaceholders})`, weekIds);
     }
 
     // 最後刪 habit
