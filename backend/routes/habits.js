@@ -37,7 +37,7 @@ async function checkHabitOwner(habitId, userId, includeArchived = false) {
   const params = [habitId, userId];
 
   if (!includeArchived) {
-    query += ` AND is_archived = 0`;
+    query += ` AND is_archived = false`;
   }
 
   const [rows] = await db.query(query, params);
@@ -144,7 +144,7 @@ router.get("/", authenticate, async (req, res) => {
   try {
     const userId = req.user.id;
     const [rows] = await db.query(
-      `SELECT * FROM habits WHERE user_id = ? AND is_archived = 0 ORDER BY created_at DESC`,
+      `SELECT * FROM habits WHERE user_id = ? AND is_archived = false ORDER BY created_at DESC`,
       [userId]
     );
     sendResponse(res, 200, true, rows);
@@ -159,7 +159,7 @@ router.get("/archived", authenticate, async (req, res) => {
   try {
     const userId = req.user.id;
     const [rows] = await db.query(
-      `SELECT * FROM habits WHERE user_id = ? AND is_archived = 1 ORDER BY updated_at DESC`,
+      `SELECT * FROM habits WHERE user_id = ? AND is_archived = true ORDER BY updated_at DESC`,
       [userId]
     );
     sendResponse(res, 200, true, rows);
@@ -181,7 +181,7 @@ router.patch("/:habitId/archive", authenticate, async (req, res) => {
     }
 
     await db.query(
-      `UPDATE habits SET is_archived = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?`,
+      `UPDATE habits SET is_archived = true, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?`,
       [habitId, userId]
     );
 
@@ -205,7 +205,7 @@ router.patch("/:habitId/restore", authenticate, async (req, res) => {
     }
 
     await db.query(
-      `UPDATE habits SET is_archived = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?`,
+      `UPDATE habits SET is_archived = false, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?`,
       [habitId, userId]
     );
 
@@ -480,7 +480,7 @@ router.patch("/tasks/:taskId/logs", authenticate, async (req, res) => {
     }
 
     const completedValue =
-      is_completed === true || is_completed === "true" ? 1 : 0;
+      is_completed === true || is_completed === "true" ? true : false;
 
     const [exist] = await db.query(
       `SELECT * FROM habit_task_logs WHERE task_id = ? AND date = ?`,
@@ -677,12 +677,12 @@ router.get("/:habitId/stats", authenticate, async (req, res) => {
 
     // 計算統計資料
     const [stats] = await db.query(
-      `SELECT 
+      `SELECT
         COUNT(DISTINCT hw.id) as total_weeks,
         COUNT(htl.id) as total_logs,
-        SUM(CASE WHEN htl.is_completed = 1 THEN 1 ELSE 0 END) as completed_logs,
+        SUM(CASE WHEN htl.is_completed = true THEN 1 ELSE 0 END) as completed_logs,
         ROUND(
-          (SUM(CASE WHEN htl.is_completed = 1 THEN 1 ELSE 0 END) / COUNT(htl.id)) * 100, 0
+          (SUM(CASE WHEN htl.is_completed = true THEN 1 ELSE 0 END) / COUNT(htl.id)) * 100, 0
         ) as completion_rate
       FROM habits h
       LEFT JOIN habit_weeks hw ON hw.habit_id = h.id
