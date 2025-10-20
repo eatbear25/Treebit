@@ -102,11 +102,11 @@ router.post("/", authenticate, async (req, res) => {
 
     // 建立 habit
     const [result] = await db.query(
-      `INSERT INTO habits (user_id, title, total_weeks) VALUES (?, ?, ?)`,
+      `INSERT INTO habits (user_id, title, total_weeks) VALUES (?, ?, ?) RETURNING id`,
       [userId, title, total_weeks]
     );
 
-    const habitId = result.insertId;
+    const habitId = result[0].id;
 
     // 建立 habit_weeks - 使用台灣時區
     const today = getTaiwanDate();
@@ -376,11 +376,11 @@ router.post("/weeks/:weekId/tasks", authenticate, async (req, res) => {
 
     const [result] = await db.query(
       `INSERT INTO habit_week_tasks (habit_week_id, name, target_days)
-       VALUES (?, ?, ?)`,
+       VALUES (?, ?, ?) RETURNING id`,
       [weekId, name, target_days]
     );
 
-    sendResponse(res, 201, true, { task_id: result.insertId }, "新增任務成功");
+    sendResponse(res, 201, true, { task_id: result[0].id }, "新增任務成功");
   } catch (error) {
     console.error(error);
     sendResponse(res, 500, false, null, "新增任務失敗");
@@ -526,11 +526,11 @@ router.post("/weeks/:weekId/notes", authenticate, async (req, res) => {
     }
 
     const [result] = await db.query(
-      `INSERT INTO habit_weekly_notes (habit_week_id, content) VALUES (?, ?)`,
+      `INSERT INTO habit_weekly_notes (habit_week_id, content) VALUES (?, ?) RETURNING id`,
       [weekId, content]
     );
 
-    sendResponse(res, 201, true, { note_id: result.insertId }, "新增筆記成功");
+    sendResponse(res, 201, true, { note_id: result[0].id }, "新增筆記成功");
   } catch (error) {
     console.error(error);
     sendResponse(res, 500, false, null, "筆記操作失敗");

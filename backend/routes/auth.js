@@ -94,12 +94,12 @@ router.post("/register", async (req, res) => {
     // 建立用戶
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     const [result] = await db.query(
-      "INSERT INTO users (provider, username, email, password_hash) VALUES ('local', ?, ?, ?)",
+      "INSERT INTO users (provider, username, email, password_hash) VALUES ('local', ?, ?, ?) RETURNING id",
       [normalizedUsername, normalizedEmail, hashedPassword]
     );
 
     // 產生 JWT & 設定 Cookie
-    const data = { id: result.insertId, provider: "local" };
+    const data = { id: result[0].id, provider: "local" };
     const token = jsonwebtoken.sign(data, JWT_SECRET, {
       expiresIn: JWT_EXPIRES_IN,
     });
