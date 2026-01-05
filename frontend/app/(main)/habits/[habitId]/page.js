@@ -114,14 +114,8 @@ export default function HabitTracker() {
             logsMap[taskId] = {}
           }
 
-          const tzDate = new Date(log.date)
-          tzDate.setHours(tzDate.getHours() + 8)
-
-          const year = tzDate.getFullYear()
-          const month = String(tzDate.getMonth() + 1).padStart(2, '0')
-          const day = String(tzDate.getDate()).padStart(2, '0')
-
-          const dateStr = `${year}-${month}-${day}`
+          // 資料庫儲存的日期已經是 YYYY-MM-DD 格式，直接使用即可
+          const dateStr = log.date.split('T')[0]
 
           logsMap[taskId][dateStr] = log.is_completed === 1
         })
