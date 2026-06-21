@@ -68,13 +68,13 @@ app.use("/api/habits", habitRoutes);
 // *** 全域錯誤處理中間件 ***
 app.use((error, req, res, next) => {
   console.error("全域錯誤:", error);
-  res.status(500).json({ status: "error", message: "伺服器內部錯誤" });
+  res.status(500).json({ success: false, message: "伺服器內部錯誤" });
 });
 
 // *** 404 頁面 ***
 app.use((req, res) => {
   res.status(404).json({
-    status: "error",
+    success: false,
     message: "找不到請求的資源",
     path: req.path,
   });

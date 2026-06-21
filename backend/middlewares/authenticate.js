@@ -18,7 +18,7 @@ export default function authenticate(req, res, next) {
 
     if (!token) {
       return res.status(401).json({
-        status: "error",
+        success: false,
         message: "請先登入以繼續使用",
         code: "NO_TOKEN",
       });
@@ -41,7 +41,7 @@ export default function authenticate(req, res, next) {
         res.clearCookie("accessToken");
 
         return res.status(401).json({
-          status: "error",
+          success: false,
           message,
           code,
           requireLogin: true,
@@ -55,7 +55,7 @@ export default function authenticate(req, res, next) {
   } catch (error) {
     console.error("認證中間件錯誤:", error);
     return res.status(500).json({
-      status: "error",
+      success: false,
       message: "伺服器內部錯誤",
       code: "SERVER_ERROR",
     });

@@ -82,39 +82,49 @@ async function checkNoteOwner(noteId, userId) {
 
 // 建立習慣
 router.post("/", authenticate, async (req, res) => {
+  const userId = req.user.id;
+
+  // 驗證輸入
+  const title = typeof req.body.title === "string" ? req.body.title.trim() : "";
+  const totalWeeks = Number(req.body.total_weeks);
+
+  if (!title) {
+    return sendResponse(res, 400, false, null, "標題為必填");
+  }
+  if (!Number.isInteger(totalWeeks) || totalWeeks < 1 || totalWeeks > 52) {
+    return sendResponse(res, 400, false, null, "總週數需為 1~52 的整數");
+  }
+
+  // habit 與其所有週次必須一次成功，包進交易避免中途失敗留下半套資料
+  const client = await db.pool.connect();
   try {
-    const userId = req.user.id;
-    const { title, total_weeks } = req.body;
+    await client.query("BEGIN");
 
-    if (!title || !total_weeks) {
-      return sendResponse(res, 400, false, null, "標題和總週數為必填");
-    }
-
-    // 建立 habit
-    const [result] = await db.query(
-      `INSERT INTO habits (user_id, title, total_weeks) VALUES (?, ?, ?) RETURNING id`,
-      [userId, title, total_weeks]
+    const result = await client.query(
+      `INSERT INTO habits (user_id, title, total_weeks) VALUES ($1, $2, $3) RETURNING id`,
+      [userId, title, totalWeeks]
     );
+    const habitId = result.rows[0].id;
 
-    const habitId = result[0].id;
-
-    // 建立 habit_weeks - 以台灣時區的今天為第一週起始日
+    // 以台灣時區的今天為第一週起始日，往後每 7 天一週
     const today = getTaiwanTodayYMD();
-
-    for (let i = 0; i < total_weeks; i++) {
+    for (let i = 0; i < totalWeeks; i++) {
       const weekStartStr = addDaysToYMD(today, i * 7);
-
-      await db.query(
+      await client.query(
         `INSERT INTO habit_weeks (habit_id, week_number, start_date)
-         VALUES (?, ?, ?)`,
+         VALUES ($1, $2, $3)`,
         [habitId, i + 1, weekStartStr]
       );
     }
 
+    await client.query("COMMIT");
     sendResponse(res, 201, true, { habit_id: habitId }, "新增習慣成功");
   } catch (error) {
+    await client.query("ROLLBACK");
     console.error(error);
     sendResponse(res, 500, false, null, "建立習慣失敗");
+  } finally {
+    client.release();
   }
 });
 
@@ -300,15 +310,19 @@ router.post("/weeks/:weekId/tasks", authenticate, async (req, res) => {
       return sendResponse(res, 403, false, null, "無權新增任務至此週次");
     }
 
-    const { name, target_days } = req.body;
-    if (!name || !target_days) {
-      return sendResponse(res, 400, false, null, "任務名稱和目標天數必填");
+    const name = typeof req.body.name === "string" ? req.body.name.trim() : "";
+    const targetDays = Number(req.body.target_days);
+    if (!name) {
+      return sendResponse(res, 400, false, null, "任務名稱必填");
+    }
+    if (!Number.isInteger(targetDays) || targetDays < 1 || targetDays > 7) {
+      return sendResponse(res, 400, false, null, "目標天數需為 1~7 的整數");
     }
 
     const [result] = await db.query(
       `INSERT INTO habit_week_tasks (habit_week_id, name, target_days)
        VALUES (?, ?, ?) RETURNING id`,
-      [weekId, name, target_days]
+      [weekId, name, targetDays]
     );
 
     sendResponse(res, 201, true, { task_id: result[0].id }, "新增任務成功");
@@ -352,16 +366,20 @@ router.patch("/weeks/:weekId/tasks/:taskId", authenticate, async (req, res) => {
       return sendResponse(res, 403, false, null, "無權編輯此任務");
     }
 
-    const { name, target_days } = req.body;
-    if (!name || !target_days) {
-      return sendResponse(res, 400, false, null, "任務名稱和目標次數必填");
+    const name = typeof req.body.name === "string" ? req.body.name.trim() : "";
+    const targetDays = Number(req.body.target_days);
+    if (!name) {
+      return sendResponse(res, 400, false, null, "任務名稱必填");
+    }
+    if (!Number.isInteger(targetDays) || targetDays < 1 || targetDays > 7) {
+      return sendResponse(res, 400, false, null, "目標天數需為 1~7 的整數");
     }
 
     await db.query(
       `UPDATE habit_week_tasks
        SET name = ?, target_days = ?
        WHERE id = ?`,
-      [name, target_days, taskId]
+      [name, targetDays, taskId]
     );
 
     sendResponse(res, 200, true, null, "編輯任務成功");
@@ -382,7 +400,7 @@ router.delete("/tasks/:taskId", authenticate, async (req, res) => {
       return sendResponse(res, 403, false, null, "無權刪除此任務");
     }
 
-    await db.query(`DELETE FROM habit_task_logs WHERE task_id = ?`, [taskId]);
+    // habit_task_logs 設有 ON DELETE CASCADE，刪除任務會自動連帶刪除其打卡
     await db.query(`DELETE FROM habit_week_tasks WHERE id = ?`, [taskId]);
 
     sendResponse(res, 200, true, null, "刪除任務成功");
@@ -406,8 +424,8 @@ router.patch("/tasks/:taskId/logs", authenticate, async (req, res) => {
     }
 
     const { date, is_completed } = req.body;
-    if (!date) {
-      return sendResponse(res, 400, false, null, "日期必填");
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return sendResponse(res, 400, false, null, "日期格式需為 YYYY-MM-DD");
     }
 
     const completedValue =

@@ -10,22 +10,11 @@ export function cn(...inputs) {
 export function formatDateToLocalYMD(dateString) {
   if (!dateString) return ''
 
-  try {
-    const dateStr = String(dateString).split('T')[0]
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-      return '無效日期'
-    }
-
-    // 取得本地時區的年月日
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-
-    return `${year}-${month}-${day}`
-  } catch (error) {
-    console.error('日期格式化錯誤:', error)
-    return '日期錯誤'
-  }
+  // 純日期欄位（DATE）後端已回傳 YYYY-MM-DD 字串，這裡直接取用、不經 new Date()，
+  // 避免任何時區位移；若帶有時間部分（ISO 字串）則只取日期段。
+  const dateStr = String(dateString).split('T')[0]
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return '無效日期'
+  return dateStr
 }
 
 // 時間戳（TIMESTAMP 欄位，如 created_at、updated_at）：以台灣時區顯示為 YYYY-MM-DD。

@@ -20,7 +20,7 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: {
-    status: "error",
+    success: false,
     message: "嘗試次數過多，請稍後再試",
   },
 });
@@ -75,6 +75,15 @@ const updateProfileSchema = z.object({
   username: z.string().min(2, { message: "用戶名稱至少需 2 個字" }).optional(),
 });
 
+// 更改密碼：新密碼長度規則與註冊一致（6~20）
+const changePasswordSchema = z.object({
+  oldPassword: z.string().min(1, { message: "請輸入舊密碼" }),
+  newPassword: z
+    .string()
+    .min(6, { message: "密碼至少需 6 個字" })
+    .max(20, { message: "密碼最多 20 個字" }),
+});
+
 // *** 註冊 API ***
 router.post("/register", authLimiter, async (req, res) => {
   try {
@@ -90,7 +99,7 @@ router.post("/register", authLimiter, async (req, res) => {
 
     if (existingUsers.length > 0) {
       return res.status(400).json({
-        status: "error",
+        success: false,
         message: "此帳號已被註冊",
       });
     }
@@ -110,7 +119,7 @@ router.post("/register", authLimiter, async (req, res) => {
     setAuthCookie(res, token);
 
     return res.status(201).json({
-      status: "success",
+      success: true,
       message: "註冊成功",
       data: {
         user: data,
@@ -122,14 +131,14 @@ router.post("/register", authLimiter, async (req, res) => {
 
     if (error instanceof z.ZodError) {
       return res.status(400).json({
-        status: "error",
+        success: false,
         message: "輸入資料驗證失敗",
         errors: error.errors,
       });
     }
 
     return res.status(500).json({
-      status: "error",
+      success: false,
       message: "伺服器內部錯誤",
     });
   }
@@ -149,7 +158,7 @@ router.post("/login", authLimiter, async (req, res) => {
 
     if (users.length === 0) {
       return res.status(401).json({
-        status: "error",
+        success: false,
         message: "登入失敗，請檢查帳號或密碼",
       });
     }
@@ -160,7 +169,7 @@ router.post("/login", authLimiter, async (req, res) => {
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
     if (!isPasswordValid) {
       return res.status(401).json({
-        status: "error",
+        success: false,
         message: "登入失敗，請檢查帳號或密碼",
       });
     }
@@ -178,7 +187,7 @@ router.post("/login", authLimiter, async (req, res) => {
     setAuthCookie(res, token);
 
     return res.json({
-      status: "success",
+      success: true,
       message: "登入成功",
       data: {
         user: data,
@@ -190,14 +199,14 @@ router.post("/login", authLimiter, async (req, res) => {
 
     if (error instanceof z.ZodError) {
       return res.status(400).json({
-        status: "error",
+        success: false,
         message: "輸入資料驗證失敗",
         errors: error.errors,
       });
     }
 
     return res.status(500).json({
-      status: "error",
+      success: false,
       message: "伺服器內部錯誤",
     });
   }
@@ -207,7 +216,7 @@ router.post("/login", authLimiter, async (req, res) => {
 router.post("/logout", (req, res) => {
   clearAuthCookie(res);
   return res.json({
-    status: "success",
+    success: true,
     message: "登出成功",
   });
 });
@@ -216,7 +225,7 @@ router.post("/logout", (req, res) => {
 router.get("/me", optionalAuthenticate, async (req, res) => {
   try {
     if (!req.user) {
-      return res.status(200).json({ status: "success", data: { user: null } });
+      return res.status(200).json({ success: true, data: { user: null } });
     }
 
     const [users] = await db.query(
@@ -225,17 +234,17 @@ router.get("/me", optionalAuthenticate, async (req, res) => {
     );
 
     if (users.length === 0) {
-      return res.status(200).json({ status: "success", data: { user: null } });
+      return res.status(200).json({ success: true, data: { user: null } });
     }
 
     return res.status(200).json({
-      status: "success",
+      success: true,
       data: { user: users[0] },
     });
   } catch (error) {
     console.error("獲取用戶資料錯誤:", error);
     return res.status(500).json({
-      status: "error",
+      success: false,
       message: "伺服器內部錯誤",
     });
   }
@@ -249,7 +258,7 @@ router.put("/profile", authenticate, async (req, res) => {
 
     if (!username) {
       return res.status(400).json({
-        status: "error",
+        success: false,
         message: "請填寫要修改的顯示名稱",
       });
     }
@@ -259,20 +268,20 @@ router.put("/profile", authenticate, async (req, res) => {
       [username.trim(), req.user.id],
     );
 
-    return res.json({ status: "success", message: "會員資料已更新" });
+    return res.json({ success: true, message: "會員資料已更新" });
   } catch (error) {
     console.error("更新會員資料失敗:", error);
 
     if (error instanceof z.ZodError) {
       return res.status(400).json({
-        status: "error",
+        success: false,
         message: "輸入資料驗證失敗",
         errors: error.errors,
       });
     }
 
     return res.status(500).json({
-      status: "error",
+      success: false,
       message: "伺服器內部錯誤",
     });
   }
@@ -280,35 +289,47 @@ router.put("/profile", authenticate, async (req, res) => {
 
 // *** 更改密碼 ***
 router.put("/change-password", authenticate, async (req, res) => {
-  const { oldPassword, newPassword } = req.body;
-  if (!oldPassword || !newPassword)
-    return res
-      .status(400)
-      .json({ status: "error", message: "請輸入舊密碼與新密碼" });
+  try {
+    const { oldPassword, newPassword } = changePasswordSchema.parse(req.body);
 
-  const [[u]] = await db.query(
-    "SELECT provider, password_hash FROM users WHERE id=? LIMIT 1",
-    [req.user.id],
-  );
-  if (!u)
-    return res.status(404).json({ status: "error", message: "找不到用戶" });
+    const [[u]] = await db.query(
+      "SELECT provider, password_hash FROM users WHERE id=? LIMIT 1",
+      [req.user.id],
+    );
+    if (!u)
+      return res.status(404).json({ success: false, message: "找不到用戶" });
 
-  if (u.provider !== "local" || !u.password_hash) {
-    return res
-      .status(400)
-      .json({ status: "error", message: "Google 帳號不可修改密碼" });
+    if (u.provider !== "local" || !u.password_hash) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Google 帳號不可修改密碼" });
+    }
+
+    const isValid = await bcrypt.compare(oldPassword, u.password_hash);
+    if (!isValid)
+      return res.status(401).json({ success: false, message: "舊密碼錯誤" });
+
+    const hashed = await bcrypt.hash(newPassword, saltRounds);
+    await db.query(
+      "UPDATE users SET password_hash = ?, updated_at = NOW() WHERE id = ?",
+      [hashed, req.user.id],
+    );
+    return res.json({ success: true, message: "密碼更新成功" });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        success: false,
+        message: "輸入資料驗證失敗",
+        errors: error.errors,
+      });
+    }
+
+    console.error("更改密碼失敗:", error);
+    return res.status(500).json({
+      success: false,
+      message: "伺服器內部錯誤",
+    });
   }
-
-  const isValid = await bcrypt.compare(oldPassword, u.password_hash);
-  if (!isValid)
-    return res.status(401).json({ status: "error", message: "舊密碼錯誤" });
-
-  const hashed = await bcrypt.hash(newPassword, saltRounds);
-  await db.query(
-    "UPDATE users SET password_hash = ?, updated_at = NOW() WHERE id = ?",
-    [hashed, req.user.id],
-  );
-  return res.json({ status: "success", message: "密碼更新成功" });
 });
 
 // *** Google 登入 ***
@@ -343,7 +364,7 @@ router.get("/google/redirect", (req, res, next) => {
 // 測試路由
 router.get("/", (req, res) => {
   return res.json({
-    status: "success",
+    success: true,
     message: "Auth API 運作正常",
     endpoints: {
       register: "POST /api/auth/register",
