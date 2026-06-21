@@ -43,23 +43,22 @@ export function handleAuthError() {
 }
 
 // 登入 API
-export async function login(email, password) {
+export async function login(account, password) {
   return apiRequest('/api/auth/login', {
     method: 'POST',
     body: JSON.stringify({
-      email: String(email).trim().toLowerCase(),
+      account: String(account).trim(),
       password,
     }),
   })
 }
 
 // 註冊 API
-export async function register(username, email, password) {
+export async function register(account, password) {
   return apiRequest('/api/auth/register', {
     method: 'POST',
     body: JSON.stringify({
-      username: String(username).trim(),
-      email: String(email).trim().toLowerCase(),
+      account: String(account).trim(),
       password,
     }),
   })

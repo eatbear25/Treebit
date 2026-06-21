@@ -1,5 +1,5 @@
 import express from "express";
-import db from "../config/connect-mysql.js";
+import db from "../config/connect-postgresql.js";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import jsonwebtoken from "jsonwebtoken";
@@ -7,12 +7,25 @@ import authenticate, {
   optionalAuthenticate,
 } from "../middlewares/authenticate.js";
 import passport from "passport";
+import { rateLimit } from "express-rate-limit";
 
 const router = express.Router();
 
 const saltRounds = 10;
 
-const JWT_SECRET = process.env.JWT_SECRET || "JWT_SECRET";
+// 限制登入 / 註冊頻率，降低暴力嘗試風險（每 IP 15 分鐘 20 次）
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    status: "error",
+    message: "嘗試次數過多，請稍後再試",
+  },
+});
+
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 const isProd = process.env.NODE_ENV === "production";
@@ -38,12 +51,10 @@ function clearAuthCookie(res) {
 
 // 本地 zod 驗證
 const registerSchema = z.object({
-  username: z
-    .string({ message: "用戶名稱為必填欄位" })
-    .min(2, { message: "用戶名稱至少需 2 個字" }),
-  email: z
-    .string({ message: "電子郵件欄為必填欄位" })
-    .email("請輸入有效的電子郵件"),
+  account: z
+    .string({ message: "帳號為必填欄位" })
+    .min(2, { message: "帳號至少需 2 個字" })
+    .max(50, { message: "帳號最多 50 個字" }),
   password: z
     .string({ message: "密碼為必填欄位" })
     .min(6, { message: "密碼至少需 6 個字" })
@@ -51,55 +62,48 @@ const registerSchema = z.object({
 });
 
 const loginSchema = z.object({
-  email: z
-    .string({ message: "電子郵件欄為必填欄位" })
-    .email("請輸入有效的電子郵件"),
+  account: z
+    .string({ message: "帳號為必填欄位" })
+    .min(1, { message: "請輸入帳號" }),
   password: z
     .string({ message: "密碼為必填欄位" })
     .min(1, { message: "請輸入密碼" }),
 });
 
+// 會員資料只開放修改顯示名稱（密碼有專用 API）
 const updateProfileSchema = z.object({
   username: z.string().min(2, { message: "用戶名稱至少需 2 個字" }).optional(),
-  email: z.string().email("請輸入有效的電子郵件").optional(),
-  password: z.string().min(6).max(20).optional(),
-});
-
-router.use((req, res, next) => {
-  console.log(`正在接收 auth 請求: ${req.method} ${req.path}`);
-  next();
 });
 
 // *** 註冊 API ***
-router.post("/register", async (req, res) => {
+router.post("/register", authLimiter, async (req, res) => {
   try {
     const validatedData = registerSchema.parse(req.body);
-    const { username, email, password } = validatedData;
-    const normalizedEmail = email.trim().toLowerCase();
-    const normalizedUsername = username.trim();
+    const { account, password } = validatedData;
+    const normalizedAccount = account.trim();
 
-    // 檢查用戶是否已存在
+    // 檢查帳號是否已存在
     const [existingUsers] = await db.query(
-      "SELECT id FROM users WHERE email = ? AND provider = 'local'",
-      [normalizedEmail]
+      "SELECT id FROM users WHERE account = ? AND provider = 'local'",
+      [normalizedAccount],
     );
 
     if (existingUsers.length > 0) {
       return res.status(400).json({
         status: "error",
-        message: "電子郵件已被註冊",
+        message: "此帳號已被註冊",
       });
     }
 
-    // 建立用戶
+    // 建立用戶（顯示名稱預設與帳號相同，之後可於會員資料修改）
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     const [result] = await db.query(
-      "INSERT INTO users (provider, username, email, password_hash) VALUES ('local', ?, ?, ?)",
-      [normalizedUsername, normalizedEmail, hashedPassword]
+      "INSERT INTO users (provider, account, username, password_hash) VALUES ('local', ?, ?, ?) RETURNING id",
+      [normalizedAccount, normalizedAccount, hashedPassword],
     );
 
     // 產生 JWT & 設定 Cookie
-    const data = { id: result.insertId, provider: "local" };
+    const data = { id: result[0].id, provider: "local" };
     const token = jsonwebtoken.sign(data, JWT_SECRET, {
       expiresIn: JWT_EXPIRES_IN,
     });
@@ -132,21 +136,21 @@ router.post("/register", async (req, res) => {
 });
 
 // *** 登入 API ***
-router.post("/login", async (req, res) => {
+router.post("/login", authLimiter, async (req, res) => {
   try {
     const validatedData = loginSchema.parse(req.body);
-    const { email, password } = validatedData;
+    const { account, password } = validatedData;
 
-    // 用 email 找尋用戶
+    // 用帳號找尋用戶
     const [users] = await db.query(
-      "SELECT id, username, email, password_hash FROM users WHERE email = ? AND provider = 'local'",
-      [email.trim().toLowerCase()]
+      "SELECT id, username, account, password_hash FROM users WHERE account = ? AND provider = 'local'",
+      [account.trim()],
     );
 
     if (users.length === 0) {
       return res.status(401).json({
         status: "error",
-        message: "登入失敗，請檢查電子郵件或密碼",
+        message: "登入失敗，請檢查帳號或密碼",
       });
     }
 
@@ -157,7 +161,7 @@ router.post("/login", async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({
         status: "error",
-        message: "登入失敗，請檢查電子郵件或密碼",
+        message: "登入失敗，請檢查帳號或密碼",
       });
     }
 
@@ -216,8 +220,8 @@ router.get("/me", optionalAuthenticate, async (req, res) => {
     }
 
     const [users] = await db.query(
-      "SELECT id, username, email, provider, created_at, last_login FROM users WHERE id = ?",
-      [req.user.id]
+      "SELECT id, account, username, email, provider, created_at, last_login FROM users WHERE id = ?",
+      [req.user.id],
     );
 
     if (users.length === 0) {
@@ -240,78 +244,19 @@ router.get("/me", optionalAuthenticate, async (req, res) => {
 // *** 修改會員資料 ***
 router.put("/profile", authenticate, async (req, res) => {
   try {
-    // 先查 provider
-    const [[u]] = await db.query(
-      "SELECT provider FROM users WHERE id=? LIMIT 1",
-      [req.user.id]
-    );
-    if (!u)
-      return res.status(404).json({ status: "error", message: "找不到用戶" });
-
-    if (u.provider === "google") {
-      // Google 不允許改 email / 密碼
-      delete req.body.email;
-      delete req.body.password;
-    }
-
     const validatedData = updateProfileSchema.parse(req.body);
-    const { username, email, password } = validatedData;
+    const { username } = validatedData;
 
-    // 沒有任何欄位就不處理
-    if (!username && !email && !password) {
+    if (!username) {
       return res.status(400).json({
         status: "error",
-        message: "請至少填寫一個欄位進行修改",
+        message: "請填寫要修改的顯示名稱",
       });
     }
 
-    const updateFields = [];
-    const updateValues = [];
-
-    if (username) {
-      updateFields.push("username = ?");
-      updateValues.push(username);
-    }
-
-    if (email) {
-      // 只在 local 才可能進來：檢查 local 範圍唯一
-      const [exists] = await db.query(
-        "SELECT id FROM users WHERE email=? AND provider='local' AND id<>?",
-        [email.toLowerCase(), req.user.id]
-      );
-      if (exists.length)
-        return res
-          .status(400)
-          .json({ status: "error", message: "電子郵件已被使用" });
-      updateFields.push("email = ?");
-      updateValues.push(email.toLowerCase());
-    }
-
-    if (password) {
-      if (u.provider === "google") {
-        return res
-          .status(400)
-          .json({ status: "error", message: "Google 帳號不可設定密碼" });
-      }
-      const hashedPassword = await bcrypt.hash(password, saltRounds);
-      updateFields.push("password_hash = ?");
-      updateValues.push(hashedPassword);
-    }
-
-    if (!updateFields.length)
-      return res
-        .status(400)
-        .json({ status: "error", message: "請至少填寫一個欄位進行修改" });
-
-    // 加上 updated_at 欄位更新時間
-    updateFields.push("updated_at = CURRENT_TIMESTAMP");
-
-    // 加入 user id 作為 where 條件
-    updateValues.push(req.user.id);
-
     await db.query(
-      `UPDATE users SET ${updateFields.join(", ")} WHERE id = ?`,
-      updateValues
+      "UPDATE users SET username = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+      [username.trim(), req.user.id],
     );
 
     return res.json({ status: "success", message: "會員資料已更新" });
@@ -343,7 +288,7 @@ router.put("/change-password", authenticate, async (req, res) => {
 
   const [[u]] = await db.query(
     "SELECT provider, password_hash FROM users WHERE id=? LIMIT 1",
-    [req.user.id]
+    [req.user.id],
   );
   if (!u)
     return res.status(404).json({ status: "error", message: "找不到用戶" });
@@ -360,8 +305,8 @@ router.put("/change-password", authenticate, async (req, res) => {
 
   const hashed = await bcrypt.hash(newPassword, saltRounds);
   await db.query(
-    "UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-    [hashed, req.user.id]
+    "UPDATE users SET password_hash = ?, updated_at = NOW() WHERE id = ?",
+    [hashed, req.user.id],
   );
   return res.json({ status: "success", message: "密碼更新成功" });
 });
@@ -373,7 +318,7 @@ router.get(
     scope: ["profile", "email"],
     prompt: "select_account",
     session: false,
-  })
+  }),
 );
 
 router.get("/google/redirect", (req, res, next) => {

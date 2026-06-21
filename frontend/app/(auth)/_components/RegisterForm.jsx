@@ -50,12 +50,10 @@ PasswordInput.displayName = 'PasswordInput'
 // 定義 zod schema
 const registerSchema = z
   .object({
-    username: z
-      .string({ message: '使用者名稱為必填欄位' })
-      .min(2, { message: '使用者名稱至少需 2 個字' }),
-    email: z
-      .string({ message: '電子郵件欄為必填欄位' })
-      .email('請輸入有效的電子郵件'),
+    account: z
+      .string({ message: '帳號為必填欄位' })
+      .min(2, { message: '帳號至少需 2 個字' })
+      .max(50, { message: '帳號最多 50 個字' }),
     password: z
       .string({ message: '密碼為必填欄位' })
       .min(6, { message: '密碼至少需 6 個字' })
@@ -75,20 +73,18 @@ export function RegisterForm() {
   const form = useForm({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      username: '',
-      email: '',
+      account: '',
       password: '',
       confirmPassword: '',
     },
   })
 
   const onSubmit = async (values) => {
-    console.log('送出資料:', values)
     setLoading(true)
     setError('')
 
     try {
-      await registerApi(values.username, values.email, values.password)
+      await registerApi(values.account, values.password)
 
       toast.success('註冊成功')
       router.push('/login')
@@ -105,38 +101,15 @@ export function RegisterForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* 使用者名稱 */}
+        {/* 帳號 */}
         <FormField
           control={form.control}
-          name="username"
+          name="account"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="mb-2">使用者名稱</FormLabel>
+              <FormLabel className="mb-2">帳號</FormLabel>
               <FormControl>
-                <Input
-                  className="py-5"
-                  placeholder="請輸入使用者名稱"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* 電子郵件 */}
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="mb-2">電子郵件</FormLabel>
-              <FormControl>
-                <Input
-                  className="py-5"
-                  placeholder="請輸入電子郵件"
-                  {...field}
-                />
+                <Input className="py-5" placeholder="請輸入帳號" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

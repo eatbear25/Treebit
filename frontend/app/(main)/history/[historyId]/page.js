@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { PiArrowBendUpLeft } from 'react-icons/pi'
 import Loader from '@/app/_components/Loader'
-import { formatDateToLocalYMD } from '@/lib/utils'
+import { formatDateToLocalYMD, getWeekDates } from '@/lib/utils'
 
 import HistoryHabitHeader from '../_components/HistoryHabitHeader'
 import HistoryTaskTable from '../_components/HistoryTaskTable'
@@ -25,7 +25,8 @@ export default function HabitHistoryTracker() {
   const [taskLogs, setTaskLogs] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [isWeekDataLoading, setIsWeekDataLoading] = useState(true)
+  const [isWeekDataLoading, setIsWeekDataLoading] = useState(false)
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
 
   const API_BASE_URL =
     process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3001'
@@ -119,7 +120,8 @@ export default function HabitHistoryTracker() {
 
           const dateStr = formatDateToLocalYMD(log.date)
 
-          logsMap[taskId][dateStr] = log.is_completed === 1
+          // PostgreSQL boolean 經 JSON 回傳為 true/false
+          logsMap[taskId][dateStr] = log.is_completed === true
         })
 
         setTaskLogs(logsMap)
@@ -129,26 +131,7 @@ export default function HabitHistoryTracker() {
     }
   }
 
-  const getCurrentWeekDates = () => {
-    if (!currentWeekData) return []
-
-    const startDate = new Date(currentWeekData.start_date)
-    const weekDates = []
-
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(startDate)
-      date.setDate(startDate.getDate() + i)
-
-      const fullDate = formatDateToLocalYMD(date.toISOString())
-
-      weekDates.push({
-        short: `${date.getMonth() + 1}/${date.getDate()}`,
-        full: fullDate,
-      })
-    }
-
-    return weekDates
-  }
+  const getCurrentWeekDates = () => getWeekDates(currentWeekData?.start_date)
 
   const getFormattedTasks = () => {
     const weekDates = getCurrentWeekDates()
@@ -175,13 +158,16 @@ export default function HabitHistoryTracker() {
     const loadData = async () => {
       setLoading(true)
       await Promise.all([fetchHabit(), fetchAllWeeks()])
-      setLoading(false)
+      // 初始載入時不關閉 loading，等週次資料也載入完成
+      if (!isInitialLoad) {
+        setLoading(false)
+      }
     }
 
     if (historyId) {
       loadData()
     }
-  }, [historyId]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [historyId, isInitialLoad]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (allWeeks.length > 0 && currentWeekIndex < allWeeks.length) {
@@ -189,16 +175,25 @@ export default function HabitHistoryTracker() {
       setCurrentWeekData(currentWeek)
 
       const loadCurrentWeekData = async () => {
-        setIsWeekDataLoading(true)
+        // 只在切換週次時顯示載入狀態，初始載入時不顯示
+        if (!isInitialLoad) {
+          setIsWeekDataLoading(true)
+        }
         await fetchCurrentWeekTasks(currentWeek.id)
         await fetchCurrentWeekNotes(currentWeek.id)
         await fetchCurrentWeekLogs(currentWeek.id)
         setIsWeekDataLoading(false)
+
+        // 初始載入完成後，關閉主要的 loading 狀態
+        if (isInitialLoad) {
+          setLoading(false)
+          setIsInitialLoad(false)
+        }
       }
 
       loadCurrentWeekData()
     }
-  }, [allWeeks, currentWeekIndex])
+  }, [allWeeks, currentWeekIndex, isInitialLoad])
 
   const goToPreviousWeek = () => {
     if (currentWeekIndex > 0) {
@@ -216,7 +211,7 @@ export default function HabitHistoryTracker() {
     router.push('/history')
   }
 
-  if (loading) {
+  if (loading || isWeekDataLoading) {
     return (
       <div className="flex justify-center">
         <Loader />
@@ -234,14 +229,6 @@ export default function HabitHistoryTracker() {
     return (
       <div className="flex h-screen items-center justify-center">
         找不到資料
-      </div>
-    )
-  }
-
-  if (isWeekDataLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        載入本週資料中...
       </div>
     )
   }

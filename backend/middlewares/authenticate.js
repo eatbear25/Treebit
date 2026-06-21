@@ -1,6 +1,6 @@
 import jsonwebtoken from "jsonwebtoken";
 
-const accessTokenSecret = process.env.JWT_SECRET || "JWT_SECRET";
+const accessTokenSecret = process.env.JWT_SECRET;
 
 // 一定要登入的 middleware
 export default function authenticate(req, res, next) {

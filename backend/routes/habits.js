@@ -1,19 +1,9 @@
 import express from "express";
-import db from "../config/connect-mysql.js";
+import db from "../config/connect-postgresql.js";
 import authenticate from "../middlewares/authenticate.js";
+import { getTaiwanTodayYMD, addDaysToYMD } from "../utils/date.js";
 
 const router = express.Router();
-
-function getTaiwanDate() {
-  const now = new Date();
-  // 取得當前 UTC 時間
-  const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
-  // 加上台灣時差 (UTC+8 = 8小時 = 8*60*60*1000毫秒)
-  const taiwanTime = new Date(utcTime + 8 * 60 * 60 * 1000);
-  // 設定為當天 00:00:00
-  taiwanTime.setHours(0, 0, 0, 0);
-  return taiwanTime;
-}
 
 // 統一回傳格式
 const sendResponse = (
@@ -37,7 +27,7 @@ async function checkHabitOwner(habitId, userId, includeArchived = false) {
   const params = [habitId, userId];
 
   if (!includeArchived) {
-    query += ` AND is_archived = 0`;
+    query += ` AND is_archived = false`;
   }
 
   const [rows] = await db.query(query, params);
@@ -102,28 +92,17 @@ router.post("/", authenticate, async (req, res) => {
 
     // 建立 habit
     const [result] = await db.query(
-      `INSERT INTO habits (user_id, title, total_weeks) VALUES (?, ?, ?)`,
+      `INSERT INTO habits (user_id, title, total_weeks) VALUES (?, ?, ?) RETURNING id`,
       [userId, title, total_weeks]
     );
 
-    const habitId = result.insertId;
+    const habitId = result[0].id;
 
-    // 建立 habit_weeks - 使用台灣時區
-    const today = getTaiwanDate();
-
-    console.log("Taiwan today:", today); // 加入 debug log
-    console.log("Taiwan today string:", today.toISOString().split("T")[0]); // 查看實際日期
+    // 建立 habit_weeks - 以台灣時區的今天為第一週起始日
+    const today = getTaiwanTodayYMD();
 
     for (let i = 0; i < total_weeks; i++) {
-      const weekStart = new Date(today);
-      weekStart.setDate(weekStart.getDate() + i * 7);
-
-      const year = weekStart.getFullYear();
-      const month = String(weekStart.getMonth() + 1).padStart(2, "0");
-      const day = String(weekStart.getDate()).padStart(2, "0");
-      const weekStartStr = `${year}-${month}-${day}`;
-
-      console.log(`Week ${i + 1} start date: ${weekStartStr}`); // debug log
+      const weekStartStr = addDaysToYMD(today, i * 7);
 
       await db.query(
         `INSERT INTO habit_weeks (habit_id, week_number, start_date)
@@ -144,7 +123,7 @@ router.get("/", authenticate, async (req, res) => {
   try {
     const userId = req.user.id;
     const [rows] = await db.query(
-      `SELECT * FROM habits WHERE user_id = ? AND is_archived = 0 ORDER BY created_at DESC`,
+      `SELECT * FROM habits WHERE user_id = ? AND is_archived = false ORDER BY created_at DESC`,
       [userId]
     );
     sendResponse(res, 200, true, rows);
@@ -159,7 +138,7 @@ router.get("/archived", authenticate, async (req, res) => {
   try {
     const userId = req.user.id;
     const [rows] = await db.query(
-      `SELECT * FROM habits WHERE user_id = ? AND is_archived = 1 ORDER BY updated_at DESC`,
+      `SELECT * FROM habits WHERE user_id = ? AND is_archived = true ORDER BY updated_at DESC`,
       [userId]
     );
     sendResponse(res, 200, true, rows);
@@ -181,7 +160,7 @@ router.patch("/:habitId/archive", authenticate, async (req, res) => {
     }
 
     await db.query(
-      `UPDATE habits SET is_archived = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?`,
+      `UPDATE habits SET is_archived = true, updated_at = NOW() WHERE id = ? AND user_id = ?`,
       [habitId, userId]
     );
 
@@ -205,7 +184,7 @@ router.patch("/:habitId/restore", authenticate, async (req, res) => {
     }
 
     await db.query(
-      `UPDATE habits SET is_archived = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?`,
+      `UPDATE habits SET is_archived = false, updated_at = NOW() WHERE id = ? AND user_id = ?`,
       [habitId, userId]
     );
 
@@ -250,47 +229,8 @@ router.delete("/:habitId", authenticate, async (req, res) => {
       return sendResponse(res, 403, false, null, "無權刪除此習慣");
     }
 
-    // 先找 habit 所有 week id
-    const [weeks] = await db.query(
-      `SELECT id FROM habit_weeks WHERE habit_id = ?`,
-      [habitId]
-    );
-
-    const weekIds = weeks.map((w) => w.id);
-
-    if (weekIds.length > 0) {
-      // 找所有 task id
-      const [tasks] = await db.query(
-        `SELECT id FROM habit_week_tasks WHERE habit_week_id IN (?)`,
-        [weekIds]
-      );
-
-      const taskIds = tasks.map((t) => t.id);
-
-      if (taskIds.length > 0) {
-        // 刪 logs
-        await db.query(`DELETE FROM habit_task_logs WHERE task_id IN (?)`, [
-          taskIds,
-        ]);
-      }
-
-      // 刪 tasks
-      await db.query(
-        `DELETE FROM habit_week_tasks WHERE habit_week_id IN (?)`,
-        [weekIds]
-      );
-
-      // 刪 notes
-      await db.query(
-        `DELETE FROM habit_weekly_notes WHERE habit_week_id IN (?)`,
-        [weekIds]
-      );
-
-      // 刪 weeks
-      await db.query(`DELETE FROM habit_weeks WHERE id IN (?)`, [weekIds]);
-    }
-
-    // 最後刪 habit
+    // schema 各外鍵皆設定 ON DELETE CASCADE，刪除 habit 會連帶刪除
+    // weeks → tasks → logs / notes，無需手動逐表刪除
     await db.query(`DELETE FROM habits WHERE id = ? AND user_id = ?`, [
       habitId,
       userId,
@@ -337,16 +277,7 @@ router.delete("/weeks/:weekId", authenticate, async (req, res) => {
       return sendResponse(res, 403, false, null, "無權刪除此週次");
     }
 
-    await db.query(
-      `DELETE hwt, htl, hwn
-       FROM habit_weeks hw
-       LEFT JOIN habit_week_tasks hwt ON hwt.habit_week_id = hw.id
-       LEFT JOIN habit_task_logs htl ON htl.task_id = hwt.id
-       LEFT JOIN habit_weekly_notes hwn ON hwn.habit_week_id = hw.id
-       WHERE hw.id = ?`,
-      [weekId]
-    );
-
+    // ON DELETE CASCADE 會連帶刪除該週的 tasks、logs、notes
     await db.query(`DELETE FROM habit_weeks WHERE id = ?`, [weekId]);
 
     sendResponse(res, 200, true, null, "刪除週次成功");
@@ -376,11 +307,11 @@ router.post("/weeks/:weekId/tasks", authenticate, async (req, res) => {
 
     const [result] = await db.query(
       `INSERT INTO habit_week_tasks (habit_week_id, name, target_days)
-       VALUES (?, ?, ?)`,
+       VALUES (?, ?, ?) RETURNING id`,
       [weekId, name, target_days]
     );
 
-    sendResponse(res, 201, true, { task_id: result.insertId }, "新增任務成功");
+    sendResponse(res, 201, true, { task_id: result[0].id }, "新增任務成功");
   } catch (error) {
     console.error(error);
     sendResponse(res, 500, false, null, "新增任務失敗");
@@ -480,7 +411,7 @@ router.patch("/tasks/:taskId/logs", authenticate, async (req, res) => {
     }
 
     const completedValue =
-      is_completed === true || is_completed === "true" ? 1 : 0;
+      is_completed === true || is_completed === "true" ? true : false;
 
     const [exist] = await db.query(
       `SELECT * FROM habit_task_logs WHERE task_id = ? AND date = ?`,
@@ -526,11 +457,11 @@ router.post("/weeks/:weekId/notes", authenticate, async (req, res) => {
     }
 
     const [result] = await db.query(
-      `INSERT INTO habit_weekly_notes (habit_week_id, content) VALUES (?, ?)`,
+      `INSERT INTO habit_weekly_notes (habit_week_id, content) VALUES (?, ?) RETURNING id`,
       [weekId, content]
     );
 
-    sendResponse(res, 201, true, { note_id: result.insertId }, "新增筆記成功");
+    sendResponse(res, 201, true, { note_id: result[0].id }, "新增筆記成功");
   } catch (error) {
     console.error(error);
     sendResponse(res, 500, false, null, "筆記操作失敗");
@@ -602,7 +533,7 @@ router.patch("/weeks/:weekId/notes/:noteId", authenticate, async (req, res) => {
 
     await db.query(
       `UPDATE habit_weekly_notes
-       SET content = ?, updated_at = NOW()
+       SET content = ?
        WHERE id = ?`,
       [content, noteId]
     );
@@ -677,12 +608,13 @@ router.get("/:habitId/stats", authenticate, async (req, res) => {
 
     // 計算統計資料
     const [stats] = await db.query(
-      `SELECT 
+      `SELECT
         COUNT(DISTINCT hw.id) as total_weeks,
         COUNT(htl.id) as total_logs,
-        SUM(CASE WHEN htl.is_completed = 1 THEN 1 ELSE 0 END) as completed_logs,
+        SUM(CASE WHEN htl.is_completed = true THEN 1 ELSE 0 END) as completed_logs,
         ROUND(
-          (SUM(CASE WHEN htl.is_completed = 1 THEN 1 ELSE 0 END) / COUNT(htl.id)) * 100, 0
+          SUM(CASE WHEN htl.is_completed = true THEN 1 ELSE 0 END)::numeric
+            / NULLIF(COUNT(htl.id), 0) * 100, 0
         ) as completion_rate
       FROM habits h
       LEFT JOIN habit_weeks hw ON hw.habit_id = h.id

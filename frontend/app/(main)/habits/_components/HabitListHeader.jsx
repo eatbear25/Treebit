@@ -82,10 +82,12 @@ export default function HabitHeader({ habitsNum, onHabitAdded }) {
   const [loading, setLoading] = useState(false)
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
 
-  // 基本資料（username / email 只有 local 可以改）
+  // 基本資料（僅顯示名稱可修改）
   const formSchema = z.object({
-    username: z.string().optional(),
-    email: z.string().email({ message: '請輸入正確的 Email 格式' }).optional(),
+    username: z
+      .string()
+      .min(2, { message: '顯示名稱至少需 2 個字' })
+      .optional(),
   })
 
   // 改密碼（只有 local 才會顯示）
@@ -116,7 +118,6 @@ export default function HabitHeader({ habitsNum, onHabitAdded }) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       username: user?.username || '',
-      email: user?.email || '',
     },
   })
 
@@ -133,12 +134,9 @@ export default function HabitHeader({ habitsNum, onHabitAdded }) {
   const handleSubmit = async (values) => {
     setLoading(true)
     try {
-      // 只有 local 才送 email；google 不允許更新 email
+      // 僅可修改顯示名稱
       const payload = {
         ...(values.username ? { username: values.username.trim() } : {}),
-        ...(values.email && !isGoogle
-          ? { email: values.email.trim().toLowerCase() }
-          : {}),
       }
 
       const res = await fetch(`${API_BASE_URL}/api/auth/profile`, {
@@ -230,37 +228,14 @@ export default function HabitHeader({ habitsNum, onHabitAdded }) {
                   name="username"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>使用者名稱</FormLabel>
+                      <FormLabel>顯示名稱</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="請輸入使用者名稱" />
+                        <Input {...field} placeholder="請輸入顯示名稱" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
-                {/* 只有本地帳號可改 Email */}
-                {!isGoogle && (
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>電子郵件</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="請輸入電子郵件" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
-                {isGoogle && (
-                  <p className="text-sm text-gray-500">
-                    您是使用 <b>Google</b> 登入，因此不可修改 Email。
-                  </p>
-                )}
 
                 <AlertDialogFooter>
                   <AlertDialogCancel>取消</AlertDialogCancel>
@@ -273,12 +248,14 @@ export default function HabitHeader({ habitsNum, onHabitAdded }) {
           ) : (
             <ul className="flex flex-col gap-5">
               <li>
-                <p className="font-bold text-[#3D8D7A]">使用者名稱</p>
+                <p className="font-bold text-[#3D8D7A]">顯示名稱</p>
                 <p>{user?.username}</p>
               </li>
               <li>
-                <p className="font-bold text-[#3D8D7A]">電子郵件</p>
-                <p>{user?.email || '—'}</p>
+                <p className="font-bold text-[#3D8D7A]">
+                  {isGoogle ? '電子郵件' : '帳號'}
+                </p>
+                <p>{isGoogle ? user?.email || '—' : user?.account || '—'}</p>
               </li>
 
               {/* 只有本地帳號顯示「修改密碼」；Google 顯示提示 */}

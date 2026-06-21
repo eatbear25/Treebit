@@ -22,7 +22,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
-import { formatDateToLocalYMD } from '@/lib/utils'
+import { formatTimestampToTaiwanYMD } from '@/lib/utils'
 
 const API_BASE_URL =
   process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3001'
@@ -141,17 +141,9 @@ export default function HabitCard({
             <span className="text-xl text-[#9A9FA5]">總週數</span>
           </li>
 
-          {/* <li className="flex flex-col items-center justify-center">
-            <span className="inter text-3xl font-[700]">
-              {percent}
-              <span className="ml-1 text-xl font-[700] text-[#9A9FA5]">%</span>
-            </span>
-            <span className="text-xl text-[#9A9FA5]">達成率</span>
-          </li> */}
-
           <li className="flex flex-col items-center justify-center">
             <span className="inter text-3xl font-[700]">
-              {formatDateToLocalYMD(created_at)}
+              {formatTimestampToTaiwanYMD(created_at)}
             </span>
             <span className="text-xl text-[#9A9FA5]">創立時間</span>
           </li>

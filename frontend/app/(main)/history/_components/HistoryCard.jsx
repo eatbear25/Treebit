@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { PiXBold } from 'react-icons/pi'
-import { formatDateToLocalYMD } from '@/lib/utils'
+import { formatTimestampToTaiwanYMD } from '@/lib/utils'
 
 import {
   AlertDialog,
@@ -97,14 +97,14 @@ export default function HistoryCard({
 
           <li className="flex flex-col items-center justify-center">
             <span className="inter text-2xl font-[700]">
-              <div>{formatDateToLocalYMD(created_at)}</div>
+              <div>{formatTimestampToTaiwanYMD(created_at)}</div>
             </span>
             <span className="text-xl text-[#9A9FA5]">開始日期</span>
           </li>
 
           <li className="flex flex-col items-center justify-center">
             <span className="inter text-2xl font-[700]">
-              <div>{formatDateToLocalYMD(updated_at)}</div>
+              <div>{formatTimestampToTaiwanYMD(updated_at)}</div>
             </span>
             <span className="text-xl text-[#9A9FA5]">封存日期</span>
           </li>

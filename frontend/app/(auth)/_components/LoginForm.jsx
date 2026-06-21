@@ -49,13 +49,12 @@ PasswordInput.displayName = 'PasswordInput'
 
 // 定義 zod schema
 const loginSchema = z.object({
-  email: z
-    .string({ message: '電子郵件欄為必填欄位' })
-    .email('請輸入有效的電子郵件'),
+  account: z
+    .string({ message: '帳號為必填欄位' })
+    .min(1, { message: '請輸入帳號' }),
   password: z
     .string({ message: '密碼為必填欄位' })
-    .min(6, { message: '密碼至少需 6 個字' })
-    .max(20, { message: '密碼最多 20 個字' }),
+    .min(1, { message: '請輸入密碼' }),
 })
 
 // 定義表單
@@ -68,18 +67,17 @@ export function LoginForm() {
   const form = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
+      account: '',
       password: '',
     },
   })
 
   const onSubmit = async (values) => {
-    console.log('onSubmit called')
     setLoading(true)
     setError('')
 
     try {
-      const res = await loginApi(values.email, values.password)
+      const res = await loginApi(values.account, values.password)
       login(res.data)
       toast.success('登入成功')
       router.push('/habits') // 登入成功導回首頁或其他頁
@@ -97,16 +95,12 @@ export function LoginForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
-          name="email"
+          name="account"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="mb-2">電子郵件</FormLabel>
+              <FormLabel className="mb-2">帳號</FormLabel>
               <FormControl>
-                <Input
-                  className="py-5"
-                  placeholder="請輸入電子郵件"
-                  {...field}
-                />
+                <Input className="py-5" placeholder="請輸入帳號" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -6,7 +6,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
-import { formatDateToLocalYMD } from '@/lib/utils'
+import { formatTimestampToTaiwanYMD } from '@/lib/utils'
 
 export default function NoteItem({ note, onEditNote, onDeleteNote }) {
   return (
@@ -14,7 +14,7 @@ export default function NoteItem({ note, onEditNote, onDeleteNote }) {
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="mb-2 text-sm text-gray-500">
-            <div>{formatDateToLocalYMD(note.created_at)}</div>
+            <div>{formatTimestampToTaiwanYMD(note.created_at)}</div>
           </div>
           <div className="text-gray-800">{note.content}</div>
         </div>

@@ -9,6 +9,12 @@ import "./config/passport.js";
 import authRoutes from "./routes/auth.js";
 import habitRoutes from "./routes/habits.js";
 
+// 啟動前檢查必要環境變數（缺少安全相關設定就直接終止）
+if (!process.env.JWT_SECRET) {
+  console.error("❌ 缺少必要環境變數 JWT_SECRET，請於 .env 設定後再啟動");
+  process.exit(1);
+}
+
 const app = express();
 
 // 中間件設定
@@ -27,37 +33,14 @@ const whiteList = frontendUrl
   .split(",")
   .map((url) => url.trim().replace(/\/$/, ""));
 
-console.log("🔍 CORS 設定檢查:");
-console.log("FRONTEND_URL 環境變數:", process.env.FRONTEND_URL);
-console.log("處理後的白名單:", whiteList);
-
 app.use(
   cors({
     origin(origin, callback) {
-      console.log("🌐 CORS Origin 檢查:");
-      console.log("  請求來源 origin:", JSON.stringify(origin));
-      console.log("  origin 類型:", typeof origin);
-      console.log("  白名單:", JSON.stringify(whiteList));
-      console.log("  是否包含:", whiteList.includes(origin));
-
-      if (!origin) {
-        console.log("  ✅ 無 origin，允許通過");
+      // 無 origin（如同源請求、Server 對 Server）一律放行
+      if (!origin || whiteList.includes(origin)) {
         return callback(null, true);
       }
-
-      if (whiteList.includes(origin)) {
-        console.log("  ✅ Origin 在白名單中，允許通過");
-        return callback(null, true);
-      }
-
-      console.log("  ❌ Origin 不在白名單中，拒絕");
-      return callback(
-        new Error(
-          `Not allowed by CORS. Origin: ${origin}, WhiteList: ${JSON.stringify(
-            whiteList
-          )}`
-        )
-      );
+      return callback(new Error(`Not allowed by CORS: ${origin}`));
     },
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,
