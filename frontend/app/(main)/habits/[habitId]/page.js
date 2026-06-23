@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { toast } from 'sonner'
 
@@ -26,7 +26,9 @@ export default function HabitTracker() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isWeekDataLoading, setIsWeekDataLoading] = useState(false)
-  const [isInitialLoad, setIsInitialLoad] = useState(true)
+  // 用 ref 追蹤初次載入：它只在 effect 的非同步流程中做判斷，
+  // 不參與 render，改成 state 反而會讓它變動時觸發 effect 重跑、重複打 API
+  const isInitialLoadRef = useRef(true)
 
   const API_BASE_URL =
     process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3001'
@@ -59,8 +61,6 @@ export default function HabitTracker() {
 
         // 計算當前週的索引（使用台灣時區）
         const now = new Date()
-        console.log('===== 計算當前週 =====')
-        console.log('現在時間:', now)
 
         const currentWeekIdx = data.data.findIndex((week) => {
           // 取得 start_date 的日期部分（忽略時間）
@@ -71,23 +71,14 @@ export default function HabitTracker() {
           endDate.setDate(startDate.getDate() + 6) // 週結束日期
           endDate.setHours(23, 59, 59, 999) // 設定為當天最後一刻
 
-          console.log(`第 ${week.week_number} 週:`, {
-            startDate: startDate.toISOString(),
-            endDate: endDate.toISOString(),
-            isInRange: now >= startDate && now <= endDate,
-          })
-
           return now >= startDate && now <= endDate
         })
-
-        console.log('找到的週次索引:', currentWeekIdx)
 
         // 如果找到當前週，設定索引；否則使用最後一週
         if (currentWeekIdx !== -1) {
           setCurrentWeekIndex(currentWeekIdx)
         } else {
           // 如果當前日期不在任何週期內，使用最後一週
-          console.log('沒找到當前週，使用最後一週')
           setCurrentWeekIndex(data.data.length - 1)
         }
       }
@@ -137,36 +128,39 @@ export default function HabitTracker() {
     [API_BASE_URL]
   )
 
-  const fetchCurrentWeekLogs = async (weekId) => {
-    try {
-      const res = await fetch(
-        `${API_BASE_URL}/api/habits/weeks/${weekId}/logs`,
-        {
-          credentials: 'include',
-        }
-      )
-      const data = await res.json()
-      if (data.success) {
-        const logsMap = {}
-        data.data.forEach((log) => {
-          const taskId = Number(log.task_id)
-          if (!logsMap[taskId]) {
-            logsMap[taskId] = {}
+  const fetchCurrentWeekLogs = useCallback(
+    async (weekId) => {
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/api/habits/weeks/${weekId}/logs`,
+          {
+            credentials: 'include',
           }
+        )
+        const data = await res.json()
+        if (data.success) {
+          const logsMap = {}
+          data.data.forEach((log) => {
+            const taskId = Number(log.task_id)
+            if (!logsMap[taskId]) {
+              logsMap[taskId] = {}
+            }
 
-          // 資料庫儲存的日期已經是 YYYY-MM-DD 格式，直接使用即可
-          const dateStr = log.date.split('T')[0]
+            // 資料庫儲存的日期已經是 YYYY-MM-DD 格式，直接使用即可
+            const dateStr = log.date.split('T')[0]
 
-          // PostgreSQL boolean 經 JSON 回傳為 true/false
-          logsMap[taskId][dateStr] = log.is_completed === true
-        })
+            // PostgreSQL boolean 經 JSON 回傳為 true/false
+            logsMap[taskId][dateStr] = log.is_completed === true
+          })
 
-        setTaskLogs(logsMap)
+          setTaskLogs(logsMap)
+        }
+      } catch (err) {
+        console.error('獲取打卡記錄錯誤:', err)
       }
-    } catch (err) {
-      console.error('獲取打卡記錄錯誤:', err)
-    }
-  }
+    },
+    [API_BASE_URL]
+  )
 
   const getCurrentWeekDates = () => getWeekDates(currentWeekData?.start_date)
 
@@ -196,7 +190,7 @@ export default function HabitTracker() {
       setLoading(true)
       await Promise.all([fetchHabit(), fetchAllWeeks()])
       // 初始載入時不關閉 loading，等週次資料也載入完成
-      if (!isInitialLoad) {
+      if (!isInitialLoadRef.current) {
         setLoading(false)
       }
     }
@@ -204,7 +198,7 @@ export default function HabitTracker() {
     if (habitId) {
       loadData()
     }
-  }, [habitId, fetchHabit, fetchAllWeeks, isInitialLoad])
+  }, [habitId, fetchHabit, fetchAllWeeks])
 
   useEffect(() => {
     if (allWeeks.length > 0 && currentWeekIndex < allWeeks.length) {
@@ -213,7 +207,7 @@ export default function HabitTracker() {
 
       const loadCurrentWeekData = async () => {
         // 只在切換週次時顯示載入狀態，初始載入時不顯示
-        if (!isInitialLoad) {
+        if (!isInitialLoadRef.current) {
           setIsWeekDataLoading(true)
         }
         await fetchCurrentWeekTasks(currentWeek.id)
@@ -222,9 +216,9 @@ export default function HabitTracker() {
         setIsWeekDataLoading(false)
 
         // 初始載入完成後，關閉主要的 loading 狀態
-        if (isInitialLoad) {
+        if (isInitialLoadRef.current) {
           setLoading(false)
-          setIsInitialLoad(false)
+          isInitialLoadRef.current = false
         }
       }
 
@@ -236,7 +230,6 @@ export default function HabitTracker() {
     fetchCurrentWeekTasks,
     fetchCurrentWeekNotes,
     fetchCurrentWeekLogs,
-    isInitialLoad,
   ])
 
   const handleToggleTask = async (taskId, dayIndex) => {
