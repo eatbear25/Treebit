@@ -1,0 +1,28 @@
+<svg width="480" height="130" viewBox="0 0 480 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- stage 1: seed -->
+  <g>
+    <path d="M40 104 H80" stroke="#4F6F58" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+    <ellipse cx="60" cy="90" rx="13" ry="9" transform="rotate(-20 60 90)" fill="#C6D8C0"/>
+  </g>
+  <!-- stage 2: sprout -->
+  <g>
+    <path d="M160 104 H200" stroke="#4F6F58" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+    <path d="M180 100 C180 86 180 78 180 68" stroke="#7BA17D" stroke-width="7" stroke-linecap="round"/>
+    <path d="M180 80 C193 78 205 68 208 54 C192 53 178 62 180 80 Z" fill="#C6D8C0"/>
+  </g>
+  <!-- stage 3: sapling -->
+  <g>
+    <path d="M280 104 H320" stroke="#4F6F58" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+    <path d="M300 100 C300 80 300 64 300 46" stroke="#7BA17D" stroke-width="8" stroke-linecap="round"/>
+    <path d="M300 70 C286 72 273 64 270 50 C285 46 299 55 300 70 Z" fill="#A7C3A4"/>
+    <path d="M300 58 C314 56 327 46 330 32 C313 30 298 40 300 58 Z" fill="#C6D8C0"/>
+  </g>
+  <!-- stage 4: tree -->
+  <g>
+    <path d="M400 104 H440" stroke="#4F6F58" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+    <path d="M420 100 V58" stroke="#8A6D4F" stroke-width="9" stroke-linecap="round"/>
+    <circle cx="420" cy="42" r="26" fill="#7BA17D"/>
+    <circle cx="402" cy="52" r="16" fill="#A7C3A4"/>
+    <circle cx="438" cy="52" r="16" fill="#C6D8C0"/>
+  </g>
+</svg>

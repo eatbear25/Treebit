@@ -260,7 +260,7 @@ export default function HabitHistoryTracker() {
 
       <div className="my-6 flex justify-end">
         <button
-          className="flex cursor-pointer items-center gap-2 text-right text-lg text-gray-600 hover:opacity-80"
+          className="flex cursor-pointer items-center gap-2 text-right text-lg text-muted-foreground transition hover:text-foreground hover:opacity-80"
           onClick={handleGoBack}
         >
           返回上一頁

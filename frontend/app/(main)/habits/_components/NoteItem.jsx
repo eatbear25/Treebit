@@ -10,19 +10,19 @@ import { formatTimestampToTaiwanYMD } from '@/lib/utils'
 
 export default function NoteItem({ note, onEditNote, onDeleteNote }) {
   return (
-    <div className="rounded-lg border border-gray-200 p-4 transition-shadow hover:shadow-sm">
+    <div className="rounded-lg border border-border p-4 transition-shadow hover:shadow-sm">
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <div className="mb-2 text-sm text-gray-500">
+          <div className="tnum mb-2 text-sm text-muted-foreground">
             <div>{formatTimestampToTaiwanYMD(note.created_at)}</div>
           </div>
-          <div className="text-gray-800">{note.content}</div>
+          <div className="text-foreground">{note.content}</div>
         </div>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="cursor-pointer rounded p-1 hover:bg-gray-100">
-              <span className="text-gray-400">⋯</span>
+            <button className="cursor-pointer rounded-lg p-1 transition hover:bg-muted">
+              <span className="text-muted-foreground">⋯</span>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -31,7 +31,7 @@ export default function NoteItem({ note, onEditNote, onDeleteNote }) {
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={onDeleteNote}
-              className="cursor-pointer text-red-500"
+              className="cursor-pointer text-destructive"
             >
               刪除
             </DropdownMenuItem>

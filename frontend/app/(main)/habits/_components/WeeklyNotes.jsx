@@ -108,9 +108,9 @@ export default function WeeklyNotes({
   }
 
   return (
-    <div className="rounded-lg bg-white shadow-sm">
+    <div className="rounded-2xl bg-card shadow-sm">
       <div className="p-5 lg:p-6">
-        <h2 className="mb-6 text-xl font-bold text-[#3D8D7A]">每週記事</h2>
+        <h2 className="mb-6 text-xl font-bold text-primary">每週記事</h2>
 
         {notes.length > 0 ? (
           <div className="space-y-4">
@@ -131,7 +131,9 @@ export default function WeeklyNotes({
             ))}
           </div>
         ) : (
-          <div className="py-8 text-center text-gray-500">尚未新增記事</div>
+          <div className="py-8 text-center text-muted-foreground">
+            尚未新增記事
+          </div>
         )}
 
         {/* 新增記事 Dialog */}
@@ -142,7 +144,7 @@ export default function WeeklyNotes({
                 setOpen(true)
                 addForm.reset({ content: '' })
               }}
-              className="mt-6 flex cursor-pointer items-center gap-2 rounded-md border border-gray-400 px-4 py-2 transition hover:bg-gray-100 hover:text-gray-700 active:scale-97"
+              className="mt-6 flex cursor-pointer items-center gap-2 rounded-lg border border-border px-4 py-2 transition hover:bg-muted hover:text-foreground active:scale-97"
             >
               <span className="text-lg">+</span>
               <span>新增記事</span>

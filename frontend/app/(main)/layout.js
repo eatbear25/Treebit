@@ -8,7 +8,7 @@ export default function Layout({ children }) {
   return (
     <>
       <AuthProvider>
-        <div className="min-h-screen bg-[#F2F2F2] px-2 pt-8 md:px-20 md:pt-12">
+        <div className="min-h-screen bg-surface px-2 pt-8 md:px-20 md:pt-12">
           <div className="container mx-auto lg:flex lg:gap-8">
             {/* 大螢幕時顯示在左邊的 Sidebar */}
             <div className="hidden lg:block lg:w-38 lg:flex-shrink-0">

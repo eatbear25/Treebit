@@ -8,6 +8,7 @@ import { PiArrowBendUpLeft } from 'react-icons/pi'
 import Loader from '@/app/_components/Loader'
 import { getWeekDates } from '@/lib/utils'
 import HabitHeader from '../_components/HabitHeader'
+import StatsPlaceholder from '../_components/StatsPlaceholder'
 import TaskTable from '../_components/TaskTable'
 import WeeklyNotes from '../_components/WeeklyNotes'
 
@@ -521,6 +522,8 @@ export default function HabitTracker() {
         canGoNext={currentWeekIndex < allWeeks.length - 1}
         currentWeekIndex={currentWeekIndex}
       />
+
+      <StatsPlaceholder />
 
       <TaskTable
         tasks={formattedTasks}

@@ -89,15 +89,15 @@ export default function TaskTable({
   }
 
   return (
-    <div className="mb-8 rounded-lg bg-white shadow-sm">
+    <div className="mb-8 rounded-2xl bg-card shadow-sm">
       <div className="p-5 lg:p-6">
-        <h2 className="mb-6 text-xl font-bold text-[#3D8D7A]">每日任務</h2>
+        <h2 className="mb-6 text-xl font-bold text-primary">每日任務</h2>
 
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-200">
-                <th className="sticky left-0 z-10 w-48 border-r border-gray-200 bg-white p-1 text-left font-bold md:px-4 md:py-3">
+              <tr className="border-b border-border">
+                <th className="sticky left-0 z-10 w-48 border-r border-border bg-card p-1 text-left font-bold md:px-4 md:py-3">
                   習慣
                 </th>
 
@@ -142,7 +142,9 @@ export default function TaskTable({
         </div>
 
         {tasks.length === 0 && (
-          <div className="py-8 text-center text-gray-500">尚未新增任務</div>
+          <div className="py-8 text-center text-muted-foreground">
+            尚未新增任務
+          </div>
         )}
 
         <Dialog open={open} onOpenChange={setOpen}>
@@ -153,7 +155,7 @@ export default function TaskTable({
                 form.reset()
                 setOpen(true)
               }}
-              className="mt-6 flex cursor-pointer items-center gap-2 rounded-md border border-gray-400 px-4 py-2 transition hover:bg-gray-100 hover:text-gray-700 active:scale-97"
+              className="mt-6 flex cursor-pointer items-center gap-2 rounded-lg border border-border px-4 py-2 transition hover:bg-muted hover:text-foreground active:scale-97"
             >
               <span className="text-lg">+</span>
               <span>新增任務</span>

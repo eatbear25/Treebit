@@ -12,16 +12,16 @@ export default function WeekNavigation({
 }) {
   return (
     <div className="flex items-center gap-4">
-      <span className="font-bold text-[#317162]">{currentWeek}</span>
-      <span className="inter mr-3 font-[600]">{weekRange}</span>
+      <span className="font-bold text-brand-700">{currentWeek}</span>
+      <span className="font-outfit tnum mr-3 font-[600]">{weekRange}</span>
       <div className="flex items-center gap-4">
         <button
           onClick={onPreviousWeek}
           disabled={currentWeekIndex === 0}
-          className={`h-14 w-14 rounded-full bg-white transition-colors ${
+          className={`h-14 w-14 rounded-full bg-card shadow-sm transition-colors ${
             currentWeekIndex === 0
-              ? 'text-gray-300'
-              : 'cursor-pointer hover:scale-105 hover:bg-gray-200 active:scale-95'
+              ? 'text-muted-foreground/40'
+              : 'cursor-pointer hover:scale-105 hover:bg-muted active:scale-95'
           }`}
         >
           <span className="flex items-center justify-center text-xl">
@@ -32,10 +32,10 @@ export default function WeekNavigation({
         <button
           onClick={onNextWeek}
           disabled={currentWeekIndex === totalWeeks - 1}
-          className={`h-14 w-14 rounded-full bg-white transition-colors ${
+          className={`h-14 w-14 rounded-full bg-card shadow-sm transition-colors ${
             currentWeekIndex === totalWeeks - 1
-              ? 'text-gray-300'
-              : 'cursor-pointer hover:scale-105 hover:bg-gray-200 active:scale-95'
+              ? 'text-muted-foreground/40'
+              : 'cursor-pointer hover:scale-105 hover:bg-muted active:scale-95'
           }`}
         >
           <span className="flex items-center justify-center text-xl">

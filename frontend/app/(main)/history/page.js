@@ -90,8 +90,12 @@ export default function History() {
             <Loader />
           </div>
         ) : archivedHabits.length === 0 ? (
-          <div className="py-12 text-center">
-            <div className="text-lg text-gray-500">沒有封存的習慣</div>
+          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+            <img src="/icon.svg" alt="" className="w-16 opacity-90" />
+            <p className="text-lg font-medium">還沒有封存的習慣</p>
+            <p className="text-sm text-muted-foreground">
+              完成或暫停的習慣封存後，會收藏在這裡
+            </p>
           </div>
         ) : (
           <HistoryList

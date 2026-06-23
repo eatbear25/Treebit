@@ -3,7 +3,22 @@
     "allow": [
       "Skill(code-review)",
       "Skill(code-review:*)",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "Bash(npm --prefix frontend run dev)",
+      "Bash(curl -s -o /dev/null -w \"status=%{http_code}\\\\n\" http://localhost:3002/logo-preview)",
+      "Bash(curl -s -o /dev/null -w \"home=%{http_code}\\\\n\" http://localhost:3002/)",
+      "Bash(curl -s -o /dev/null -w \"login=%{http_code}\\\\n\" http://localhost:3002/login)",
+      "Bash(node -e \"const s=require\\('fs'\\).readFileSync\\('app/page.js','utf8'\\); const o=\\(s.match\\(/\\\\\\(/g\\)||[]\\).length,c=\\(s.match\\(/\\\\\\)/g\\)||[]\\).length,ob=\\(s.match\\(/\\\\{/g\\)||[]\\).length,cb=\\(s.match\\(/\\\\}/g\\)||[]\\).length; console.log\\('parens',o,c,'braces',ob,cb\\)\")",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\).on\\('end',\\(\\)=>console.log\\(JSON.stringify\\(JSON.parse\\(d\\).scripts\\)\\)\\)\")",
+      "Bash(npx next *)",
+      "Bash(npx prettier *)",
+      "Bash(echo \"---exit:$?---\")",
+      "Bash(node -e \"const p=require\\('./package.json'\\); const all={...p.dependencies,...p.devDependencies}; console.log\\('playwright:',all['playwright']||all['@playwright/test']||'no'\\); console.log\\('puppeteer:',all['puppeteer']||all['puppeteer-core']||'no'\\);\")",
+      "Read(//c/Program Files/Google/Chrome/Application/**)",
+      "Read(//c/Program Files \\(x86\\)/Microsoft/Edge/Application/**)",
+      "Bash(curl -s -o /dev/null -w \"home: %{http_code}\\\\n\" --max-time 60 http://localhost:3100/)",
+      "Bash(curl -s -o /dev/null -w \"home: %{http_code} in %{time_total}s\\\\n\" --max-time 120 http://localhost:3100/)",
+      "PowerShell($conns = Get-NetTCPConnection -LocalPort 3100 -ErrorAction SilentlyContinue; if \\($conns\\) { $conns.OwningProcess | Select-Object -Unique | ForEach-Object { try { Stop-Process -Id $_ -Force -ErrorAction Stop; \"killed PID $_\" } catch {} } } else { \"no listener on 3100\" }; Get-Process node -ErrorAction SilentlyContinue | Measure-Object | ForEach-Object { \"remaining node procs: $\\($_.Count\\)\" })"
     ]
   }
 }

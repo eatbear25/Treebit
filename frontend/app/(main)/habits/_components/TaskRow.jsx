@@ -39,14 +39,14 @@ export default function TaskRow({
 
   return (
     <>
-      <tr className="border-b border-gray-100 hover:bg-gray-50">
-        <td className="sticky left-0 z-10 max-w-[180px] min-w-[120px] border-r border-gray-200 bg-white p-1 md:p-4">
+      <tr className="border-b border-border hover:bg-muted/50">
+        <td className="sticky left-0 z-10 max-w-[180px] min-w-[120px] border-r border-border bg-card p-1 md:p-4">
           <div className="flex items-center justify-between gap-3">
             <span className="break-words whitespace-normal">{task.name}</span>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="cursor-pointer rounded p-1 hover:bg-gray-100">
+                <button className="cursor-pointer rounded-lg p-1 transition hover:bg-muted">
                   ⋯
                 </button>
               </DropdownMenuTrigger>
@@ -60,7 +60,7 @@ export default function TaskRow({
 
                 <DropdownMenuItem
                   onClick={() => setOpenConfirm(true)}
-                  className="cursor-pointer text-red-500"
+                  className="cursor-pointer text-destructive"
                 >
                   刪除
                 </DropdownMenuItem>
@@ -72,30 +72,30 @@ export default function TaskRow({
           <td key={dayIndex} className="px-5 py-4 text-center md:px-3">
             <button
               onClick={() => onToggleTask(task.id, dayIndex)}
-              className={`mx-auto flex h-7 w-7 cursor-pointer items-center justify-center rounded transition-colors ${
+              className={`mx-auto flex h-7 w-7 cursor-pointer items-center justify-center rounded-md transition-colors ${
                 completed
-                  ? 'bg-[#317162] text-white'
-                  : 'border-2 border-gray-300 hover:border-[#A3D1C6] hover:bg-[#ecf4f2]'
+                  ? 'bg-brand-700 text-white'
+                  : 'border-2 border-border hover:border-brand-300 hover:bg-brand-50'
               }`}
             >
               {completed && <PiCheckBold />}
             </button>
           </td>
         ))}
-        <td className="px-2 py-4 text-center font-medium whitespace-nowrap text-gray-700">
+        <td className="tnum px-2 py-4 text-center font-medium whitespace-nowrap text-foreground">
           {task.targetDays}
         </td>
-        <td className="px-2 py-4 text-center font-medium whitespace-nowrap text-gray-700">
+        <td className="tnum px-2 py-4 text-center font-medium whitespace-nowrap text-foreground">
           {task.completedCount}
         </td>
         <td className="px-2 py-4 text-center whitespace-nowrap">
           <span
-            className={`font-medium ${
+            className={`tnum font-medium ${
               getCompletionRate(task) === 100
-                ? 'text-[#3D8D7A]'
+                ? 'text-primary'
                 : getCompletionRate(task) >= 50
-                  ? 'text-yellow-500'
-                  : 'text-red-600'
+                  ? 'text-streak'
+                  : 'text-destructive'
             }`}
           >
             {getCompletionRate(task)}%

@@ -5,11 +5,17 @@
 
 body {
   font-family: var(--font-noto);
-  color: #343a40;
+  color: var(--foreground);
 }
 
-.inter {
-  font-family: var(--font-inter);
+/* Latin / 數字顯示字體 */
+.font-outfit {
+  font-family: var(--font-outfit);
+}
+
+/* 等寬數字，用於統計數據（總週數、達成率、streak…） */
+.tnum {
+  font-variant-numeric: tabular-nums;
 }
 
 @theme inline {
@@ -17,8 +23,12 @@ body {
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 10px);
+
+  /* 語義色（shadcn） */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
@@ -35,11 +45,30 @@ body {
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+  /* 品牌 sage 色階 */
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900);
+
+  /* streak 暖色（僅 streak 元件使用） */
+  --color-streak: var(--streak);
+  --color-streak-foreground: var(--streak-foreground);
+
+  /* 圖表（未來統計用，sage 家族 + 一個對比暖色） */
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -51,72 +80,113 @@ body {
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* 圓角：14px，較大圓潤呼應 Calm Organic */
+  --radius: 0.875rem;
+
+  /* 品牌 sage 色階 */
+  --brand-50: #f1f5f1;
+  --brand-100: #e3ece4;
+  --brand-200: #c6d8c0;
+  --brand-300: #a7c3a4;
+  --brand-400: #8bae89;
+  --brand-500: #7ba17d;
+  --brand-600: #5e8466;
+  --brand-700: #4f6f58;
+  --brand-800: #3c5645;
+  --brand-900: #2c3f33;
+
+  /* streak 暖色 */
+  --streak: #e0a458;
+  --streak-foreground: #5a3a18;
+
+  /* 表面 / 語義 */
+  --surface: #f6f5f0;
+  --background: #f6f5f0;
+  --foreground: #2e322e;
+  --card: #ffffff;
+  --card-foreground: #2e322e;
+  --popover: #ffffff;
+  --popover-foreground: #2e322e;
+  --primary: #7ba17d;
+  --primary-foreground: #ffffff;
+  --secondary: #efeee8;
+  --secondary-foreground: #4f6f58;
+  --muted: #efeee8;
+  --muted-foreground: #646b60;
+  --accent: #e3ece4;
+  --accent-foreground: #4f6f58;
+  --destructive: #cc5c52;
+  --border: #e5e3da;
+  --input: #e5e3da;
+  --ring: #c6d8c0;
+
+  /* 圖表 */
+  --chart-1: #7ba17d;
+  --chart-2: #a7c3a4;
+  --chart-3: #4f6f58;
+  --chart-4: #c6d8c0;
+  --chart-5: #c9a66b;
+
+  /* sidebar */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #2e322e;
+  --sidebar-primary: #7ba17d;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e3ece4;
+  --sidebar-accent-foreground: #4f6f58;
+  --sidebar-border: #e5e3da;
+  --sidebar-ring: #c6d8c0;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --brand-50: #1a241c;
+  --brand-100: #21302a;
+  --brand-200: #2c4035;
+  --brand-300: #3c5645;
+  --brand-400: #4f6f58;
+  --brand-500: #7ba17d;
+  --brand-600: #8bae89;
+  --brand-700: #a7c3a4;
+  --brand-800: #c6d8c0;
+  --brand-900: #e3ece4;
+
+  --streak: #e0a458;
+  --streak-foreground: #2a1a08;
+
+  --surface: #141714;
+  --background: #141714;
+  --foreground: #ecefe9;
+  --card: #1b1f1b;
+  --card-foreground: #ecefe9;
+  --popover: #1b1f1b;
+  --popover-foreground: #ecefe9;
+  --primary: #7ba17d;
+  --primary-foreground: #11160f;
+  --secondary: #262b25;
+  --secondary-foreground: #ecefe9;
+  --muted: #262b25;
+  --muted-foreground: #9aa093;
+  --accent: #2c4035;
+  --accent-foreground: #ecefe9;
+  --destructive: #d4655b;
+  --border: #ffffff1a;
+  --input: #ffffff26;
+  --ring: #4f6f58;
+
+  --chart-1: #7ba17d;
+  --chart-2: #a7c3a4;
+  --chart-3: #c6d8c0;
+  --chart-4: #5e8466;
+  --chart-5: #c9a66b;
+
+  --sidebar: #1b1f1b;
+  --sidebar-foreground: #ecefe9;
+  --sidebar-primary: #7ba17d;
+  --sidebar-primary-foreground: #11160f;
+  --sidebar-accent: #2c4035;
+  --sidebar-accent-foreground: #ecefe9;
+  --sidebar-border: #ffffff1a;
+  --sidebar-ring: #4f6f58;
 }
 
 @layer base {

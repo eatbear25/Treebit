@@ -109,12 +109,12 @@ export default function HabitCard({
 
   return (
     <>
-      <div className="relative mb-10 flex h-[300px] w-full flex-col justify-between rounded-md bg-white p-8 shadow-sm">
+      <div className="relative mb-10 flex h-[300px] w-full flex-col justify-between rounded-2xl bg-card p-8 shadow-[0_10px_30px_-14px_rgba(79,111,88,0.25)]">
         {/* 下拉選單 */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="absolute top-4 right-4 cursor-pointer rounded p-1 hover:bg-gray-100">
-              <span className="text-gray-400">⋯</span>
+            <button className="absolute top-4 right-4 cursor-pointer rounded-lg p-1 transition hover:bg-muted">
+              <span className="text-muted-foreground">⋯</span>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -125,7 +125,7 @@ export default function HabitCard({
               封存
             </DropdownMenuItem>
             <DropdownMenuItem
-              className="cursor-pointer text-red-500"
+              className="cursor-pointer text-destructive"
               onClick={handleDeleteClick}
             >
               刪除
@@ -137,21 +137,23 @@ export default function HabitCard({
 
         <ul className="mb-8 flex justify-around text-sm">
           <li className="flex flex-col items-center justify-center">
-            <span className="inter text-3xl font-[700]">{total_weeks}</span>
-            <span className="text-xl text-[#9A9FA5]">總週數</span>
+            <span className="font-outfit tnum text-3xl font-[700]">
+              {total_weeks}
+            </span>
+            <span className="text-xl text-muted-foreground">總週數</span>
           </li>
 
           <li className="flex flex-col items-center justify-center">
-            <span className="inter text-3xl font-[700]">
+            <span className="font-outfit tnum text-3xl font-[700]">
               {formatTimestampToTaiwanYMD(created_at)}
             </span>
-            <span className="text-xl text-[#9A9FA5]">創立時間</span>
+            <span className="text-xl text-muted-foreground">創立時間</span>
           </li>
         </ul>
 
         <button
           onClick={handleViewTask}
-          className="w-full cursor-pointer rounded-tl-xl rounded-br-xl bg-[#3D8D7A] py-3 text-xl font-[600] text-white shadow-lg transition hover:scale-101 hover:bg-[#509887] active:scale-99"
+          className="w-full cursor-pointer rounded-tl-xl rounded-br-xl bg-primary py-3 text-xl font-[600] text-primary-foreground shadow-[0_8px_20px_-8px_rgba(79,111,88,0.5)] transition hover:scale-101 hover:bg-brand-600 active:scale-99"
         >
           查看任務
         </button>

@@ -10,7 +10,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          'cursor-pointer bg-[#3D8D7A] text-primary-foreground shadow-xs hover:bg-[#3D8D7A]/90',
+          'cursor-pointer bg-primary text-primary-foreground shadow-xs hover:bg-brand-600 active:scale-[0.98]',
         destructive:
           'bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60',
         outline:
@@ -21,9 +21,9 @@ const buttonVariants = cva(
           'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50',
         link: 'text-primary underline-offset-4 hover:underline',
         treebit:
-          'cursor-pointer rounded-xl bg-[#3D8D7A] font-bold text-white transition-colors hover:opacity-90',
+          'cursor-pointer rounded-xl bg-primary font-bold text-white transition-colors hover:bg-brand-600 active:scale-[0.98]',
         addHabit:
-          'cursor-pointer rounded-lg px-3 py-1 text-3xl transition hover:bg-[#C8CACD] active:scale-95',
+          'cursor-pointer rounded-lg px-3 py-1 text-3xl transition hover:bg-muted active:scale-95',
       },
       size: {
         default: 'h-9 px-4 py-6 has-[>svg]:px-3',

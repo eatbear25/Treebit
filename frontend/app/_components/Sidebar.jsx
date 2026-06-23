@@ -14,19 +14,19 @@ export default function Sidebar() {
 
   return (
     <>
-      <div className="bg-white lg:flex lg:flex-col lg:justify-between lg:bg-transparent">
+      <div className="bg-card lg:flex lg:flex-col lg:justify-between lg:bg-transparent">
         <Link href="/" className="mb-6 ml-3 hidden w-10 lg:block">
           <img src="/icon.svg" alt="Treebit Logo" />
         </Link>
 
-        <div className="flex justify-around border-t text-lg font-[600] lg:w-35 lg:flex-col lg:gap-4 lg:border-none">
+        <div className="flex justify-around border-t border-border text-lg font-[600] lg:w-35 lg:flex-col lg:gap-2 lg:border-none">
           <Link
             href="/habits"
-            className={`flex items-center justify-center gap-2 rounded-lg p-5 transition lg:flex-row lg:px-0 lg:py-3 ${
+            className={`flex items-center justify-center gap-2 rounded-lg p-5 transition active:scale-95 lg:flex-row lg:px-0 lg:py-3 ${
               pathname === '/habits'
-                ? 'lg:bg-[#C8CACD]'
-                : 'lg:hover:bg-[#C8CACD]'
-            } active:scale-95`}
+                ? 'text-primary lg:bg-brand-100'
+                : 'text-muted-foreground hover:text-foreground lg:hover:bg-brand-50'
+            }`}
           >
             <span className="text-2xl">
               {pathname === '/habits' ? (
@@ -40,11 +40,11 @@ export default function Sidebar() {
 
           <Link
             href="/history"
-            className={`flex items-center justify-center gap-2 rounded-lg p-5 transition lg:flex-row lg:px-0 lg:py-3 ${
+            className={`flex items-center justify-center gap-2 rounded-lg p-5 transition active:scale-95 lg:flex-row lg:px-0 lg:py-3 ${
               pathname === '/history'
-                ? 'lg:bg-[#C8CACD]'
-                : 'lg:hover:bg-[#C8CACD]'
-            } active:scale-95`}
+                ? 'text-primary lg:bg-brand-100'
+                : 'text-muted-foreground hover:text-foreground lg:hover:bg-brand-50'
+            }`}
           >
             <span className="text-2xl">
               {pathname === '/history' ? (

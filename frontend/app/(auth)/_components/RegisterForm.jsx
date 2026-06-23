@@ -37,7 +37,7 @@ const PasswordInput = forwardRef(({ className, ...props }, ref) => {
       <button
         type="button"
         onClick={() => setShowPassword(!showPassword)}
-        className="absolute top-1/2 right-4 -translate-y-1/2 transform text-lg text-gray-400 hover:text-gray-600"
+        className="absolute top-1/2 right-4 -translate-y-1/2 transform text-lg text-muted-foreground transition-colors hover:text-foreground"
         tabIndex={-1}
       >
         {showPassword ? <PiEyeSlash /> : <PiEye />}

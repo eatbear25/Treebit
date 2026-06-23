@@ -62,7 +62,7 @@ const PasswordInput = forwardRef(({ className, ...props }, ref) => {
       <button
         type="button"
         onClick={() => setShowPassword((prev) => !prev)}
-        className="absolute top-1/2 right-4 -translate-y-1/2 transform text-lg text-gray-400 hover:text-gray-600"
+        className="absolute top-1/2 right-4 -translate-y-1/2 transform text-lg text-muted-foreground transition-colors hover:text-foreground"
         tabIndex={-1}
       >
         {showPassword ? <PiEyeSlash /> : <PiEye />}
@@ -196,22 +196,22 @@ export default function HabitHeader({ habitsNum, onHabitAdded }) {
 
       <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <AlertDialogTrigger asChild>
-          <PiGearBold className="cursor-pointer rounded-lg p-2 text-5xl transition hover:bg-[#C8CACD] active:scale-95" />
+          <PiGearBold className="cursor-pointer rounded-lg p-2 text-5xl transition hover:bg-muted active:scale-95" />
         </AlertDialogTrigger>
 
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center justify-between border-b pb-3 text-2xl text-[#444]">
+            <AlertDialogTitle className="flex items-center justify-between border-b border-border pb-3 text-2xl text-foreground">
               <span>{isEditing ? '編輯會員資料' : '會員資料'}</span>
               {isEditing ? (
                 <PiArrowBendUpLeft
                   onClick={() => setIsEditing(false)}
-                  className="cursor-pointer rounded-lg p-2 text-5xl transition hover:bg-[#C8CACD]"
+                  className="cursor-pointer rounded-lg p-2 text-5xl transition hover:bg-muted"
                 />
               ) : (
                 <PiNotePencilBold
                   onClick={() => setIsEditing(true)}
-                  className="cursor-pointer rounded-lg p-2 text-5xl transition hover:bg-[#C8CACD]"
+                  className="cursor-pointer rounded-lg p-2 text-5xl transition hover:bg-muted"
                 />
               )}
             </AlertDialogTitle>
@@ -248,11 +248,11 @@ export default function HabitHeader({ habitsNum, onHabitAdded }) {
           ) : (
             <ul className="flex flex-col gap-5">
               <li>
-                <p className="font-bold text-[#3D8D7A]">顯示名稱</p>
+                <p className="font-bold text-primary">顯示名稱</p>
                 <p>{user?.username}</p>
               </li>
               <li>
-                <p className="font-bold text-[#3D8D7A]">
+                <p className="font-bold text-primary">
                   {isGoogle ? '電子郵件' : '帳號'}
                 </p>
                 <p>{isGoogle ? user?.email || '—' : user?.account || '—'}</p>
@@ -266,7 +266,7 @@ export default function HabitHeader({ habitsNum, onHabitAdded }) {
                     onOpenChange={setPasswordDialogOpen}
                   >
                     <DialogTrigger asChild>
-                      <p className="cursor-pointer font-bold text-[#3D8D7A] hover:opacity-90">
+                      <p className="cursor-pointer font-bold text-primary hover:opacity-90">
                         點此修改密碼
                       </p>
                     </DialogTrigger>
@@ -338,7 +338,7 @@ export default function HabitHeader({ habitsNum, onHabitAdded }) {
                   </Dialog>
                 </li>
               ) : (
-                <li className="rounded-lg bg-gray-50 p-3 text-sm text-gray-600">
+                <li className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">
                   您是使用 <b>Google</b> 登入。
                 </li>
               )}

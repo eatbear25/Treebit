@@ -1,14 +1,14 @@
 export default function HistoryTaskTable({ tasks, weekDays }) {
   return (
-    <div className="mb-8 rounded-lg bg-white shadow-sm">
+    <div className="mb-8 rounded-2xl bg-card shadow-sm">
       <div className="p-5 lg:p-6">
-        <h2 className="mb-6 text-xl font-bold text-[#3D8D7A]">每日任務</h2>
+        <h2 className="mb-6 text-xl font-bold text-primary">每日任務</h2>
 
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-200">
-                <th className="sticky left-0 z-10 w-48 border-r border-gray-200 bg-white p-1 text-left font-bold md:px-4 md:py-3">
+              <tr className="border-b border-border">
+                <th className="sticky left-0 z-10 w-48 border-r border-border bg-card p-1 text-left font-bold md:px-4 md:py-3">
                   習慣
                 </th>
                 {weekDays.map((day, index) => (
@@ -35,9 +35,9 @@ export default function HistoryTaskTable({ tasks, weekDays }) {
               {tasks.map((task) => (
                 <tr
                   key={task.id}
-                  className="border-b border-gray-100 hover:bg-gray-50"
+                  className="border-b border-border hover:bg-muted/50"
                 >
-                  <td className="sticky left-0 z-10 max-w-[180px] min-w-[120px] border-r border-gray-200 bg-white p-1 md:p-4">
+                  <td className="sticky left-0 z-10 max-w-[180px] min-w-[120px] border-r border-border bg-card p-1 md:p-4">
                     <span className="break-words whitespace-normal">
                       {task.name}
                     </span>
@@ -49,10 +49,10 @@ export default function HistoryTaskTable({ tasks, weekDays }) {
                     >
                       <div className="flex justify-center">
                         <div
-                          className={`flex h-7 w-7 cursor-not-allowed items-center justify-center rounded border-2 ${
+                          className={`flex h-7 w-7 cursor-not-allowed items-center justify-center rounded-md border-2 ${
                             isCompleted
-                              ? 'bg-[#317162] text-white'
-                              : 'border-gray-300 bg-white'
+                              ? 'border-brand-700 bg-brand-700 text-white'
+                              : 'border-border bg-card'
                           }`}
                         >
                           {isCompleted && (
@@ -74,18 +74,18 @@ export default function HistoryTaskTable({ tasks, weekDays }) {
                       </div>
                     </td>
                   ))}
-                  <td className="px-2 py-4 text-center font-medium whitespace-nowrap text-gray-700">
+                  <td className="tnum px-2 py-4 text-center font-medium whitespace-nowrap text-foreground">
                     {task.targetDays}
                   </td>
-                  <td className="px-2 py-4 text-center font-medium whitespace-nowrap text-gray-700">
+                  <td className="tnum px-2 py-4 text-center font-medium whitespace-nowrap text-foreground">
                     {task.completedCount}
                   </td>
                   <td className="px-2 py-4 text-center">
                     <span
-                      className={`font-medium ${
+                      className={`tnum font-medium ${
                         task.completedCount >= task.targetDays
-                          ? 'text-green-600'
-                          : 'text-orange-600'
+                          ? 'text-primary'
+                          : 'text-streak'
                       }`}
                     >
                       {Math.round(
@@ -101,7 +101,9 @@ export default function HistoryTaskTable({ tasks, weekDays }) {
         </div>
 
         {tasks.length === 0 && (
-          <div className="py-8 text-center text-gray-500">本週沒有任務紀錄</div>
+          <div className="py-8 text-center text-muted-foreground">
+            本週沒有任務紀錄
+          </div>
         )}
       </div>
     </div>
