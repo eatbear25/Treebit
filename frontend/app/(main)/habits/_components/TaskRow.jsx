@@ -1,7 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { PiCheckBold, PiDotsThreeBold } from 'react-icons/pi'
+import {
+  PiCheckBold,
+  PiDotsThreeBold,
+  PiDotsSixVerticalBold,
+} from 'react-icons/pi'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -25,8 +29,15 @@ export default function TaskRow({
   onToggleTask,
   onDeleteTask,
   onEditTask,
+  draggable = false,
+  isDragging = false,
+  onDragStart,
+  onDragEnter,
+  onDragEnd,
 }) {
   const [openConfirm, setOpenConfirm] = useState(false)
+  // 只有從把手按下才允許拖曳整列，避免誤拖文字或按鈕
+  const [dragArmed, setDragArmed] = useState(false)
 
   const getCompletionRate = (task) => {
     return Math.min(
@@ -42,10 +53,41 @@ export default function TaskRow({
 
   return (
     <>
-      <tr className="border-border hover:bg-muted/50 border-b">
-        <td className="border-border bg-card sticky left-0 z-10 max-w-[180px] min-w-[120px] border-r p-1 md:p-4">
-          <div className="flex items-center justify-between gap-3">
-            <span className="break-words whitespace-normal">{task.name}</span>
+      <tr
+        draggable={dragArmed}
+        onDragStart={(e) => {
+          e.dataTransfer.effectAllowed = 'move'
+          e.dataTransfer.setData('text/plain', String(task.id))
+          onDragStart?.(task.id)
+        }}
+        onDragEnter={() => onDragEnter?.(task.id)}
+        onDragOver={(e) => e.preventDefault()}
+        onDragEnd={() => {
+          setDragArmed(false)
+          onDragEnd?.()
+        }}
+        className={`border-border hover:bg-muted/50 border-b transition-opacity ${
+          isDragging ? 'opacity-40' : ''
+        }`}
+      >
+        <td className="border-border bg-card sticky left-0 z-10 max-w-[200px] min-w-[130px] border-r p-1 md:p-4 md:pl-2">
+          <div className="flex items-center justify-between gap-2">
+            {draggable && (
+              <span
+                aria-hidden
+                onMouseDown={() => setDragArmed(true)}
+                onMouseUp={() => setDragArmed(false)}
+                onTouchStart={() => setDragArmed(true)}
+                onTouchEnd={() => setDragArmed(false)}
+                title="拖曳調整順序"
+                className="text-muted-foreground/50 hover:text-foreground shrink-0 cursor-grab active:cursor-grabbing"
+              >
+                <PiDotsSixVerticalBold />
+              </span>
+            )}
+            <span className="flex-1 break-words whitespace-normal">
+              {task.name}
+            </span>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

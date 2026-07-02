@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { PiDotsThreeBold } from 'react-icons/pi'
+import { PiDotsThreeBold, PiFlameFill } from 'react-icons/pi'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +20,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
+import GrowthStageIcon, {
+  GROWTH_STAGES,
+  getGrowthStage,
+} from '@/app/_components/GrowthStageIcon'
 import {
   formatDateToLocalYMD,
   formatTimestampToTaiwanYMD,
@@ -36,6 +40,8 @@ export default function HabitCard({
   first_start_date,
   completed_logs,
   total_target_days,
+  weeks_with_tasks,
+  current_streak,
   id,
   onHabitsChanged,
 }) {
@@ -57,10 +63,19 @@ export default function HabitCard({
   // 目標達成率 = 已完成打卡 / 所有任務目標次數總和；尚未建立任務時不顯示
   const completedCount = Number(completed_logs) || 0
   const targetTotal = Number(total_target_days) || 0
+  const streak = Number(current_streak) || 0
   const completionRate =
     targetTotal > 0
       ? Math.min(100, Math.round((completedCount / targetTotal) * 100))
       : null
+
+  // 樹的成長階段：每一次完成都讓樹長大一點（以整趟旅程估算，非只算已建任務的週）
+  const stage = getGrowthStage(
+    completedCount,
+    targetTotal,
+    Number(weeks_with_tasks) || 0,
+    total_weeks
+  )
 
   const handleViewTask = () => {
     router.push(`/habits/${id}`)
@@ -126,14 +141,24 @@ export default function HabitCard({
   return (
     <>
       <div className="group bg-card flex h-full flex-col rounded-2xl p-6 shadow-[0_10px_30px_-14px_rgba(79,111,88,0.25)] transition-shadow duration-300 hover:shadow-[0_18px_40px_-16px_rgba(79,111,88,0.38)] md:p-7">
-        {/* 標題列 + 選單 */}
+        {/* 標題列：成長階段 + 名稱 + 選單 */}
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h3 className="truncate text-xl font-bold md:text-2xl">{title}</h3>
-            <p className="text-muted-foreground mt-1.5 text-sm">
-              <span className="font-outfit tnum">{startYMD}</span> 開始 · 共{' '}
-              <span className="tnum">{total_weeks}</span> 週
-            </p>
+          <div className="flex min-w-0 items-center gap-3.5">
+            <div
+              className="bg-brand-50 flex h-12 w-12 shrink-0 items-end justify-center overflow-hidden rounded-xl"
+              title={`成長階段：${GROWTH_STAGES[stage]}`}
+            >
+              <GrowthStageIcon stage={stage} className="h-10 w-10" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="truncate text-xl font-bold md:text-2xl">
+                {title}
+              </h3>
+              <p className="text-muted-foreground mt-1 text-sm">
+                <span className="font-outfit tnum">{startYMD}</span> 開始 · 共{' '}
+                <span className="tnum">{total_weeks}</span> 週
+              </p>
+            </div>
           </div>
 
           <DropdownMenu>
@@ -165,8 +190,14 @@ export default function HabitCard({
         {/* 週進度 */}
         <div className="mt-6">
           <div className="flex items-baseline justify-between text-sm">
-            <span className="text-brand-700 font-semibold">
-              第 <span className="tnum">{currentWeek}</span> 週
+            <span>
+              <span className="text-brand-700 font-semibold">
+                第 <span className="tnum">{currentWeek}</span> 週
+              </span>
+              <span className="text-muted-foreground">
+                {' '}
+                · {GROWTH_STAGES[stage]}
+              </span>
             </span>
             <span className="font-outfit tnum text-muted-foreground">
               {currentWeek} / {total_weeks} 週
@@ -207,11 +238,14 @@ export default function HabitCard({
             </dd>
           </div>
           <div>
-            <dt className="text-muted-foreground text-sm">累計打卡</dt>
-            <dd className="font-outfit mt-1 text-2xl font-bold md:text-3xl">
-              {completedCount}
-              <span className="text-muted-foreground ml-1 text-base font-semibold">
-                次
+            <dt className="text-muted-foreground text-sm">連續打卡</dt>
+            <dd className="font-outfit mt-1 flex items-center gap-1.5 text-2xl font-bold md:text-3xl">
+              <PiFlameFill
+                className={`text-xl ${streak > 0 ? 'text-streak' : 'text-muted-foreground/40'}`}
+              />
+              {streak}
+              <span className="text-muted-foreground text-base font-semibold">
+                天
               </span>
             </dd>
           </div>

@@ -86,10 +86,12 @@ CREATE TABLE habit_week_tasks (
   habit_week_id INTEGER NOT NULL,
   name VARCHAR(255) NOT NULL,
   target_days INTEGER NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 0,
   CONSTRAINT fk_habit_week_tasks_week FOREIGN KEY (habit_week_id) REFERENCES habit_weeks(id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_habit_week_tasks_week_id ON habit_week_tasks(habit_week_id);
+CREATE INDEX idx_habit_week_tasks_sort ON habit_week_tasks(habit_week_id, sort_order);
 
 -- --------------------------------------------------------
 -- 資料表結構 `habit_task_logs`

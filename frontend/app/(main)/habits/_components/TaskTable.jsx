@@ -1,6 +1,7 @@
 'use client'
 
 import TaskRow from './TaskRow'
+import ImportTasksDialog from './ImportTasksDialog'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -25,7 +26,7 @@ import {
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import {
   Form,
@@ -52,10 +53,46 @@ export default function TaskTable({
   onAddTask,
   onDeleteTask,
   onEditTask,
+  onReorderTasks,
+  onImportTasks,
+  prevWeekId,
 }) {
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
   const [editingTask, setEditingTask] = useState(null)
+
+  // 拖曳排序：拖曳中以本地順序即時預覽，放開時才通知父層寫回後端
+  const [orderedTasks, setOrderedTasks] = useState(tasks)
+  const [draggingId, setDraggingId] = useState(null)
+
+  useEffect(() => {
+    setOrderedTasks(tasks)
+  }, [tasks])
+
+  const handleDragStart = (taskId) => setDraggingId(taskId)
+
+  const handleDragEnter = (targetId) => {
+    if (draggingId === null || draggingId === targetId) return
+    setOrderedTasks((prev) => {
+      const list = [...prev]
+      const from = list.findIndex((t) => t.id === draggingId)
+      const to = list.findIndex((t) => t.id === targetId)
+      if (from < 0 || to < 0) return prev
+      const [moved] = list.splice(from, 1)
+      list.splice(to, 0, moved)
+      return list
+    })
+  }
+
+  const handleDragEnd = () => {
+    if (draggingId === null) return
+    setDraggingId(null)
+    const newIds = orderedTasks.map((t) => t.id)
+    const oldIds = tasks.map((t) => t.id)
+    if (newIds.join(',') !== oldIds.join(',')) {
+      onReorderTasks(newIds)
+    }
+  }
 
   const form = useForm({
     resolver: zodResolver(taskSchema),
@@ -122,7 +159,7 @@ export default function TaskTable({
             </thead>
 
             <tbody>
-              {tasks.map((task) => (
+              {orderedTasks.map((task) => (
                 <TaskRow
                   key={task.id}
                   task={task}
@@ -135,6 +172,11 @@ export default function TaskTable({
                     form.setValue('name', task.name)
                     form.setValue('target_days', String(task.targetDays))
                   }}
+                  draggable={orderedTasks.length > 1}
+                  isDragging={draggingId === task.id}
+                  onDragStart={handleDragStart}
+                  onDragEnter={handleDragEnter}
+                  onDragEnd={handleDragEnd}
                 />
               ))}
             </tbody>
@@ -150,98 +192,110 @@ export default function TaskTable({
           </div>
         )}
 
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <button
-              onClick={() => {
-                setEditingTask(null)
-                form.reset()
-                setOpen(true)
-              }}
-              className="border-border text-muted-foreground hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 mt-6 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed py-2.5 text-sm font-medium transition active:scale-[0.99]"
-            >
-              <span className="text-base leading-none">＋</span>
-              <span>新增任務</span>
-            </button>
-          </DialogTrigger>
-
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>{editingTask ? '編輯任務' : '新增任務'}</DialogTitle>
-              <DialogDescription>
-                {editingTask
-                  ? '修改任務資料後，請點擊保存。'
-                  : '在這裡新增任務，完成後請點擊新增。'}
-              </DialogDescription>
-            </DialogHeader>
-
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-6"
+        <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <button
+                onClick={() => {
+                  setEditingTask(null)
+                  form.reset()
+                  setOpen(true)
+                }}
+                className="border-border text-muted-foreground hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed py-2.5 text-sm font-medium transition active:scale-[0.99]"
               >
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>任務名稱</FormLabel>
-                      <FormControl>
-                        <Input placeholder="請輸入任務名稱" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <span className="text-base leading-none">＋</span>
+                <span>新增任務</span>
+              </button>
+            </DialogTrigger>
 
-                <FormField
-                  control={form.control}
-                  name="target_days"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>目標次數</FormLabel>
-                      <FormControl>
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="請選擇目標次數" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Array.from({ length: 7 }).map((_, i) => (
-                              <SelectItem key={i + 1} value={String(i + 1)}>
-                                {i + 1} 次
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingTask ? '編輯任務' : '新增任務'}
+                </DialogTitle>
+                <DialogDescription>
+                  {editingTask
+                    ? '修改任務資料後，請點擊保存。'
+                    : '在這裡新增任務，完成後請點擊新增。'}
+                </DialogDescription>
+              </DialogHeader>
 
-                <DialogFooter className="pt-4">
-                  <DialogClose asChild>
-                    <Button variant="outline" type="button">
-                      關閉
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-6"
+                >
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>任務名稱</FormLabel>
+                        <FormControl>
+                          <Input placeholder="請輸入任務名稱" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="target_days"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>目標次數</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="請選擇目標次數" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from({ length: 7 }).map((_, i) => (
+                                <SelectItem key={i + 1} value={String(i + 1)}>
+                                  {i + 1} 次
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <DialogFooter className="pt-4">
+                    <DialogClose asChild>
+                      <Button variant="outline" type="button">
+                        關閉
+                      </Button>
+                    </DialogClose>
+                    <Button type="submit" disabled={loading}>
+                      {loading
+                        ? editingTask
+                          ? '儲存中...'
+                          : '新增中...'
+                        : editingTask
+                          ? '保存'
+                          : '新增'}
                     </Button>
-                  </DialogClose>
-                  <Button type="submit" disabled={loading}>
-                    {loading
-                      ? editingTask
-                        ? '儲存中...'
-                        : '新增中...'
-                      : editingTask
-                        ? '保存'
-                        : '新增'}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+
+          {prevWeekId && (
+            <ImportTasksDialog
+              prevWeekId={prevWeekId}
+              currentTaskNames={tasks.map((t) => t.name)}
+              onImportTasks={onImportTasks}
+            />
+          )}
+        </div>
       </div>
     </div>
   )

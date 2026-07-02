@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import Link from 'next/link'
 import { PiCaretLeftBold } from 'react-icons/pi'
 import Loader from '@/app/_components/Loader'
+import { getGrowthStage } from '@/app/_components/GrowthStageIcon'
 import { getWeekDates } from '@/lib/utils'
 import HabitHeader from '../_components/HabitHeader'
 import HabitStats from '../_components/HabitStats'
@@ -392,6 +393,76 @@ export default function HabitTracker() {
     }
   }
 
+  // 拖曳排序：先樂觀更新本地順序，再送後端；失敗時還原成伺服器順序
+  const handleReorderTasks = async (orderedIds) => {
+    if (!currentWeekData) return
+
+    setTasks((prev) =>
+      [...prev].sort(
+        (a, b) => orderedIds.indexOf(a.id) - orderedIds.indexOf(b.id)
+      )
+    )
+
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/habits/weeks/${currentWeekData.id}/tasks-order`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ task_ids: orderedIds }),
+        }
+      )
+      const data = await res.json()
+      if (!data.success) {
+        throw new Error(data.message || '更新排序失敗')
+      }
+    } catch (err) {
+      console.error('更新任務排序錯誤:', err)
+      toast.error('更新排序失敗')
+      await fetchCurrentWeekTasks(currentWeekData.id)
+    }
+  }
+
+  // 匯入上週任務（逐筆建立到本週）
+  const handleImportTasks = async (tasksToImport) => {
+    if (!currentWeekData || tasksToImport.length === 0) return
+
+    try {
+      for (const task of tasksToImport) {
+        const res = await fetch(
+          `${API_BASE_URL}/api/habits/weeks/${currentWeekData.id}/tasks`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              name: task.name,
+              target_days: task.target_days,
+            }),
+          }
+        )
+        const data = await res.json()
+        if (!data.success) {
+          throw new Error(data.message || '匯入任務失敗')
+        }
+      }
+
+      toast.success(`已匯入 ${tasksToImport.length} 個任務`)
+      await fetchCurrentWeekTasks(currentWeekData.id)
+      await fetchCurrentWeekLogs(currentWeekData.id)
+      fetchStats()
+    } catch (err) {
+      console.error('匯入任務錯誤:', err)
+      toast.error(err.message || '匯入任務失敗，請稍後再試')
+      throw err
+    }
+  }
+
   // 記事 CRUD
   const handleAddNote = async (content) => {
     if (!currentWeekData) return
@@ -526,9 +597,24 @@ export default function HabitTracker() {
     weekDates.length > 0 ? `${weekDates[0].short} - ${weekDates[6].short}` : ''
   const formattedTasks = getFormattedTasks()
 
-  // 本週打卡進度（由當週任務即時彙總）
-  const weekDone = formattedTasks.reduce((sum, t) => sum + t.completedCount, 0)
+  // 本週達成進度：各任務以目標次數封頂，超打不灌水
+  const weekDone = formattedTasks.reduce(
+    (sum, t) => sum + Math.min(t.completedCount, t.targetDays),
+    0
+  )
   const weekTarget = formattedTasks.reduce((sum, t) => sum + t.targetDays, 0)
+
+  // 樹的成長階段（依整趟旅程的估計總目標，非只算已建任務的週）
+  const stage = getGrowthStage(
+    Number(stats?.completed_logs) || 0,
+    Number(stats?.total_target_days) || 0,
+    Number(stats?.weeks_with_tasks) || 0,
+    habit.total_weeks
+  )
+
+  // 上一週的週次 id（供「匯入上週任務」使用；第一週為 null）
+  const prevWeekId =
+    currentWeekIndex > 0 ? allWeeks[currentWeekIndex - 1]?.id : null
 
   return (
     <div>
@@ -550,6 +636,7 @@ export default function HabitTracker() {
         canGoPrevious={currentWeekIndex > 0}
         canGoNext={currentWeekIndex < allWeeks.length - 1}
         currentWeekIndex={currentWeekIndex}
+        stage={stage}
       />
 
       <HabitStats
@@ -559,6 +646,7 @@ export default function HabitTracker() {
         weekTarget={weekTarget}
         totalCompleted={Number(stats?.completed_logs) || 0}
         totalTarget={Number(stats?.total_target_days) || 0}
+        currentStreak={Number(stats?.current_streak) || 0}
       />
 
       <TaskTable
@@ -568,6 +656,9 @@ export default function HabitTracker() {
         onAddTask={handleAddTask}
         onDeleteTask={handleDeleteTask}
         onEditTask={handleEditTask}
+        onReorderTasks={handleReorderTasks}
+        onImportTasks={handleImportTasks}
+        prevWeekId={prevWeekId}
       />
 
       <WeeklyNotes

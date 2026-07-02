@@ -1,5 +1,7 @@
+import { PiFlameFill } from 'react-icons/pi'
+
 // 統計摘要列：全部使用真實資料（本週任務 + /stats API），不放示意數據。
-// weekDone / weekTarget 由當週任務即時計算，totalCompleted / totalTarget 來自後端統計。
+// 「本週達成」以各任務目標次數封頂，超打不灌水；「連續打卡」由後端計算。
 export default function HabitStats({
   currentWeek,
   totalWeeks,
@@ -7,6 +9,7 @@ export default function HabitStats({
   weekTarget,
   totalCompleted,
   totalTarget,
+  currentStreak,
 }) {
   const overallRate =
     totalTarget > 0
@@ -20,7 +23,7 @@ export default function HabitStats({
       unit: ` / ${totalWeeks} 週`,
     },
     {
-      label: '本週打卡',
+      label: '本週達成',
       value: weekTarget > 0 ? weekDone : '—',
       unit: weekTarget > 0 ? ` / ${weekTarget} 次` : '',
     },
@@ -30,9 +33,10 @@ export default function HabitStats({
       unit: overallRate !== null ? ' %' : '',
     },
     {
-      label: '累計完成',
-      value: totalCompleted,
-      unit: ' 次',
+      label: '連續打卡',
+      value: currentStreak,
+      unit: ' 天',
+      flame: true,
     },
   ]
 
@@ -42,13 +46,22 @@ export default function HabitStats({
         {tiles.map((tile) => (
           <div key={tile.label} className="p-4 lg:p-5">
             <p className="text-muted-foreground text-sm">{tile.label}</p>
-            <p className="font-outfit mt-1.5 text-2xl font-bold lg:text-3xl">
-              {tile.value}
-              {tile.unit && (
-                <span className="text-muted-foreground text-sm font-semibold">
-                  {tile.unit}
-                </span>
+            <p className="font-outfit mt-1.5 flex items-center gap-1.5 text-2xl font-bold lg:text-3xl">
+              {tile.flame && (
+                <PiFlameFill
+                  className={`text-xl ${
+                    tile.value > 0 ? 'text-streak' : 'text-muted-foreground/40'
+                  }`}
+                />
               )}
+              <span>
+                {tile.value}
+                {tile.unit && (
+                  <span className="text-muted-foreground text-sm font-semibold">
+                    {tile.unit}
+                  </span>
+                )}
+              </span>
             </p>
           </div>
         ))}

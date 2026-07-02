@@ -12,6 +12,22 @@ export function getTaiwanTodayYMD() {
   }).format(new Date());
 }
 
+// 計算「目前連續打卡天數」：從今天（或昨天）往回數，每天至少完成一次打卡即延續。
+// 今天還沒打卡不算中斷（當天結束前都還有機會），從昨天起算。
+// dates 為 "YYYY-MM-DD" 字串陣列（不需排序）。
+export function computeCurrentStreak(dates, todayYMD = getTaiwanTodayYMD()) {
+  const set = new Set(dates);
+  let cursor = todayYMD;
+  if (!set.has(cursor)) cursor = addDaysToYMD(cursor, -1);
+
+  let streak = 0;
+  while (set.has(cursor)) {
+    streak++;
+    cursor = addDaysToYMD(cursor, -1);
+  }
+  return streak;
+}
+
 // 將 "YYYY-MM-DD" 加上指定天數，回傳新的 "YYYY-MM-DD"
 // 以 UTC 計算純日期，避免本地時區造成位移
 export function addDaysToYMD(ymd, days) {

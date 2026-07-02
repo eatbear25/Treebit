@@ -1,4 +1,7 @@
 import WeekNavigation from './WeekNavigation'
+import GrowthStageIcon, {
+  GROWTH_STAGES,
+} from '@/app/_components/GrowthStageIcon'
 
 export default function HabitHeader({
   challengeName,
@@ -10,16 +13,26 @@ export default function HabitHeader({
   canGoPrevious,
   canGoNext,
   currentWeekIndex,
+  stage = 0,
 }) {
   return (
     <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-      <div className="min-w-0">
-        <h1 className="truncate text-2xl font-bold md:text-3xl">
-          {challengeName}
-        </h1>
-        <p className="text-muted-foreground mt-1.5 text-sm">
-          共 <span className="tnum">{totalWeeks}</span> 週
-        </p>
+      <div className="flex min-w-0 items-center gap-4">
+        <div
+          className="bg-card flex h-14 w-14 shrink-0 items-end justify-center overflow-hidden rounded-2xl shadow-sm"
+          title={`成長階段：${GROWTH_STAGES[stage]}`}
+        >
+          <GrowthStageIcon stage={stage} className="h-12 w-12" />
+        </div>
+        <div className="min-w-0">
+          <h1 className="truncate text-2xl font-bold md:text-3xl">
+            {challengeName}
+          </h1>
+          <p className="text-muted-foreground mt-1.5 text-sm">
+            共 <span className="tnum">{totalWeeks}</span> 週 ·{' '}
+            {GROWTH_STAGES[stage]}
+          </p>
+        </div>
       </div>
 
       <WeekNavigation

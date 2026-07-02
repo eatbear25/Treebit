@@ -1,7 +1,11 @@
 import express from "express";
 import db from "../config/connect-postgresql.js";
 import authenticate from "../middlewares/authenticate.js";
-import { getTaiwanTodayYMD, addDaysToYMD } from "../utils/date.js";
+import {
+  getTaiwanTodayYMD,
+  addDaysToYMD,
+  computeCurrentStreak,
+} from "../utils/date.js";
 
 const router = express.Router();
 
@@ -143,13 +147,41 @@ router.get("/", authenticate, async (req, res) => {
           WHERE hw.habit_id = h.id AND htl.is_completed = true) AS completed_logs,
         (SELECT COALESCE(SUM(hwt.target_days), 0)::int FROM habit_weeks hw
            JOIN habit_week_tasks hwt ON hwt.habit_week_id = hw.id
-          WHERE hw.habit_id = h.id) AS total_target_days
+          WHERE hw.habit_id = h.id) AS total_target_days,
+        (SELECT COUNT(DISTINCT hw.id)::int FROM habit_weeks hw
+           JOIN habit_week_tasks hwt ON hwt.habit_week_id = hw.id
+          WHERE hw.habit_id = h.id) AS weeks_with_tasks
       FROM habits h
       WHERE h.user_id = ? AND h.is_archived = false
       ORDER BY h.created_at DESC`,
       [userId]
     );
-    sendResponse(res, 200, true, rows);
+
+    // 連續打卡天數：一次撈出所有習慣「有完成打卡的日期」，於程式端計算 streak
+    const [dateRows] = await db.query(
+      `SELECT hw.habit_id, htl.date
+       FROM habits h
+       JOIN habit_weeks hw ON hw.habit_id = h.id
+       JOIN habit_week_tasks hwt ON hwt.habit_week_id = hw.id
+       JOIN habit_task_logs htl ON htl.task_id = hwt.id
+       WHERE h.user_id = ? AND h.is_archived = false AND htl.is_completed = true
+       GROUP BY hw.habit_id, htl.date`,
+      [userId]
+    );
+
+    const datesByHabit = new Map();
+    for (const row of dateRows) {
+      if (!datesByHabit.has(row.habit_id)) datesByHabit.set(row.habit_id, []);
+      datesByHabit.get(row.habit_id).push(row.date);
+    }
+
+    const today = getTaiwanTodayYMD();
+    const habits = rows.map((h) => ({
+      ...h,
+      current_streak: computeCurrentStreak(datesByHabit.get(h.id) || [], today),
+    }));
+
+    sendResponse(res, 200, true, habits);
   } catch (error) {
     console.error(error);
     sendResponse(res, 500, false, null, "查詢失敗");
@@ -344,10 +376,12 @@ router.post("/weeks/:weekId/tasks", authenticate, async (req, res) => {
       return sendResponse(res, 400, false, null, "目標天數需為 1~7 的整數");
     }
 
+    // sort_order 排在該週最後（供拖曳排序）
     const [result] = await db.query(
-      `INSERT INTO habit_week_tasks (habit_week_id, name, target_days)
-       VALUES (?, ?, ?) RETURNING id`,
-      [weekId, name, targetDays]
+      `INSERT INTO habit_week_tasks (habit_week_id, name, target_days, sort_order)
+       VALUES (?, ?, ?, (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM habit_week_tasks WHERE habit_week_id = ?))
+       RETURNING id`,
+      [weekId, name, targetDays, weekId]
     );
 
     sendResponse(res, 201, true, { task_id: result[0].id }, "新增任務成功");
@@ -369,7 +403,7 @@ router.get("/weeks/:weekId/tasks", authenticate, async (req, res) => {
     }
 
     const [rows] = await db.query(
-      `SELECT * FROM habit_week_tasks WHERE habit_week_id = ?`,
+      `SELECT * FROM habit_week_tasks WHERE habit_week_id = ? ORDER BY sort_order, id`,
       [weekId]
     );
 
@@ -377,6 +411,57 @@ router.get("/weeks/:weekId/tasks", authenticate, async (req, res) => {
   } catch (error) {
     console.error(error);
     sendResponse(res, 500, false, null, "查詢失敗");
+  }
+});
+
+// 調整任務排序（拖曳排序）：依傳入的 task_ids 順序重設 sort_order
+router.patch("/weeks/:weekId/tasks-order", authenticate, async (req, res) => {
+  try {
+    const weekId = req.params.weekId;
+    const userId = req.user.id;
+
+    const isOwner = await checkWeekOwner(weekId, userId);
+    if (!isOwner) {
+      return sendResponse(res, 403, false, null, "無權調整此週次的任務排序");
+    }
+
+    const taskIds = req.body.task_ids;
+    if (!Array.isArray(taskIds) || taskIds.length === 0) {
+      return sendResponse(res, 400, false, null, "task_ids 需為非空陣列");
+    }
+
+    // 確認所有任務都屬於這個週次，避免跨週亂序
+    const [rows] = await db.query(
+      `SELECT id FROM habit_week_tasks WHERE habit_week_id = ?`,
+      [weekId]
+    );
+    const validIds = new Set(rows.map((r) => Number(r.id)));
+    const ids = taskIds.map(Number);
+    if (!ids.every((id) => validIds.has(id))) {
+      return sendResponse(res, 400, false, null, "包含不屬於此週次的任務");
+    }
+
+    const client = await db.pool.connect();
+    try {
+      await client.query("BEGIN");
+      for (let i = 0; i < ids.length; i++) {
+        await client.query(
+          `UPDATE habit_week_tasks SET sort_order = $1 WHERE id = $2 AND habit_week_id = $3`,
+          [i + 1, ids[i], weekId]
+        );
+      }
+      await client.query("COMMIT");
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
+
+    sendResponse(res, 200, true, null, "任務排序已更新");
+  } catch (error) {
+    console.error(error);
+    sendResponse(res, 500, false, null, "更新任務排序失敗");
   }
 });
 
@@ -659,6 +744,9 @@ router.get("/:habitId/stats", authenticate, async (req, res) => {
         (SELECT COALESCE(SUM(hwt2.target_days), 0)::int FROM habit_weeks hw2
            JOIN habit_week_tasks hwt2 ON hwt2.habit_week_id = hw2.id
           WHERE hw2.habit_id = h.id) as total_target_days,
+        (SELECT COUNT(DISTINCT hw4.id)::int FROM habit_weeks hw4
+           JOIN habit_week_tasks hwt4 ON hwt4.habit_week_id = hw4.id
+          WHERE hw4.habit_id = h.id) as weeks_with_tasks,
         ROUND(
           SUM(CASE WHEN htl.is_completed = true THEN 1 ELSE 0 END)::numeric
             / NULLIF(COUNT(htl.id), 0) * 100, 0
@@ -676,7 +764,19 @@ router.get("/:habitId/stats", authenticate, async (req, res) => {
       return sendResponse(res, 404, false, null, "找不到該習慣");
     }
 
-    sendResponse(res, 200, true, stats[0]);
+    // 連續打卡天數（每天至少完成一次即延續）
+    const [dateRows] = await db.query(
+      `SELECT htl.date
+       FROM habit_weeks hw
+       JOIN habit_week_tasks hwt ON hwt.habit_week_id = hw.id
+       JOIN habit_task_logs htl ON htl.task_id = hwt.id
+       WHERE hw.habit_id = ? AND htl.is_completed = true
+       GROUP BY htl.date`,
+      [habitId]
+    );
+    const current_streak = computeCurrentStreak(dateRows.map((r) => r.date));
+
+    sendResponse(res, 200, true, { ...stats[0], current_streak });
   } catch (error) {
     console.error(error);
     sendResponse(res, 500, false, null, "查詢統計失敗");
