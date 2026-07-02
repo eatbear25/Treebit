@@ -1,6 +1,11 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { PiCheckBold, PiFlameFill, PiChartLineUpBold } from 'react-icons/pi'
+import {
+  PiCheckBold,
+  PiFlameFill,
+  PiChartLineUpBold,
+  PiGithubLogoBold,
+} from 'react-icons/pi'
 
 // 招牌斜角主按鈕：品牌唯一刻意破格的記憶點（rounded-tl / rounded-br）
 const ctaPrimary =
@@ -251,16 +256,30 @@ export default function Home() {
       </main>
 
       <footer className="border-border border-t">
-        <p className="text-muted-foreground py-6 text-center text-sm">
-          Treebit © 2025 | Side Project by{' '}
-          <a
-            href="https://github.com/eatbear25/Treebit"
-            className="hover:text-foreground font-medium transition-colors"
-            target="_blank"
-          >
-            Rachel Chen
-          </a>
-        </p>
+        <div className="container mx-auto flex flex-col items-center gap-5 px-6 py-10 md:flex-row md:justify-between xl:px-0">
+          <div className="flex items-center gap-2.5">
+            <Image src="/icon.svg" alt="" width={26} height={26} />
+            <span className="font-outfit text-lg font-bold">Treebit</span>
+          </div>
+
+          <p className="text-muted-foreground text-sm">
+            每天一點點，把習慣種成一棵樹。
+          </p>
+
+          <div className="text-muted-foreground flex items-center gap-4 text-sm">
+            <a
+              href="https://github.com/eatbear25/Treebit"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-foreground inline-flex items-center gap-1.5 font-medium transition-colors"
+            >
+              <PiGithubLogoBold className="text-base" />
+              GitHub
+            </a>
+            <span aria-hidden>·</span>
+            <span>© 2026 Treebit</span>
+          </div>
+        </div>
       </footer>
     </>
   )

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { PiCheckBold } from 'react-icons/pi'
+import { PiCheckBold, PiDotsThreeBold } from 'react-icons/pi'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -29,7 +29,10 @@ export default function TaskRow({
   const [openConfirm, setOpenConfirm] = useState(false)
 
   const getCompletionRate = (task) => {
-    return Math.round((task.completedCount / task.targetDays) * 100)
+    return Math.min(
+      100,
+      Math.round((task.completedCount / task.targetDays) * 100)
+    )
   }
 
   const handleConfirmDelete = () => {
@@ -39,15 +42,18 @@ export default function TaskRow({
 
   return (
     <>
-      <tr className="border-b border-border hover:bg-muted/50">
-        <td className="sticky left-0 z-10 max-w-[180px] min-w-[120px] border-r border-border bg-card p-1 md:p-4">
+      <tr className="border-border hover:bg-muted/50 border-b">
+        <td className="border-border bg-card sticky left-0 z-10 max-w-[180px] min-w-[120px] border-r p-1 md:p-4">
           <div className="flex items-center justify-between gap-3">
             <span className="break-words whitespace-normal">{task.name}</span>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="cursor-pointer rounded-lg p-1 transition hover:bg-muted">
-                  ⋯
+                <button
+                  aria-label="任務操作"
+                  className="text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer rounded-lg p-1.5 transition"
+                >
+                  <PiDotsThreeBold />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
@@ -60,7 +66,7 @@ export default function TaskRow({
 
                 <DropdownMenuItem
                   onClick={() => setOpenConfirm(true)}
-                  className="cursor-pointer text-destructive"
+                  className="text-destructive cursor-pointer"
                 >
                   刪除
                 </DropdownMenuItem>
@@ -72,30 +78,30 @@ export default function TaskRow({
           <td key={dayIndex} className="px-5 py-4 text-center md:px-3">
             <button
               onClick={() => onToggleTask(task.id, dayIndex)}
-              className={`mx-auto flex h-7 w-7 cursor-pointer items-center justify-center rounded-md transition-colors ${
+              aria-label={`${task.name}：${weekDays[dayIndex]} ${completed ? '已完成' : '未完成'}`}
+              aria-pressed={completed}
+              className={`focus-visible:ring-ring/50 mx-auto flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg transition-all outline-none focus-visible:ring-[3px] active:scale-90 ${
                 completed
-                  ? 'bg-brand-700 text-white'
-                  : 'border-2 border-border hover:border-brand-300 hover:bg-brand-50'
+                  ? 'bg-brand-600 text-white shadow-[0_4px_10px_-4px_rgba(79,111,88,0.6)]'
+                  : 'border-border hover:border-brand-300 hover:bg-brand-50 border-2'
               }`}
             >
               {completed && <PiCheckBold />}
             </button>
           </td>
         ))}
-        <td className="tnum px-2 py-4 text-center font-medium whitespace-nowrap text-foreground">
+        <td className="tnum text-muted-foreground px-2 py-4 text-center font-medium whitespace-nowrap">
           {task.targetDays}
         </td>
-        <td className="tnum px-2 py-4 text-center font-medium whitespace-nowrap text-foreground">
+        <td className="tnum text-foreground px-2 py-4 text-center font-medium whitespace-nowrap">
           {task.completedCount}
         </td>
         <td className="px-2 py-4 text-center whitespace-nowrap">
           <span
-            className={`tnum font-medium ${
+            className={`tnum ${
               getCompletionRate(task) === 100
-                ? 'text-primary'
-                : getCompletionRate(task) >= 50
-                  ? 'text-streak'
-                  : 'text-destructive'
+                ? 'text-brand-700 font-semibold'
+                : 'text-foreground font-medium'
             }`}
           >
             {getCompletionRate(task)}%

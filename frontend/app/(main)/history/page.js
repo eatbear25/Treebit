@@ -81,8 +81,11 @@ export default function History() {
     <AuthGuard>
       <div className="container mx-auto">
         {/* Header */}
-        <div className="mb-6 flex h-12 items-center">
-          <h1 className="text-xl font-bold">歷史習慣</h1>
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold md:text-3xl">歷史紀錄</h1>
+          <p className="text-muted-foreground mt-1 text-sm">
+            已封存 <span className="tnum">{archivedHabits.length}</span> 個習慣
+          </p>
         </div>
 
         {loading ? (
@@ -90,17 +93,16 @@ export default function History() {
             <Loader />
           </div>
         ) : archivedHabits.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-            <img src="/icon.svg" alt="" className="w-16 opacity-90" />
-            <p className="text-lg font-medium">還沒有封存的習慣</p>
-            <p className="text-sm text-muted-foreground">
-              完成或暫停的習慣封存後，會收藏在這裡
+          <div className="border-border flex flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 py-20 text-center">
+            <img src="/icon.svg" alt="" className="w-14 opacity-90" />
+            <p className="mt-5 text-lg font-bold">還沒有封存的習慣</p>
+            <p className="text-muted-foreground mt-2 max-w-xs text-sm">
+              完成或暫停的習慣封存後，成果會收藏在這裡
             </p>
           </div>
         ) : (
           <HistoryList
             habits={archivedHabits}
-            onHabitsChanged={fetchArchivedHabits}
             onRestore={restoreHabit}
             onDelete={deleteHabit}
           />

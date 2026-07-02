@@ -17,23 +17,20 @@ export default function TreebitLogin() {
       <div className="flex flex-col items-center">
         {/* Welcome Section */}
         <div className="mb-10 text-center">
-          <h2 className="mb-4 text-4xl font-bold md:text-5xl">
-            歡迎回到 Treebit{' '}
-            <span className="inline-block animate-pulse">🌱</span>
-          </h2>
-          <p className="text-xl text-muted-foreground">
-            每一次打勾，讓你的習慣樹更茁壯
+          <h2 className="mb-3 text-3xl font-bold md:text-4xl">歡迎回來</h2>
+          <p className="text-muted-foreground text-base md:text-lg">
+            你的樹還在等你澆水，繼續今天的打卡吧
           </p>
         </div>
 
         {/* Login Form */}
         <div className="w-full">
-          <div className="rounded-2xl bg-card p-7 shadow-sm">
+          <div className="bg-card rounded-2xl p-7 shadow-[0_10px_30px_-14px_rgba(79,111,88,0.25)] md:p-8">
             {/* Social Login Buttons */}
             <div className="mb-6 space-y-4">
               <a
                 href={`${API_URL}/api/auth/google`}
-                className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-border px-4 py-3 transition-colors hover:bg-muted active:scale-[0.99]"
+                className="border-border hover:bg-muted flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border px-4 py-3 transition-colors active:scale-[0.99]"
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24">
                   <path
@@ -53,7 +50,7 @@ export default function TreebitLogin() {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                   />
                 </svg>
-                <span className="font-medium text-foreground">
+                <span className="text-foreground font-medium">
                   使用 Google 帳戶登入
                 </span>
               </a>
@@ -62,11 +59,11 @@ export default function TreebitLogin() {
             {/* OR Divider */}
             <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border"></div>
+                <div className="border-border w-full border-t"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-card px-4 font-medium text-muted-foreground">
-                  OR
+                <span className="bg-card text-muted-foreground px-4 font-medium">
+                  或
                 </span>
               </div>
             </div>
@@ -75,13 +72,13 @@ export default function TreebitLogin() {
           </div>
 
           {/* Sign Up Link */}
-          <div className="mt-8 text-center">
-            <span className="text-muted-foreground">還沒有任何帳號嗎？ </span>
+          <div className="mt-8 text-center text-sm">
+            <span className="text-muted-foreground">還沒有帳號？ </span>
             <Link
               href="/register"
-              className="font-medium text-primary hover:underline"
+              className="text-brand-700 font-semibold underline-offset-4 hover:underline"
             >
-              註冊
+              免費註冊
             </Link>
           </div>
         </div>

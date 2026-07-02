@@ -89,34 +89,34 @@ export default function TaskTable({
   }
 
   return (
-    <div className="mb-8 rounded-2xl bg-card shadow-sm">
+    <div className="bg-card mb-8 rounded-2xl shadow-sm">
       <div className="p-5 lg:p-6">
-        <h2 className="mb-6 text-xl font-bold text-primary">每日任務</h2>
+        <h2 className="mb-6 text-lg font-bold">每日任務</h2>
 
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border">
-                <th className="sticky left-0 z-10 w-48 border-r border-border bg-card p-1 text-left font-bold md:px-4 md:py-3">
-                  習慣
+              <tr className="border-border text-muted-foreground border-b text-sm">
+                <th className="border-border bg-card sticky left-0 z-10 w-48 border-r p-1 text-left font-semibold md:px-4 md:py-3">
+                  任務
                 </th>
 
                 {weekDays.map((day, index) => (
                   <th
                     key={index}
-                    className="w-16 px-2 py-3 text-center font-medium whitespace-nowrap"
+                    className="font-outfit tnum w-16 px-2 py-3 text-center font-medium whitespace-nowrap"
                   >
                     {day}
                   </th>
                 ))}
-                <th className="w-20 px-2 py-3 text-center font-medium whitespace-nowrap">
-                  目標次數
+                <th className="w-16 px-2 py-3 text-center font-medium whitespace-nowrap">
+                  目標
+                </th>
+                <th className="w-16 px-2 py-3 text-center font-medium whitespace-nowrap">
+                  完成
                 </th>
                 <th className="w-20 px-2 py-3 text-center font-medium whitespace-nowrap">
-                  達成次數
-                </th>
-                <th className="w-24 px-2 py-3 text-center font-medium whitespace-nowrap">
-                  本週達成率
+                  達成率
                 </th>
               </tr>
             </thead>
@@ -142,8 +142,11 @@ export default function TaskTable({
         </div>
 
         {tasks.length === 0 && (
-          <div className="py-8 text-center text-muted-foreground">
-            尚未新增任務
+          <div className="py-10 text-center">
+            <p className="font-medium">這週還沒有任務</p>
+            <p className="text-muted-foreground mt-1 text-sm">
+              新增一個本週想完成的小目標，開始打卡
+            </p>
           </div>
         )}
 
@@ -155,9 +158,9 @@ export default function TaskTable({
                 form.reset()
                 setOpen(true)
               }}
-              className="mt-6 flex cursor-pointer items-center gap-2 rounded-lg border border-border px-4 py-2 transition hover:bg-muted hover:text-foreground active:scale-97"
+              className="border-border text-muted-foreground hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 mt-6 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed py-2.5 text-sm font-medium transition active:scale-[0.99]"
             >
-              <span className="text-lg">+</span>
+              <span className="text-base leading-none">＋</span>
               <span>新增任務</span>
             </button>
           </DialogTrigger>

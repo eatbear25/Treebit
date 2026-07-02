@@ -13,8 +13,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+
+// 記事為多行內容，用 textarea（樣式對齊 shadcn Input token）
+const textareaClass =
+  'w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -108,12 +111,12 @@ export default function WeeklyNotes({
   }
 
   return (
-    <div className="rounded-2xl bg-card shadow-sm">
+    <div className="bg-card rounded-2xl shadow-sm">
       <div className="p-5 lg:p-6">
-        <h2 className="mb-6 text-xl font-bold text-primary">每週記事</h2>
+        <h2 className="mb-6 text-lg font-bold">每週記事</h2>
 
         {notes.length > 0 ? (
-          <div className="space-y-4">
+          <div className="divide-border divide-y">
             {notes.map((note) => (
               <NoteItem
                 key={note.id}
@@ -131,8 +134,11 @@ export default function WeeklyNotes({
             ))}
           </div>
         ) : (
-          <div className="py-8 text-center text-muted-foreground">
-            尚未新增記事
+          <div className="py-10 text-center">
+            <p className="font-medium">這週還沒有記事</p>
+            <p className="text-muted-foreground mt-1 text-sm">
+              花一分鐘記下這週的心得，回顧時會感謝現在的自己
+            </p>
           </div>
         )}
 
@@ -144,9 +150,9 @@ export default function WeeklyNotes({
                 setOpen(true)
                 addForm.reset({ content: '' })
               }}
-              className="mt-6 flex cursor-pointer items-center gap-2 rounded-lg border border-border px-4 py-2 transition hover:bg-muted hover:text-foreground active:scale-97"
+              className="border-border text-muted-foreground hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 mt-6 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed py-2.5 text-sm font-medium transition active:scale-[0.99]"
             >
-              <span className="text-lg">+</span>
+              <span className="text-base leading-none">＋</span>
               <span>新增記事</span>
             </button>
           </DialogTrigger>
@@ -170,7 +176,12 @@ export default function WeeklyNotes({
                     <FormItem>
                       <FormLabel>記事內容</FormLabel>
                       <FormControl>
-                        <Input placeholder="請輸入記事內容" {...field} />
+                        <textarea
+                          rows={4}
+                          placeholder="這週的心得、觀察或想法⋯"
+                          className={textareaClass}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -214,7 +225,12 @@ export default function WeeklyNotes({
                     <FormItem>
                       <FormLabel>記事內容</FormLabel>
                       <FormControl>
-                        <Input placeholder="請輸入記事內容" {...field} />
+                        <textarea
+                          rows={4}
+                          placeholder="這週的心得、觀察或想法⋯"
+                          className={textareaClass}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

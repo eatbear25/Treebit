@@ -52,11 +52,11 @@ export default function Habits() {
       ) : (
         <>
           {habits.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-              <img src="/icon.svg" alt="" className="w-16 opacity-90" />
-              <p className="text-lg font-medium">還沒有任何習慣</p>
-              <p className="text-sm text-muted-foreground">
-                點右上角的「＋」，種下你的第一顆種子
+            <div className="border-border flex flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 py-20 text-center">
+              <img src="/icon.svg" alt="" className="w-14 opacity-90" />
+              <p className="mt-5 text-lg font-bold">還沒有任何習慣</p>
+              <p className="text-muted-foreground mt-2 max-w-xs text-sm">
+                從一件小事開始就好。按右上角的「新增習慣」，種下第一顆種子。
               </p>
             </div>
           ) : (

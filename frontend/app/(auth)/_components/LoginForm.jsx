@@ -37,7 +37,7 @@ const PasswordInput = forwardRef(({ className, ...props }, ref) => {
       <button
         type="button"
         onClick={() => setShowPassword(!showPassword)}
-        className="absolute top-1/2 right-4 -translate-y-1/2 transform text-lg text-muted-foreground transition-colors hover:text-foreground"
+        className="text-muted-foreground hover:text-foreground absolute top-1/2 right-4 -translate-y-1/2 transform text-lg transition-colors"
         tabIndex={-1}
       >
         {showPassword ? <PiEyeSlash /> : <PiEye />}
@@ -129,13 +129,9 @@ export function LoginForm() {
           type="submit"
           variant="treebit"
           disabled={loading}
-          className={cn(
-            'flex w-full items-center justify-center gap-2',
-            loading && 'cursor-not-allowed opacity-50'
-          )}
+          className="w-full text-base"
         >
-          登入
-          <span className="text-lg">→</span>
+          {loading ? '登入中⋯' : '登入'}
         </Button>
       </form>
     </Form>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { PiXBold } from 'react-icons/pi'
+import { PiDotsThreeBold } from 'react-icons/pi'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,12 +17,14 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
-import { formatTimestampToTaiwanYMD } from '@/lib/utils'
+import {
+  formatDateToLocalYMD,
+  formatTimestampToTaiwanYMD,
+  getCurrentWeekNumber,
+} from '@/lib/utils'
 
 const API_BASE_URL =
   process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3001'
@@ -31,12 +33,34 @@ export default function HabitCard({
   title,
   total_weeks,
   created_at,
+  first_start_date,
+  completed_logs,
+  total_target_days,
   id,
   onHabitsChanged,
 }) {
   const router = useRouter()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showArchiveDialog, setShowArchiveDialog] = useState(false)
+
+  // 起始日以第一週 start_date 為準（DATE 字串）；舊資料缺值時退回 created_at
+  const startYMD = first_start_date
+    ? formatDateToLocalYMD(first_start_date)
+    : formatTimestampToTaiwanYMD(created_at)
+
+  const currentWeek = getCurrentWeekNumber(
+    first_start_date || startYMD,
+    total_weeks
+  )
+  const weekPercent = Math.round((currentWeek / total_weeks) * 100)
+
+  // 目標達成率 = 已完成打卡 / 所有任務目標次數總和；尚未建立任務時不顯示
+  const completedCount = Number(completed_logs) || 0
+  const targetTotal = Number(total_target_days) || 0
+  const completionRate =
+    targetTotal > 0
+      ? Math.min(100, Math.round((completedCount / targetTotal) * 100))
+      : null
 
   const handleViewTask = () => {
     router.push(`/habits/${id}`)
@@ -89,14 +113,6 @@ export default function HabitCard({
     }
   }
 
-  const handleDeleteClick = () => {
-    setShowDeleteDialog(true)
-  }
-
-  const handleArchiveClick = () => {
-    setShowArchiveDialog(true)
-  }
-
   const handleConfirmDelete = async () => {
     await deleteHabit(id)
     setShowDeleteDialog(false)
@@ -109,51 +125,101 @@ export default function HabitCard({
 
   return (
     <>
-      <div className="relative mb-10 flex h-[300px] w-full flex-col justify-between rounded-2xl bg-card p-8 shadow-[0_10px_30px_-14px_rgba(79,111,88,0.25)]">
-        {/* 下拉選單 */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="absolute top-4 right-4 cursor-pointer rounded-lg p-1 transition hover:bg-muted">
-              <span className="text-muted-foreground">⋯</span>
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onClick={handleArchiveClick}
-            >
-              封存
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="cursor-pointer text-destructive"
-              onClick={handleDeleteClick}
-            >
-              刪除
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+      <div className="group bg-card flex h-full flex-col rounded-2xl p-6 shadow-[0_10px_30px_-14px_rgba(79,111,88,0.25)] transition-shadow duration-300 hover:shadow-[0_18px_40px_-16px_rgba(79,111,88,0.38)] md:p-7">
+        {/* 標題列 + 選單 */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="truncate text-xl font-bold md:text-2xl">{title}</h3>
+            <p className="text-muted-foreground mt-1.5 text-sm">
+              <span className="font-outfit tnum">{startYMD}</span> 開始 · 共{' '}
+              <span className="tnum">{total_weeks}</span> 週
+            </p>
+          </div>
 
-        <div className="mb-6 text-2xl font-bold">{title}</div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                aria-label="更多操作"
+                className="text-muted-foreground hover:bg-muted hover:text-foreground -mt-1 -mr-1 shrink-0 cursor-pointer rounded-lg p-2 text-xl transition"
+              >
+                <PiDotsThreeBold />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => setShowArchiveDialog(true)}
+              >
+                封存
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-destructive cursor-pointer"
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                刪除
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
-        <ul className="mb-8 flex justify-around text-sm">
-          <li className="flex flex-col items-center justify-center">
-            <span className="font-outfit tnum text-3xl font-[700]">
-              {total_weeks}
+        {/* 週進度 */}
+        <div className="mt-6">
+          <div className="flex items-baseline justify-between text-sm">
+            <span className="text-brand-700 font-semibold">
+              第 <span className="tnum">{currentWeek}</span> 週
             </span>
-            <span className="text-xl text-muted-foreground">總週數</span>
-          </li>
-
-          <li className="flex flex-col items-center justify-center">
-            <span className="font-outfit tnum text-3xl font-[700]">
-              {formatTimestampToTaiwanYMD(created_at)}
+            <span className="font-outfit tnum text-muted-foreground">
+              {currentWeek} / {total_weeks} 週
             </span>
-            <span className="text-xl text-muted-foreground">創立時間</span>
-          </li>
-        </ul>
+          </div>
+          <div
+            role="progressbar"
+            aria-valuenow={currentWeek}
+            aria-valuemin={1}
+            aria-valuemax={total_weeks}
+            aria-label="週數進度"
+            className="bg-brand-100 mt-2 h-2 overflow-hidden rounded-full"
+          >
+            <div
+              className="bg-brand-500 h-full rounded-full transition-[width] duration-500"
+              style={{ width: `${weekPercent}%` }}
+            />
+          </div>
+        </div>
+
+        {/* 累積數據 */}
+        <dl className="mt-6 mb-7 grid grid-cols-2 gap-4">
+          <div>
+            <dt className="text-muted-foreground text-sm">目標達成率</dt>
+            <dd className="font-outfit mt-1 text-2xl font-bold md:text-3xl">
+              {completionRate !== null ? (
+                <>
+                  {completionRate}
+                  <span className="text-muted-foreground ml-0.5 text-base font-semibold">
+                    %
+                  </span>
+                </>
+              ) : (
+                <span className="text-muted-foreground text-base font-medium">
+                  尚未設定任務
+                </span>
+              )}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground text-sm">累計打卡</dt>
+            <dd className="font-outfit mt-1 text-2xl font-bold md:text-3xl">
+              {completedCount}
+              <span className="text-muted-foreground ml-1 text-base font-semibold">
+                次
+              </span>
+            </dd>
+          </div>
+        </dl>
 
         <button
           onClick={handleViewTask}
-          className="w-full cursor-pointer rounded-tl-xl rounded-br-xl bg-primary py-3 text-xl font-[600] text-primary-foreground shadow-[0_8px_20px_-8px_rgba(79,111,88,0.5)] transition hover:scale-101 hover:bg-brand-600 active:scale-99"
+          className="bg-brand-700 hover:bg-brand-800 mt-auto w-full cursor-pointer rounded-tl-xl rounded-br-xl py-3 text-base font-semibold text-white shadow-[0_8px_20px_-8px_rgba(60,86,69,0.5)] transition active:scale-[0.99]"
         >
           查看任務
         </button>
@@ -163,15 +229,18 @@ export default function HabitCard({
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>您確定要刪除嗎?</AlertDialogTitle>
+            <AlertDialogTitle>確定要刪除「{title}」嗎？</AlertDialogTitle>
             <AlertDialogDescription>
-              習慣一經刪除後將無法恢復，請確認是否要繼續。
+              刪除後，這個習慣的所有任務與打卡紀錄將一併移除，無法復原。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete}>
-              刪除 {title}
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive hover:bg-destructive/90 text-white"
+            >
+              確定刪除
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -181,15 +250,15 @@ export default function HabitCard({
       <AlertDialog open={showArchiveDialog} onOpenChange={setShowArchiveDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>您確定要封存嗎?</AlertDialogTitle>
+            <AlertDialogTitle>要封存「{title}」嗎？</AlertDialogTitle>
             <AlertDialogDescription>
-              封存後的習慣將移至歷史頁面，您可以隨時恢復。
+              封存後會移到「歷史紀錄」保存成果，隨時可以取消封存繼續進行。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>取消</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmArchive}>
-              封存 {title}
+              確定封存
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

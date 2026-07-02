@@ -62,7 +62,7 @@ const PasswordInput = forwardRef(({ className, ...props }, ref) => {
       <button
         type="button"
         onClick={() => setShowPassword((prev) => !prev)}
-        className="absolute top-1/2 right-4 -translate-y-1/2 transform text-lg text-muted-foreground transition-colors hover:text-foreground"
+        className="text-muted-foreground hover:text-foreground absolute top-1/2 right-4 -translate-y-1/2 transform text-lg transition-colors"
         tabIndex={-1}
       >
         {showPassword ? <PiEyeSlash /> : <PiEye />}
@@ -188,190 +188,205 @@ export default function HabitHeader({ habitsNum, onHabitAdded }) {
   }
 
   return (
-    <div className="mb-6 flex h-12 items-center justify-between">
-      <div className="flex items-center gap-1 text-xl font-bold">
-        {habitsNum} 個習慣
-        <HabitForm onHabitAdded={onHabitAdded} />
+    <div className="mb-8 flex items-end justify-between gap-4">
+      <div>
+        <h1 className="text-2xl font-bold md:text-3xl">我的習慣</h1>
+        <p className="text-muted-foreground mt-1 text-sm">
+          進行中 <span className="tnum">{habitsNum}</span> 個習慣
+        </p>
       </div>
 
-      <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <AlertDialogTrigger asChild>
-          <PiGearBold className="cursor-pointer rounded-lg p-2 text-5xl transition hover:bg-muted active:scale-95" />
-        </AlertDialogTrigger>
+      <div className="flex items-center gap-2">
+        <HabitForm onHabitAdded={onHabitAdded} />
 
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center justify-between border-b border-border pb-3 text-2xl text-foreground">
-              <span>{isEditing ? '編輯會員資料' : '會員資料'}</span>
-              {isEditing ? (
-                <PiArrowBendUpLeft
-                  onClick={() => setIsEditing(false)}
-                  className="cursor-pointer rounded-lg p-2 text-5xl transition hover:bg-muted"
-                />
-              ) : (
-                <PiNotePencilBold
-                  onClick={() => setIsEditing(true)}
-                  className="cursor-pointer rounded-lg p-2 text-5xl transition hover:bg-muted"
-                />
-              )}
-            </AlertDialogTitle>
-          </AlertDialogHeader>
+        <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <AlertDialogTrigger asChild>
+            <button
+              aria-label="會員資料"
+              className="text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer rounded-lg p-2.5 text-2xl transition active:scale-95"
+            >
+              <PiGearBold />
+            </button>
+          </AlertDialogTrigger>
 
-          {isEditing ? (
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(handleSubmit)}
-                className="space-y-4"
-              >
-                <FormField
-                  control={form.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>顯示名稱</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="請輸入顯示名稱" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="border-border text-foreground flex items-center justify-between border-b pb-3 text-2xl">
+                <span>{isEditing ? '編輯會員資料' : '會員資料'}</span>
+                {isEditing ? (
+                  <PiArrowBendUpLeft
+                    onClick={() => setIsEditing(false)}
+                    className="text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer rounded-lg p-2 text-4xl transition"
+                  />
+                ) : (
+                  <PiNotePencilBold
+                    onClick={() => setIsEditing(true)}
+                    className="text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer rounded-lg p-2 text-4xl transition"
+                  />
+                )}
+              </AlertDialogTitle>
+            </AlertDialogHeader>
 
-                <AlertDialogFooter>
-                  <AlertDialogCancel>取消</AlertDialogCancel>
-                  <Button type="submit" disabled={loading}>
-                    {loading ? '儲存中...' : '儲存'}
-                  </Button>
-                </AlertDialogFooter>
-              </form>
-            </Form>
-          ) : (
-            <ul className="flex flex-col gap-5">
-              <li>
-                <p className="font-bold text-primary">顯示名稱</p>
-                <p>{user?.username}</p>
-              </li>
-              <li>
-                <p className="font-bold text-primary">
-                  {isGoogle ? '電子郵件' : '帳號'}
-                </p>
-                <p>{isGoogle ? user?.email || '—' : user?.account || '—'}</p>
-              </li>
+            {isEditing ? (
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(handleSubmit)}
+                  className="space-y-4"
+                >
+                  <FormField
+                    control={form.control}
+                    name="username"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>顯示名稱</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="請輸入顯示名稱" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              {/* 只有本地帳號顯示「修改密碼」；Google 顯示提示 */}
-              {!isGoogle ? (
-                <li>
-                  <Dialog
-                    open={passwordDialogOpen}
-                    onOpenChange={setPasswordDialogOpen}
-                  >
-                    <DialogTrigger asChild>
-                      <p className="cursor-pointer font-bold text-primary hover:opacity-90">
-                        點此修改密碼
-                      </p>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>修改密碼</DialogTitle>
-                      </DialogHeader>
-                      <Form {...passwordForm}>
-                        <form
-                          onSubmit={passwordForm.handleSubmit(
-                            handleChangePassword
-                          )}
-                          className="space-y-4"
-                        >
-                          <FormField
-                            control={passwordForm.control}
-                            name="currentPassword"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>當前密碼</FormLabel>
-                                <FormControl>
-                                  <PasswordInput
-                                    {...field}
-                                    placeholder="請輸入目前密碼"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={passwordForm.control}
-                            name="newPassword"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>新密碼</FormLabel>
-                                <FormControl>
-                                  <PasswordInput
-                                    {...field}
-                                    placeholder="請輸入新密碼"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={passwordForm.control}
-                            name="confirmPassword"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>確認新密碼</FormLabel>
-                                <FormControl>
-                                  <PasswordInput
-                                    {...field}
-                                    placeholder="請再次輸入新密碼"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <AlertDialogFooter>
-                            <Button type="submit">更新密碼</Button>
-                          </AlertDialogFooter>
-                        </form>
-                      </Form>
-                    </DialogContent>
-                  </Dialog>
-                </li>
-              ) : (
-                <li className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">
-                  您是使用 <b>Google</b> 登入。
-                </li>
-              )}
-            </ul>
-          )}
-
-          {!isEditing && (
-            <AlertDialogFooter>
-              <AlertDialogCancel>關閉</AlertDialogCancel>
-
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button>登出</Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>登出</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      您即將登出，確定要繼續嗎？
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>關閉</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleLogout}>
-                      確定登出
-                    </AlertDialogAction>
+                    <AlertDialogCancel>取消</AlertDialogCancel>
+                    <Button type="submit" disabled={loading}>
+                      {loading ? '儲存中...' : '儲存'}
+                    </Button>
                   </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </AlertDialogFooter>
-          )}
-        </AlertDialogContent>
-      </AlertDialog>
+                </form>
+              </Form>
+            ) : (
+              <ul className="flex flex-col gap-5">
+                <li>
+                  <p className="text-muted-foreground text-sm font-medium">
+                    顯示名稱
+                  </p>
+                  <p className="mt-0.5 font-medium">{user?.username}</p>
+                </li>
+                <li>
+                  <p className="text-muted-foreground text-sm font-medium">
+                    {isGoogle ? '電子郵件' : '帳號'}
+                  </p>
+                  <p className="mt-0.5 font-medium">
+                    {isGoogle ? user?.email || '—' : user?.account || '—'}
+                  </p>
+                </li>
+
+                {/* 只有本地帳號顯示「修改密碼」；Google 顯示提示 */}
+                {!isGoogle ? (
+                  <li>
+                    <Dialog
+                      open={passwordDialogOpen}
+                      onOpenChange={setPasswordDialogOpen}
+                    >
+                      <DialogTrigger asChild>
+                        <button className="text-brand-700 cursor-pointer text-sm font-semibold underline-offset-4 hover:underline">
+                          修改密碼
+                        </button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>修改密碼</DialogTitle>
+                        </DialogHeader>
+                        <Form {...passwordForm}>
+                          <form
+                            onSubmit={passwordForm.handleSubmit(
+                              handleChangePassword
+                            )}
+                            className="space-y-4"
+                          >
+                            <FormField
+                              control={passwordForm.control}
+                              name="currentPassword"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>當前密碼</FormLabel>
+                                  <FormControl>
+                                    <PasswordInput
+                                      {...field}
+                                      placeholder="請輸入目前密碼"
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={passwordForm.control}
+                              name="newPassword"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>新密碼</FormLabel>
+                                  <FormControl>
+                                    <PasswordInput
+                                      {...field}
+                                      placeholder="請輸入新密碼"
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={passwordForm.control}
+                              name="confirmPassword"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>確認新密碼</FormLabel>
+                                  <FormControl>
+                                    <PasswordInput
+                                      {...field}
+                                      placeholder="請再次輸入新密碼"
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <AlertDialogFooter>
+                              <Button type="submit">更新密碼</Button>
+                            </AlertDialogFooter>
+                          </form>
+                        </Form>
+                      </DialogContent>
+                    </Dialog>
+                  </li>
+                ) : (
+                  <li className="bg-muted text-muted-foreground rounded-lg p-3 text-sm">
+                    您是使用 <b>Google</b> 登入。
+                  </li>
+                )}
+              </ul>
+            )}
+
+            {!isEditing && (
+              <AlertDialogFooter>
+                <AlertDialogCancel>關閉</AlertDialogCancel>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button>登出</Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>確定要登出嗎？</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        登出後隨時可以再回來，你的紀錄都會保留。
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>取消</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleLogout}>
+                        確定登出
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </AlertDialogFooter>
+            )}
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </div>
   )
 }

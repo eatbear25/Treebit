@@ -1,21 +1,21 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { toast } from 'sonner'
 
-import { PiArrowBendUpLeft } from 'react-icons/pi'
+import Link from 'next/link'
+import { PiCaretLeftBold } from 'react-icons/pi'
 import Loader from '@/app/_components/Loader'
 import { getWeekDates } from '@/lib/utils'
 import HabitHeader from '../_components/HabitHeader'
-import StatsPlaceholder from '../_components/StatsPlaceholder'
+import HabitStats from '../_components/HabitStats'
 import TaskTable from '../_components/TaskTable'
 import WeeklyNotes from '../_components/WeeklyNotes'
 
 export default function HabitTracker() {
   const params = useParams()
   const habitId = params.habitId
-  const router = useRouter()
 
   const [currentWeekIndex, setCurrentWeekIndex] = useState(0)
   const [habit, setHabit] = useState(null)
@@ -24,6 +24,7 @@ export default function HabitTracker() {
   const [tasks, setTasks] = useState([])
   const [weeklyNotes, setWeeklyNotes] = useState([])
   const [taskLogs, setTaskLogs] = useState({})
+  const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isWeekDataLoading, setIsWeekDataLoading] = useState(false)
@@ -48,6 +49,21 @@ export default function HabitTracker() {
     } catch (err) {
       console.error('獲取習慣資訊錯誤:', err)
       setError('載入習慣資訊失敗')
+    }
+  }, [habitId, API_BASE_URL])
+
+  // 整體統計（累計完成、目標總次數），打卡後同步更新
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/habits/${habitId}/stats`, {
+        credentials: 'include',
+      })
+      const data = await res.json()
+      if (data.success) {
+        setStats(data.data)
+      }
+    } catch (err) {
+      console.error('獲取統計資料錯誤:', err)
     }
   }, [habitId, API_BASE_URL])
 
@@ -189,7 +205,7 @@ export default function HabitTracker() {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true)
-      await Promise.all([fetchHabit(), fetchAllWeeks()])
+      await Promise.all([fetchHabit(), fetchAllWeeks(), fetchStats()])
       // 初始載入時不關閉 loading，等週次資料也載入完成
       if (!isInitialLoadRef.current) {
         setLoading(false)
@@ -199,7 +215,7 @@ export default function HabitTracker() {
     if (habitId) {
       loadData()
     }
-  }, [habitId, fetchHabit, fetchAllWeeks])
+  }, [habitId, fetchHabit, fetchAllWeeks, fetchStats])
 
   useEffect(() => {
     if (allWeeks.length > 0 && currentWeekIndex < allWeeks.length) {
@@ -266,6 +282,8 @@ export default function HabitTracker() {
             [date]: newStatus,
           },
         }))
+        // 打卡後同步更新整體統計
+        fetchStats()
       } else {
         console.error('更新打卡失敗:', data.message)
       }
@@ -300,6 +318,7 @@ export default function HabitTracker() {
         toast.success('新增任務成功！')
         await fetchCurrentWeekTasks(currentWeekData.id)
         await fetchCurrentWeekLogs(currentWeekData.id)
+        fetchStats()
       } else {
         toast.error(data.message || '新增任務失敗')
       }
@@ -333,6 +352,7 @@ export default function HabitTracker() {
         toast.success(data.message || '編輯任務成功！')
         await fetchCurrentWeekTasks(currentWeekData.id)
         await fetchCurrentWeekLogs(currentWeekData.id)
+        fetchStats()
         return data.message || '編輯任務成功！'
       } else {
         toast.error(data.message || '編輯任務失敗')
@@ -362,6 +382,7 @@ export default function HabitTracker() {
         toast.success('刪除任務成功！')
         await fetchCurrentWeekTasks(currentWeekData.id)
         await fetchCurrentWeekLogs(currentWeekData.id)
+        fetchStats()
       } else {
         toast.error(data.message || '刪除任務失敗')
       }
@@ -474,10 +495,6 @@ export default function HabitTracker() {
     }
   }
 
-  const handleGoBack = () => {
-    router.push('/habits')
-  }
-
   if (loading || isWeekDataLoading) {
     return (
       <div className="flex justify-center">
@@ -509,8 +526,20 @@ export default function HabitTracker() {
     weekDates.length > 0 ? `${weekDates[0].short} - ${weekDates[6].short}` : ''
   const formattedTasks = getFormattedTasks()
 
+  // 本週打卡進度（由當週任務即時彙總）
+  const weekDone = formattedTasks.reduce((sum, t) => sum + t.completedCount, 0)
+  const weekTarget = formattedTasks.reduce((sum, t) => sum + t.targetDays, 0)
+
   return (
     <div>
+      <Link
+        href="/habits"
+        className="text-muted-foreground hover:text-foreground mb-5 inline-flex items-center gap-1 text-sm font-medium transition-colors"
+      >
+        <PiCaretLeftBold />
+        返回習慣列表
+      </Link>
+
       <HabitHeader
         challengeName={habit.title}
         totalWeeks={habit.total_weeks}
@@ -523,7 +552,14 @@ export default function HabitTracker() {
         currentWeekIndex={currentWeekIndex}
       />
 
-      <StatsPlaceholder />
+      <HabitStats
+        currentWeek={currentWeekIndex + 1}
+        totalWeeks={habit.total_weeks}
+        weekDone={weekDone}
+        weekTarget={weekTarget}
+        totalCompleted={Number(stats?.completed_logs) || 0}
+        totalTarget={Number(stats?.total_target_days) || 0}
+      />
 
       <TaskTable
         tasks={formattedTasks}
@@ -540,18 +576,6 @@ export default function HabitTracker() {
         onEditNote={handleEditNote}
         onDeleteNote={handleDeleteNote}
       />
-
-      <div className="my-6 flex justify-end">
-        <button
-          className="flex cursor-pointer items-center gap-2 text-right text-lg hover:opacity-80"
-          onClick={handleGoBack}
-        >
-          返回上一頁
-          <span className="text-2xl font-bold">
-            <PiArrowBendUpLeft />
-          </span>
-        </button>
-      </div>
     </div>
   )
 }

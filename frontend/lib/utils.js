@@ -46,6 +46,33 @@ export function addDaysToYMD(ymd, days) {
   return `${yy}-${mm}-${dd}`
 }
 
+// 台灣時區的今天（YYYY-MM-DD），與後端 utils/date.js 的 getTaiwanTodayYMD 對齊
+export function getTaiwanTodayYMD() {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Taipei',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date())
+}
+
+// 兩個純日期字串（YYYY-MM-DD）相差的天數（b - a），以 UTC 午夜相減避免時區位移
+export function diffDaysYMD(a, b) {
+  const toUTC = (ymd) => {
+    const [y, m, d] = ymd.split('-').map(Number)
+    return Date.UTC(y, m - 1, d)
+  }
+  return Math.round((toUTC(b) - toUTC(a)) / 86400000)
+}
+
+// 由第一週起始日推算「今天是第幾週」（1 起算，夾在 1..totalWeeks 之間）
+export function getCurrentWeekNumber(firstStartDate, totalWeeks) {
+  const start = formatDateToLocalYMD(firstStartDate)
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(start)) return 1
+  const week = Math.floor(diffDaysYMD(start, getTaiwanTodayYMD()) / 7) + 1
+  return Math.min(Math.max(week, 1), totalWeeks || 1)
+}
+
 // 由該週起始日（YYYY-MM-DD）產生 7 天的日期陣列：
 // short 用於表頭顯示 (M/D)，full 用於對應打卡記錄 (YYYY-MM-DD)。
 export function getWeekDates(startDate) {

@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { PiXBold } from 'react-icons/pi'
-import { formatTimestampToTaiwanYMD } from '@/lib/utils'
+import { PiDotsThreeBold } from 'react-icons/pi'
+import { formatDateToLocalYMD, formatTimestampToTaiwanYMD } from '@/lib/utils'
 
 import {
   AlertDialog,
@@ -19,104 +19,122 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { toast } from 'sonner'
 
 export default function HistoryCard({
   title,
   total_weeks,
   created_at,
   updated_at,
+  first_start_date,
+  completed_logs,
+  total_target_days,
   id,
-  onHabitsChanged,
   onRestore,
   onDelete,
 }) {
   const router = useRouter()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [showArchiveDialog, setShowArchiveDialog] = useState(false)
+  const [showRestoreDialog, setShowRestoreDialog] = useState(false)
 
-  const handleViewTask = () => {
-    router.push(`/history/${id}`)
-  }
+  const startYMD = first_start_date
+    ? formatDateToLocalYMD(first_start_date)
+    : formatTimestampToTaiwanYMD(created_at)
+  const archivedYMD = formatTimestampToTaiwanYMD(updated_at)
 
-  const handleDeleteClick = () => {
-    setShowDeleteDialog(true)
-  }
+  const completedCount = Number(completed_logs) || 0
+  const targetTotal = Number(total_target_days) || 0
+  const completionRate =
+    targetTotal > 0
+      ? Math.min(100, Math.round((completedCount / targetTotal) * 100))
+      : null
 
   const handleConfirmDelete = async () => {
     await onDelete(id)
     setShowDeleteDialog(false)
   }
 
-  const handleArchiveClick = () => {
-    setShowArchiveDialog(true)
-  }
-
-  const handleConfirmArchive = async () => {
+  const handleConfirmRestore = async () => {
     await onRestore(id)
-    setShowArchiveDialog(false)
+    setShowRestoreDialog(false)
   }
 
   return (
     <>
-      <div className="relative mb-10 flex h-[300px] w-full flex-col justify-between rounded-2xl bg-card p-8 shadow-[0_10px_30px_-14px_rgba(79,111,88,0.25)]">
-        {/* 下拉選單 */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="absolute top-4 right-4 cursor-pointer rounded-lg p-1 transition hover:bg-muted">
-              <span className="text-muted-foreground">⋯</span>
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onClick={handleArchiveClick}
-            >
-              取消封存
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="cursor-pointer text-destructive"
-              onClick={handleDeleteClick}
-            >
-              刪除
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+      <div className="bg-card flex h-full flex-col rounded-2xl p-6 shadow-[0_10px_30px_-14px_rgba(79,111,88,0.25)] transition-shadow duration-300 hover:shadow-[0_18px_40px_-16px_rgba(79,111,88,0.38)] md:p-7">
+        {/* 標題列 + 選單 */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="truncate text-xl font-bold md:text-2xl">{title}</h3>
+            <p className="text-muted-foreground mt-1.5 text-sm">
+              <span className="font-outfit tnum">{startYMD}</span> –{' '}
+              <span className="font-outfit tnum">{archivedYMD}</span> · 共{' '}
+              <span className="tnum">{total_weeks}</span> 週
+            </p>
+          </div>
 
-        <div className="mb-6 text-2xl font-bold">{title}</div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                aria-label="更多操作"
+                className="text-muted-foreground hover:bg-muted hover:text-foreground -mt-1 -mr-1 shrink-0 cursor-pointer rounded-lg p-2 text-xl transition"
+              >
+                <PiDotsThreeBold />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => setShowRestoreDialog(true)}
+              >
+                取消封存
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-destructive cursor-pointer"
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                刪除
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
-        <ul className="mb-8 flex justify-between text-sm">
-          <li className="flex flex-col items-center justify-center">
-            <span className="font-outfit tnum text-3xl font-[700]">
-              {total_weeks}
-            </span>
-            <span className="text-xl text-muted-foreground">週</span>
-          </li>
-
-          <li className="flex flex-col items-center justify-center">
-            <span className="font-outfit tnum text-2xl font-[700]">
-              <div>{formatTimestampToTaiwanYMD(created_at)}</div>
-            </span>
-            <span className="text-xl text-muted-foreground">開始日期</span>
-          </li>
-
-          <li className="flex flex-col items-center justify-center">
-            <span className="font-outfit tnum text-2xl font-[700]">
-              <div>{formatTimestampToTaiwanYMD(updated_at)}</div>
-            </span>
-            <span className="text-xl text-muted-foreground">封存日期</span>
-          </li>
-        </ul>
+        {/* 成果數據 */}
+        <dl className="mt-6 mb-7 grid grid-cols-2 gap-4">
+          <div>
+            <dt className="text-muted-foreground text-sm">目標達成率</dt>
+            <dd className="font-outfit mt-1 text-2xl font-bold md:text-3xl">
+              {completionRate !== null ? (
+                <>
+                  {completionRate}
+                  <span className="text-muted-foreground ml-0.5 text-base font-semibold">
+                    %
+                  </span>
+                </>
+              ) : (
+                <span className="text-muted-foreground text-base font-medium">
+                  無任務紀錄
+                </span>
+              )}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground text-sm">累計打卡</dt>
+            <dd className="font-outfit mt-1 text-2xl font-bold md:text-3xl">
+              {completedCount}
+              <span className="text-muted-foreground ml-1 text-base font-semibold">
+                次
+              </span>
+            </dd>
+          </div>
+        </dl>
 
         <button
-          onClick={handleViewTask}
-          className="w-full cursor-pointer rounded-tl-xl rounded-br-xl bg-primary py-3 text-xl font-[600] text-primary-foreground shadow-[0_8px_20px_-8px_rgba(79,111,88,0.5)] transition hover:scale-101 hover:bg-brand-600 active:scale-99"
+          onClick={() => router.push(`/history/${id}`)}
+          className="bg-brand-100 text-brand-800 hover:bg-brand-200 mt-auto w-full cursor-pointer rounded-tl-xl rounded-br-xl py-3 text-base font-semibold transition active:scale-[0.99]"
         >
-          查看任務
+          查看紀錄
         </button>
       </div>
 
@@ -124,33 +142,36 @@ export default function HistoryCard({
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>您確定要刪除嗎?</AlertDialogTitle>
+            <AlertDialogTitle>確定要刪除「{title}」嗎？</AlertDialogTitle>
             <AlertDialogDescription>
-              習慣一經刪除後將無法恢復，請確認是否要繼續。
+              刪除後，這個習慣的所有任務與打卡紀錄將一併移除，無法復原。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete}>
-              刪除 {title}
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive hover:bg-destructive/90 text-white"
+            >
+              確定刪除
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* 封存確認對話框 */}
-      <AlertDialog open={showArchiveDialog} onOpenChange={setShowArchiveDialog}>
+      {/* 取消封存確認對話框 */}
+      <AlertDialog open={showRestoreDialog} onOpenChange={setShowRestoreDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>您確定要取消封存嗎?</AlertDialogTitle>
+            <AlertDialogTitle>要取消封存「{title}」嗎？</AlertDialogTitle>
             <AlertDialogDescription>
-              取消封存後的習慣將移至習慣管理頁面，您可以隨時恢復。
+              取消封存後，這個習慣會移回「習慣管理」，可以繼續打卡。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>關閉</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmArchive}>
-              取消封存 {title}
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmRestore}>
+              取消封存
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

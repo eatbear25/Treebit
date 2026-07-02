@@ -1,9 +1,11 @@
 'use client'
 
+import { PiPlusBold } from 'react-icons/pi'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -95,14 +97,18 @@ export function HabitForm({ onHabitAdded }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="addHabit" className="cursor-pointer text-3xl">
-          +
-        </Button>
+        <button className="bg-brand-700 hover:bg-brand-800 flex cursor-pointer items-center gap-1.5 rounded-tl-xl rounded-br-xl px-4 py-2.5 text-sm font-semibold text-white transition active:scale-[0.98] md:px-5 md:text-base">
+          <PiPlusBold />
+          新增習慣
+        </button>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>新增習慣</DialogTitle>
+          <DialogDescription>
+            替想養成的習慣取個名字，並決定要持續幾週。
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -114,7 +120,7 @@ export function HabitForm({ onHabitAdded }) {
                 <FormItem>
                   <FormLabel>習慣名稱</FormLabel>
                   <FormControl>
-                    <Input placeholder="請輸入習慣名稱" {...field} />
+                    <Input placeholder="例如：每天閱讀 30 分鐘" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

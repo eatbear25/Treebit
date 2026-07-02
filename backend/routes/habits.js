@@ -132,8 +132,21 @@ router.post("/", authenticate, async (req, res) => {
 router.get("/", authenticate, async (req, res) => {
   try {
     const userId = req.user.id;
+    // 附帶進度統計：第一週起始日、已完成打卡數、目標總次數（供列表卡片顯示進度）
+    // 用子查詢聚合，避免 JOIN 造成 target_days 隨打卡筆數重複計算
     const [rows] = await db.query(
-      `SELECT * FROM habits WHERE user_id = ? AND is_archived = false ORDER BY created_at DESC`,
+      `SELECT h.*,
+        (SELECT MIN(hw.start_date) FROM habit_weeks hw WHERE hw.habit_id = h.id) AS first_start_date,
+        (SELECT COUNT(*)::int FROM habit_weeks hw
+           JOIN habit_week_tasks hwt ON hwt.habit_week_id = hw.id
+           JOIN habit_task_logs htl ON htl.task_id = hwt.id
+          WHERE hw.habit_id = h.id AND htl.is_completed = true) AS completed_logs,
+        (SELECT COALESCE(SUM(hwt.target_days), 0)::int FROM habit_weeks hw
+           JOIN habit_week_tasks hwt ON hwt.habit_week_id = hw.id
+          WHERE hw.habit_id = h.id) AS total_target_days
+      FROM habits h
+      WHERE h.user_id = ? AND h.is_archived = false
+      ORDER BY h.created_at DESC`,
       [userId]
     );
     sendResponse(res, 200, true, rows);
@@ -147,8 +160,20 @@ router.get("/", authenticate, async (req, res) => {
 router.get("/archived", authenticate, async (req, res) => {
   try {
     const userId = req.user.id;
+    // 同列表 API：附帶進度統計，供歷史卡片顯示成果回顧
     const [rows] = await db.query(
-      `SELECT * FROM habits WHERE user_id = ? AND is_archived = true ORDER BY updated_at DESC`,
+      `SELECT h.*,
+        (SELECT MIN(hw.start_date) FROM habit_weeks hw WHERE hw.habit_id = h.id) AS first_start_date,
+        (SELECT COUNT(*)::int FROM habit_weeks hw
+           JOIN habit_week_tasks hwt ON hwt.habit_week_id = hw.id
+           JOIN habit_task_logs htl ON htl.task_id = hwt.id
+          WHERE hw.habit_id = h.id AND htl.is_completed = true) AS completed_logs,
+        (SELECT COALESCE(SUM(hwt.target_days), 0)::int FROM habit_weeks hw
+           JOIN habit_week_tasks hwt ON hwt.habit_week_id = hw.id
+          WHERE hw.habit_id = h.id) AS total_target_days
+      FROM habits h
+      WHERE h.user_id = ? AND h.is_archived = true
+      ORDER BY h.updated_at DESC`,
       [userId]
     );
     sendResponse(res, 200, true, rows);
@@ -624,23 +649,32 @@ router.get("/:habitId/stats", authenticate, async (req, res) => {
       return sendResponse(res, 403, false, null, "無權查看此習慣統計");
     }
 
-    // 計算統計資料
+    // 計算統計資料。total_target_days 用子查詢聚合，
+    // 避免與打卡 JOIN 後 target_days 隨筆數重複計算
     const [stats] = await db.query(
       `SELECT
-        COUNT(DISTINCT hw.id) as total_weeks,
-        COUNT(htl.id) as total_logs,
-        SUM(CASE WHEN htl.is_completed = true THEN 1 ELSE 0 END) as completed_logs,
+        COUNT(DISTINCT ha.id) as total_weeks,
+        COUNT(htl.id)::int as total_logs,
+        COALESCE(SUM(CASE WHEN htl.is_completed = true THEN 1 ELSE 0 END), 0)::int as completed_logs,
+        (SELECT COALESCE(SUM(hwt2.target_days), 0)::int FROM habit_weeks hw2
+           JOIN habit_week_tasks hwt2 ON hwt2.habit_week_id = hw2.id
+          WHERE hw2.habit_id = h.id) as total_target_days,
         ROUND(
           SUM(CASE WHEN htl.is_completed = true THEN 1 ELSE 0 END)::numeric
             / NULLIF(COUNT(htl.id), 0) * 100, 0
         ) as completion_rate
       FROM habits h
-      LEFT JOIN habit_weeks hw ON hw.habit_id = h.id
-      LEFT JOIN habit_week_tasks hwt ON hwt.habit_week_id = hw.id
+      LEFT JOIN habit_weeks ha ON ha.habit_id = h.id
+      LEFT JOIN habit_week_tasks hwt ON hwt.habit_week_id = ha.id
       LEFT JOIN habit_task_logs htl ON htl.task_id = hwt.id
-      WHERE h.id = ?`,
+      WHERE h.id = ?
+      GROUP BY h.id`,
       [habitId]
     );
+
+    if (!stats.length) {
+      return sendResponse(res, 404, false, null, "找不到該習慣");
+    }
 
     sendResponse(res, 200, true, stats[0]);
   } catch (error) {

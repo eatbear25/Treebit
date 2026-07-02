@@ -1,46 +1,46 @@
-import { PiArrowLeft, PiArrowRight } from 'react-icons/pi'
+import { PiCaretLeftBold, PiCaretRightBold } from 'react-icons/pi'
 
 export default function WeekNavigation({
   currentWeek,
   weekRange,
   onPreviousWeek,
   onNextWeek,
-  canGoPrevious,
-  canGoNext,
   currentWeekIndex,
   totalWeeks,
 }) {
+  const arrowClass = (disabled) =>
+    `flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-base shadow-sm transition ${
+      disabled
+        ? 'text-muted-foreground/40'
+        : 'cursor-pointer text-foreground hover:bg-muted active:scale-95'
+    }`
+
   return (
     <div className="flex items-center gap-4">
-      <span className="font-bold text-brand-700">{currentWeek}</span>
-      <span className="font-outfit tnum mr-3 font-[600]">{weekRange}</span>
-      <div className="flex items-center gap-4">
+      <div className="text-right">
+        <p className="text-brand-700 font-bold">{currentWeek}</p>
+        <p className="font-outfit tnum text-muted-foreground text-sm">
+          {weekRange}
+        </p>
+      </div>
+
+      <div className="flex items-center gap-2">
         <button
           onClick={onPreviousWeek}
           disabled={currentWeekIndex === 0}
-          className={`h-14 w-14 rounded-full bg-card shadow-sm transition-colors ${
-            currentWeekIndex === 0
-              ? 'text-muted-foreground/40'
-              : 'cursor-pointer hover:scale-105 hover:bg-muted active:scale-95'
-          }`}
+          aria-label="上一週"
+          className={arrowClass(currentWeekIndex === 0)}
         >
-          <span className="flex items-center justify-center text-xl">
-            <PiArrowLeft />
-          </span>
+          <PiCaretLeftBold />
         </button>
 
         <button
           onClick={onNextWeek}
           disabled={currentWeekIndex === totalWeeks - 1}
-          className={`h-14 w-14 rounded-full bg-card shadow-sm transition-colors ${
-            currentWeekIndex === totalWeeks - 1
-              ? 'text-muted-foreground/40'
-              : 'cursor-pointer hover:scale-105 hover:bg-muted active:scale-95'
-          }`}
+          aria-label="下一週"
+          className={arrowClass(currentWeekIndex === totalWeeks - 1)}
         >
-          <span className="flex items-center justify-center text-xl">
-            <PiArrowRight />
-          </span>
+          <PiCaretRightBold />
         </button>
       </div>
     </div>

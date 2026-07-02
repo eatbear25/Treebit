@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter, useParams } from 'next/navigation'
-import { PiArrowBendUpLeft } from 'react-icons/pi'
+import { useParams } from 'next/navigation'
+import Link from 'next/link'
+import { PiCaretLeftBold } from 'react-icons/pi'
 import Loader from '@/app/_components/Loader'
 import { formatDateToLocalYMD, getWeekDates } from '@/lib/utils'
 
@@ -14,7 +15,6 @@ import HistoryWeeklyNotes from '../_components/HistoryWeeklyNotes'
 export default function HabitHistoryTracker() {
   const params = useParams()
   const historyId = params.historyId
-  const router = useRouter()
 
   const [currentWeekIndex, setCurrentWeekIndex] = useState(0)
   const [habit, setHabit] = useState(null)
@@ -207,10 +207,6 @@ export default function HabitHistoryTracker() {
     }
   }
 
-  const handleGoBack = () => {
-    router.push('/history')
-  }
-
   if (loading || isWeekDataLoading) {
     return (
       <div className="flex justify-center">
@@ -242,6 +238,14 @@ export default function HabitHistoryTracker() {
 
   return (
     <div className="mx-auto max-w-6xl">
+      <Link
+        href="/history"
+        className="text-muted-foreground hover:text-foreground mb-5 inline-flex items-center gap-1 text-sm font-medium transition-colors"
+      >
+        <PiCaretLeftBold />
+        返回歷史紀錄
+      </Link>
+
       <HistoryHabitHeader
         challengeName={habit.title}
         totalWeeks={habit.total_weeks}
@@ -257,18 +261,6 @@ export default function HabitHistoryTracker() {
       <HistoryTaskTable tasks={formattedTasks} weekDays={weekDays} />
 
       <HistoryWeeklyNotes notes={weeklyNotes} />
-
-      <div className="my-6 flex justify-end">
-        <button
-          className="flex cursor-pointer items-center gap-2 text-right text-lg text-muted-foreground transition hover:text-foreground hover:opacity-80"
-          onClick={handleGoBack}
-        >
-          返回上一頁
-          <span className="text-2xl font-bold">
-            <PiArrowBendUpLeft />
-          </span>
-        </button>
-      </div>
     </div>
   )
 }

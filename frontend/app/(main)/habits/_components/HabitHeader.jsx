@@ -12,12 +12,14 @@ export default function HabitHeader({
   currentWeekIndex,
 }) {
   return (
-    <div className="mb-8 flex flex-col items-center justify-between md:flex-row">
-      <div className="mb-6 flex items-center gap-4 md:mb-0">
-        <span className="text-muted-foreground">
+    <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+      <div className="min-w-0">
+        <h1 className="truncate text-2xl font-bold md:text-3xl">
+          {challengeName}
+        </h1>
+        <p className="text-muted-foreground mt-1.5 text-sm">
           共 <span className="tnum">{totalWeeks}</span> 週
-        </span>
-        <h1 className="text-xl font-bold text-brand-700">{challengeName}</h1>
+        </p>
       </div>
 
       <WeekNavigation
