@@ -34,7 +34,7 @@ function NavInner() {
               href="/habits"
               className="bg-brand-700 hover:bg-brand-800 rounded-tl-xl rounded-br-xl px-4 py-2 text-base font-semibold text-white transition active:scale-[0.98] md:px-5"
             >
-              進入我的習慣
+              習慣管理
             </Link>
           ) : (
             <>

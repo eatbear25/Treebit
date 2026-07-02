@@ -16,7 +16,7 @@ export default function WeekNavigation({
     }`
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center justify-end gap-4">
       <div className="text-right">
         <p className="text-brand-700 font-bold">{currentWeek}</p>
         <p className="font-outfit tnum text-muted-foreground text-sm">

@@ -99,9 +99,9 @@ body {
   --streak: #e0a458;
   --streak-foreground: #5a3a18;
 
-  /* 表面 / 語義 */
-  --surface: #f6f5f0;
-  --background: #f6f5f0;
+  /* 表面 / 語義（中性偏淺，降低整體綠色調感） */
+  --surface: #faf9f6;
+  --background: #faf9f6;
   --foreground: #2e322e;
   --card: #ffffff;
   --card-foreground: #2e322e;
@@ -109,15 +109,15 @@ body {
   --popover-foreground: #2e322e;
   --primary: #7ba17d;
   --primary-foreground: #ffffff;
-  --secondary: #efeee8;
+  --secondary: #f1f0eb;
   --secondary-foreground: #4f6f58;
-  --muted: #efeee8;
+  --muted: #f1f0eb;
   --muted-foreground: #646b60;
   --accent: #e3ece4;
   --accent-foreground: #4f6f58;
   --destructive: #cc5c52;
-  --border: #e5e3da;
-  --input: #e5e3da;
+  --border: #e7e5df;
+  --input: #e7e5df;
   --ring: #c6d8c0;
 
   /* 圖表 */
@@ -134,7 +134,7 @@ body {
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #e3ece4;
   --sidebar-accent-foreground: #4f6f58;
-  --sidebar-border: #e5e3da;
+  --sidebar-border: #e7e5df;
   --sidebar-ring: #c6d8c0;
 }
 

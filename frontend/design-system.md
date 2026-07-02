@@ -29,7 +29,9 @@
 | `--brand-800` | `#3C5645` | — |
 | `--brand-900` | `#2C3F33` | 深色文字 |
 
-語義 token：`--primary`(=brand-500) / `--primary-foreground`(#fff) / `--surface`(#F6F5F0 頁面暖白) / `--card`(#fff) / `--muted`(#EFEEE8) / `--muted-foreground`(#8A8F86) / `--border`(#E5E3DA) / `--foreground`(#2E322E) / `--ring`(brand-200) / `--destructive`(#CC5C52)。
+語義 token：`--primary`(=brand-500) / `--primary-foreground`(#fff) / `--surface`(#FAF9F6 頁面中性淺白，2026-07 調淺調中性化，降低整體綠色調感) / `--card`(#fff) / `--muted`(#F1F0EB) / `--muted-foreground`(#646B60) / `--border`(#E7E5DF) / `--foreground`(#2E322E) / `--ring`(brand-200) / `--destructive`(#CC5C52)。
+
+> 選中 / 作用中狀態一律靠「白卡浮起（`bg-card` + `shadow-sm`）」製造對比，不要用淡綠底（`brand-50`/`brand-100`）疊在 `--surface` 上，兩者太接近會失去可辨識度。
 
 特殊：`--streak`(#E0A458 暖蜜色，**僅 streak / 統計重點使用**) + `--streak-foreground`。
 圖表：`--chart-1…5`（sage 家族 + 對比暖色 #C9A66B）。

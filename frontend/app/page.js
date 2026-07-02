@@ -73,12 +73,7 @@ export default function Home() {
 
       <main>
         {/* HERO */}
-        <section className="relative overflow-hidden">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[720px] bg-[radial-gradient(55%_48%_at_50%_12%,rgba(123,161,125,0.2),transparent_70%)]"
-          />
-
+        <section className="relative">
           <div className="container mx-auto px-6 pt-14 pb-20 text-center md:pt-24 md:pb-28 xl:px-0">
             <p className={`${kicker} animate-rise`}>養成習慣，從今天開始</p>
 
@@ -122,9 +117,10 @@ export default function Home() {
               className="animate-rise relative mt-16 flex justify-center md:mt-20"
               style={{ animationDelay: '460ms' }}
             >
+              {/* Hero 唯一的 sage 焦點光暈：只留這一處，避免整片暈染 */}
               <div
                 aria-hidden
-                className="bg-brand-200/45 absolute top-6 left-1/2 -z-10 h-[78%] w-[min(86%,460px)] -translate-x-1/2 rounded-[50%] blur-3xl"
+                className="bg-brand-200/35 absolute top-6 left-1/2 -z-10 h-[70%] w-[min(78%,420px)] -translate-x-1/2 rounded-[50%] blur-3xl"
               />
               <Image
                 src="/app-screen02.png"

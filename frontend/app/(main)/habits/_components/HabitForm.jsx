@@ -107,7 +107,7 @@ export function HabitForm({ onHabitAdded }) {
         <DialogHeader>
           <DialogTitle>新增習慣</DialogTitle>
           <DialogDescription>
-            替想養成的習慣取個名字，並決定要持續幾週。
+            取個目標名稱，並決定要持續幾週；之後可以在每一週依需求加入不同的任務。
           </DialogDescription>
         </DialogHeader>
 
@@ -120,7 +120,7 @@ export function HabitForm({ onHabitAdded }) {
                 <FormItem>
                   <FormLabel>習慣名稱</FormLabel>
                   <FormControl>
-                    <Input placeholder="例如：每天閱讀 30 分鐘" {...field} />
+                    <Input placeholder="例如：讓自己變得更好" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

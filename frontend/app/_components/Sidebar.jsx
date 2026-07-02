@@ -43,7 +43,7 @@ export default function Sidebar() {
               aria-current={isActive ? 'page' : undefined}
               className={`flex flex-col items-center gap-1 px-6 py-3 text-xs font-medium transition active:scale-95 lg:flex-row lg:gap-2.5 lg:rounded-lg lg:px-3 lg:py-2.5 lg:text-base ${
                 isActive
-                  ? 'text-brand-700 lg:bg-brand-100 lg:font-semibold'
+                  ? 'text-brand-700 lg:bg-card lg:shadow-sm lg:font-semibold'
                   : 'text-muted-foreground hover:text-foreground lg:hover:bg-brand-50'
               }`}
             >

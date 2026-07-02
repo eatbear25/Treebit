@@ -134,7 +134,7 @@ export default function TaskTable({
           <table className="w-full">
             <thead>
               <tr className="border-border text-muted-foreground border-b text-sm">
-                <th className="border-border bg-card sticky left-0 z-10 w-48 border-r p-1 text-left font-semibold md:px-4 md:py-3">
+                <th className="border-border bg-card sticky left-0 z-10 w-48 border-r p-1 text-left font-semibold shadow-[6px_0_8px_-6px_rgba(46,50,46,0.35)] md:px-4 md:py-3">
                   任務
                 </th>
 

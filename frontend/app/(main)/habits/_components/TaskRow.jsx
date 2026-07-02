@@ -70,7 +70,7 @@ export default function TaskRow({
           isDragging ? 'opacity-40' : ''
         }`}
       >
-        <td className="border-border bg-card sticky left-0 z-10 max-w-[200px] min-w-[130px] border-r p-1 md:p-4 md:pl-2">
+        <td className="border-border bg-card sticky left-0 z-10 max-w-[200px] min-w-[130px] border-r p-1 shadow-[6px_0_8px_-6px_rgba(46,50,46,0.35)] md:p-4 md:pl-2">
           <div className="flex items-center justify-between gap-2">
             {draggable && (
               <span
