@@ -8,6 +8,7 @@ import "./config/passport.js";
 // 引入路由
 import authRoutes from "./routes/auth.js";
 import habitRoutes from "./routes/habits.js";
+import friendRoutes from "./routes/friends.js";
 
 // 啟動前檢查必要環境變數（缺少安全相關設定就直接終止）
 if (!process.env.JWT_SECRET) {
@@ -64,6 +65,7 @@ app.get("/", (req, res) => {
 // *** 自訂路由 ***
 app.use("/api/auth", authRoutes);
 app.use("/api/habits", habitRoutes);
+app.use("/api/friends", friendRoutes);
 
 // *** 全域錯誤處理中間件 ***
 app.use((error, req, res, next) => {

@@ -14,6 +14,7 @@ CREATE TABLE users (
   provider_user_id VARCHAR(191) DEFAULT NULL,
   account VARCHAR(50) DEFAULT NULL,        -- 本地登入帳號（Google 帳號為 NULL）
   username VARCHAR(50) NOT NULL,           -- 顯示名稱
+  friend_code VARCHAR(8) UNIQUE DEFAULT NULL, -- 好友碼（TB-XXXX，首次進好友頁時由後端惰性產生）
   email VARCHAR(100) DEFAULT NULL,         -- 本地帳號可為 NULL；Google 帳號才有
   email_verified BOOLEAN DEFAULT FALSE,
   password_hash VARCHAR(255) DEFAULT NULL,
@@ -52,6 +53,7 @@ CREATE TABLE habits (
   total_weeks INTEGER NOT NULL,
   created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   is_archived BOOLEAN DEFAULT FALSE,
+  visibility VARCHAR(10) NOT NULL DEFAULT 'private' CHECK (visibility IN ('private', 'friends')), -- 好友可見性
   updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_habits_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
@@ -127,3 +129,21 @@ CREATE TRIGGER habit_weekly_notes_updated_at
 BEFORE UPDATE ON habit_weekly_notes
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
+
+-- --------------------------------------------------------
+-- 資料表結構 `friendships`（好友關係：一對關係只存一列，查詢時雙向比對）
+-- --------------------------------------------------------
+
+CREATE TABLE friendships (
+  id SERIAL PRIMARY KEY,
+  requester_id INTEGER NOT NULL,
+  addressee_id INTEGER NOT NULL,
+  status VARCHAR(10) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted')),
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_friendships_requester FOREIGN KEY (requester_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_friendships_addressee FOREIGN KEY (addressee_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT uniq_friendship_pair UNIQUE (requester_id, addressee_id),
+  CONSTRAINT chk_no_self_friend CHECK (requester_id <> addressee_id)
+);
+
+CREATE INDEX idx_friendships_addressee ON friendships(addressee_id, status);

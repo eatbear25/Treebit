@@ -56,6 +56,8 @@ export default function TaskTable({
   onReorderTasks,
   onImportTasks,
   prevWeekId,
+  // 唯讀模式：好友查看用（不能打卡、無新增/編輯/排序）
+  readOnly = false,
 }) {
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
@@ -172,7 +174,8 @@ export default function TaskTable({
                     form.setValue('name', task.name)
                     form.setValue('target_days', String(task.targetDays))
                   }}
-                  draggable={orderedTasks.length > 1}
+                  readOnly={readOnly}
+                  draggable={!readOnly && orderedTasks.length > 1}
                   isDragging={draggingId === task.id}
                   onDragStart={handleDragStart}
                   onDragEnter={handleDragEnter}
@@ -185,13 +188,18 @@ export default function TaskTable({
 
         {tasks.length === 0 && (
           <div className="py-10 text-center">
-            <p className="font-medium">這週還沒有任務</p>
-            <p className="text-muted-foreground mt-1 text-sm">
-              新增一個本週想完成的小目標，開始打卡
+            <p className="font-medium">
+              {readOnly ? '這週沒有任務' : '這週還沒有任務'}
             </p>
+            {!readOnly && (
+              <p className="text-muted-foreground mt-1 text-sm">
+                新增一個本週想完成的小目標，開始打卡
+              </p>
+            )}
           </div>
         )}
 
+        {readOnly ? null : (
         <div className="mt-6 flex flex-col gap-2 sm:flex-row">
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -296,6 +304,7 @@ export default function TaskTable({
             />
           )}
         </div>
+        )}
       </div>
     </div>
   )

@@ -34,6 +34,8 @@ export default function TaskRow({
   onDragStart,
   onDragEnter,
   onDragEnd,
+  // 唯讀模式：好友查看用（打卡格純顯示、無操作選單）
+  readOnly = false,
 }) {
   const [openConfirm, setOpenConfirm] = useState(false)
   // 只有從把手按下才允許拖曳整列，避免誤拖文字或按鈕
@@ -89,6 +91,7 @@ export default function TaskRow({
               {task.name}
             </span>
 
+            {readOnly ? null : (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -114,22 +117,36 @@ export default function TaskRow({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            )}
           </div>
         </td>
         {task.completedDays.map((completed, dayIndex) => (
           <td key={dayIndex} className="px-5 py-4 text-center md:px-3">
-            <button
-              onClick={() => onToggleTask(task.id, dayIndex)}
-              aria-label={`${task.name}：${weekDays[dayIndex]} ${completed ? '已完成' : '未完成'}`}
-              aria-pressed={completed}
-              className={`focus-visible:ring-ring/50 mx-auto flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg transition-all outline-none focus-visible:ring-[3px] active:scale-90 ${
-                completed
-                  ? 'bg-brand-600 text-white shadow-[0_4px_10px_-4px_rgba(79,111,88,0.6)]'
-                  : 'border-border hover:border-brand-300 hover:bg-brand-50 border-2'
-              }`}
-            >
-              {completed && <PiCheckBold />}
-            </button>
+            {readOnly ? (
+              <span
+                aria-label={`${task.name}：${weekDays[dayIndex]} ${completed ? '已完成' : '未完成'}`}
+                className={`mx-auto flex h-8 w-8 items-center justify-center rounded-lg ${
+                  completed
+                    ? 'bg-brand-600 text-white shadow-[0_4px_10px_-4px_rgba(79,111,88,0.6)]'
+                    : 'border-border border-2'
+                }`}
+              >
+                {completed && <PiCheckBold />}
+              </span>
+            ) : (
+              <button
+                onClick={() => onToggleTask(task.id, dayIndex)}
+                aria-label={`${task.name}：${weekDays[dayIndex]} ${completed ? '已完成' : '未完成'}`}
+                aria-pressed={completed}
+                className={`focus-visible:ring-ring/50 mx-auto flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg transition-all outline-none focus-visible:ring-[3px] active:scale-90 ${
+                  completed
+                    ? 'bg-brand-600 text-white shadow-[0_4px_10px_-4px_rgba(79,111,88,0.6)]'
+                    : 'border-border hover:border-brand-300 hover:bg-brand-50 border-2'
+                }`}
+              >
+                {completed && <PiCheckBold />}
+              </button>
+            )}
           </td>
         ))}
         <td className="tnum text-muted-foreground px-2 py-4 text-center font-medium whitespace-nowrap">

@@ -7,6 +7,8 @@ import {
   PiCheckSquareFill,
   PiClockClockwise,
   PiClockClockwiseFill,
+  PiUsersThree,
+  PiUsersThreeFill,
 } from 'react-icons/pi'
 
 const navItems = [
@@ -15,6 +17,12 @@ const navItems = [
     label: '習慣管理',
     Icon: PiCheckSquare,
     ActiveIcon: PiCheckSquareFill,
+  },
+  {
+    href: '/friends',
+    label: '好友',
+    Icon: PiUsersThree,
+    ActiveIcon: PiUsersThreeFill,
   },
   {
     href: '/history',

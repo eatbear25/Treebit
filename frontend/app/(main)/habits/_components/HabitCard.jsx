@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { PiDotsThreeBold, PiFlameFill } from 'react-icons/pi'
+import { PiDotsThreeBold, PiFlameFill, PiUsersThree } from 'react-icons/pi'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,6 +44,10 @@ export default function HabitCard({
   current_streak,
   id,
   onHabitsChanged,
+  visibility,
+  // 唯讀模式：好友頁重用（隱藏操作選單，按鈕改為前往 detailHref）
+  readOnly = false,
+  detailHref,
 }) {
   const router = useRouter()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -78,7 +82,7 @@ export default function HabitCard({
   )
 
   const handleViewTask = () => {
-    router.push(`/habits/${id}`)
+    router.push(detailHref || `/habits/${id}`)
   }
 
   const deleteHabit = async function (habitId) {
@@ -128,6 +132,32 @@ export default function HabitCard({
     }
   }
 
+  const isShared = visibility === 'friends'
+
+  const toggleVisibility = async () => {
+    const next = isShared ? 'private' : 'friends'
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/habits/${id}/visibility`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ visibility: next }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || '更新可見性失敗')
+      }
+
+      toast.success(data.message)
+      if (onHabitsChanged) onHabitsChanged()
+    } catch (err) {
+      console.error('更新可見性失敗', err)
+      toast.error(err.message || '更新可見性失敗')
+    }
+  }
+
   const handleConfirmDelete = async () => {
     await deleteHabit(id)
     setShowDeleteDialog(false)
@@ -161,30 +191,49 @@ export default function HabitCard({
             </div>
           </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                aria-label="更多操作"
-                className="text-muted-foreground hover:bg-muted hover:text-foreground -mt-1 -mr-1 shrink-0 cursor-pointer rounded-lg p-2 text-xl transition"
+          <div className="flex shrink-0 items-center gap-1">
+            {visibility === 'friends' && !readOnly && (
+              <span
+                title="好友可見"
+                className="bg-brand-50 text-brand-700 flex h-8 w-8 items-center justify-center rounded-full text-lg"
               >
-                <PiDotsThreeBold />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                className="cursor-pointer"
-                onClick={() => setShowArchiveDialog(true)}
-              >
-                封存
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-destructive cursor-pointer"
-                onClick={() => setShowDeleteDialog(true)}
-              >
-                刪除
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <PiUsersThree />
+              </span>
+            )}
+
+            {!readOnly && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    aria-label="更多操作"
+                    className="text-muted-foreground hover:bg-muted hover:text-foreground -mt-1 -mr-1 cursor-pointer rounded-lg p-2 text-xl transition"
+                  >
+                    <PiDotsThreeBold />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={toggleVisibility}
+                  >
+                    {isShared ? '取消分享' : '分享給好友'}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => setShowArchiveDialog(true)}
+                  >
+                    封存
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="text-destructive cursor-pointer"
+                    onClick={() => setShowDeleteDialog(true)}
+                  >
+                    刪除
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         </div>
 
         {/* 週進度 */}
@@ -255,7 +304,7 @@ export default function HabitCard({
           onClick={handleViewTask}
           className="bg-brand-700 hover:bg-brand-800 mt-auto w-full cursor-pointer rounded-tl-xl rounded-br-xl py-3 text-base font-semibold text-white shadow-[0_8px_20px_-8px_rgba(60,86,69,0.5)] transition active:scale-[0.99]"
         >
-          查看任務
+          {readOnly ? '查看' : '查看任務'}
         </button>
       </div>
 

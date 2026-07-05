@@ -14,6 +14,8 @@ export default function HabitHeader({
   canGoNext,
   currentWeekIndex,
   stage = 0,
+  // 標題旁的操作插槽（如「⋯」選單），好友唯讀頁不傳即不顯示
+  menu = null,
 }) {
   return (
     <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
@@ -33,6 +35,7 @@ export default function HabitHeader({
             {GROWTH_STAGES[stage]}
           </p>
         </div>
+        {menu}
       </div>
 
       <WeekNavigation

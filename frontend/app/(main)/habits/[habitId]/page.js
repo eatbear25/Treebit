@@ -5,7 +5,13 @@ import { useParams } from 'next/navigation'
 import { toast } from 'sonner'
 
 import Link from 'next/link'
-import { PiCaretLeftBold } from 'react-icons/pi'
+import { PiCaretLeftBold, PiDotsThreeBold, PiUsersThree } from 'react-icons/pi'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import Loader from '@/app/_components/Loader'
 import { getGrowthStage } from '@/app/_components/GrowthStageIcon'
 import { getWeekDates } from '@/lib/utils'
@@ -576,8 +582,18 @@ export default function HabitTracker() {
 
   if (error) {
     return (
-      <div className="flex h-screen items-center justify-center text-xl font-bold">
-        {error}
+      <div className="flex flex-col items-center justify-center py-24 text-center">
+        <img src="/icon.svg" alt="" className="w-14 opacity-90" />
+        <p className="mt-5 text-xl font-bold">{error}</p>
+        <p className="text-muted-foreground mt-2 text-sm">
+          這個習慣可能已被刪除，或你沒有查看權限。
+        </p>
+        <Link
+          href="/habits"
+          className="bg-brand-700 hover:bg-brand-800 mt-6 rounded-tl-xl rounded-br-xl px-6 py-2.5 text-sm font-semibold text-white transition active:scale-[0.98]"
+        >
+          回習慣管理
+        </Link>
       </div>
     )
   }
@@ -589,6 +605,63 @@ export default function HabitTracker() {
       </div>
     )
   }
+
+  const isShared = habit.visibility === 'friends'
+
+  const handleToggleVisibility = async () => {
+    const next = isShared ? 'private' : 'friends'
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/habits/${habitId}/visibility`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ visibility: next }),
+        }
+      )
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || '更新可見性失敗')
+      }
+      setHabit((prev) => ({ ...prev, visibility: next }))
+      toast.success(data.message)
+    } catch (err) {
+      console.error('更新可見性錯誤:', err)
+      toast.error(err.message || '更新可見性失敗，請稍後再試')
+    }
+  }
+
+  const habitMenu = (
+    <div className="flex shrink-0 items-center gap-1">
+      {isShared && (
+        <span
+          title="好友可見"
+          className="bg-brand-50 text-brand-700 flex h-8 w-8 items-center justify-center rounded-full text-lg"
+        >
+          <PiUsersThree />
+        </span>
+      )}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            aria-label="更多操作"
+            className="text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer rounded-lg p-2 text-xl transition"
+          >
+            <PiDotsThreeBold />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onClick={handleToggleVisibility}
+          >
+            {isShared ? '取消分享' : '分享給好友'}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  )
 
   const weekDates = getCurrentWeekDates()
   const weekDays = weekDates.map((d) => d.short)
@@ -637,6 +710,7 @@ export default function HabitTracker() {
         canGoNext={currentWeekIndex < allWeeks.length - 1}
         currentWeekIndex={currentWeekIndex}
         stage={stage}
+        menu={habitMenu}
       />
 
       <HabitStats
