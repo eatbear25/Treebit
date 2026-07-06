@@ -18,15 +18,20 @@ export default function GuestGuard({ children }) {
     }
   }, [initialized, isAuthenticated, router])
 
-  if (!initialized) {
+  // 尚未確認登入狀態，或已登入正在導向 /habits：都顯示 loading，
+  // 避免已登入者造訪 /login 時看到一片空白
+  if (!initialized || isAuthenticated) {
     return (
-      <div className="flex justify-center pt-20">
+      <div className="flex flex-col items-center gap-4 pt-20">
         <Loader />
+        {initialized && isAuthenticated && (
+          <p className="text-muted-foreground text-sm">
+            你已登入，正在前往習慣管理⋯
+          </p>
+        )}
       </div>
     )
   }
-
-  if (isAuthenticated) return null
 
   return children
 }

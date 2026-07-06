@@ -64,12 +64,12 @@ export default function HabitCard({
   }
 
   return (
-    <div className="group bg-card flex h-full flex-col rounded-2xl p-6 shadow-[0_10px_30px_-14px_rgba(79,111,88,0.25)] transition-shadow duration-300 hover:shadow-[0_18px_40px_-16px_rgba(79,111,88,0.38)] md:p-7">
+    <div className="group bg-card flex h-full flex-col rounded-2xl p-6 shadow-[0_10px_30px_-14px_rgba(79,111,88,0.25)] transition-shadow duration-300 hover:shadow-[0_18px_40px_-16px_rgba(79,111,88,0.38)] md:p-7 dark:ring-1 dark:ring-white/10">
       {/* 標題列：成長階段 + 名稱 + 選單 */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3.5">
           <div
-            className="bg-brand-50 flex h-12 w-12 shrink-0 items-end justify-center overflow-hidden rounded-xl"
+            className="bg-brand-50 dark:bg-brand-100 flex h-12 w-12 shrink-0 items-end justify-center overflow-hidden rounded-xl"
             title={`成長階段：${GROWTH_STAGES[stage]}`}
           >
             <GrowthStageIcon stage={stage} className="h-10 w-10" />
@@ -171,7 +171,7 @@ export default function HabitCard({
 
       <button
         onClick={handleViewTask}
-        className="bg-brand-700 hover:bg-brand-800 mt-auto w-full cursor-pointer rounded-tl-xl rounded-br-xl py-3 text-base font-semibold text-white shadow-[0_8px_20px_-8px_rgba(60,86,69,0.5)] transition active:scale-[0.99]"
+        className="bg-brand-700 hover:bg-brand-800 dark:text-brand-50 mt-auto w-full cursor-pointer rounded-tl-xl rounded-br-xl py-3 text-base font-semibold text-white shadow-[0_8px_20px_-8px_rgba(60,86,69,0.5)] transition active:scale-[0.99]"
       >
         {readOnly ? '查看' : '查看任務'}
       </button>

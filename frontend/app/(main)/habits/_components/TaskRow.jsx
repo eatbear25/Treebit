@@ -72,7 +72,7 @@ export default function TaskRow({
           isDragging ? 'opacity-40' : ''
         }`}
       >
-        <td className="border-border bg-card sticky left-0 z-10 max-w-[200px] min-w-[130px] border-r p-1 shadow-[6px_0_8px_-6px_rgba(46,50,46,0.35)] md:p-4 md:pl-2">
+        <td className="border-border bg-card sticky left-0 z-10 max-w-[200px] min-w-[130px] border-r p-1 shadow-[6px_0_8px_-6px_rgba(46,50,46,0.35)] md:p-4 md:pl-2 dark:shadow-[6px_0_8px_-6px_rgba(0,0,0,0.6)]">
           <div className="flex items-center justify-between gap-2">
             {draggable && (
               <span
@@ -92,31 +92,31 @@ export default function TaskRow({
             </span>
 
             {readOnly ? null : (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  aria-label="任務操作"
-                  className="text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer rounded-lg p-1.5 transition"
-                >
-                  <PiDotsThreeBold />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem
-                  onClick={() => onEditTask(task)}
-                  className="cursor-pointer"
-                >
-                  編輯
-                </DropdownMenuItem>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    aria-label="任務操作"
+                    className="text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer rounded-lg p-1.5 transition"
+                  >
+                    <PiDotsThreeBold />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem
+                    onClick={() => onEditTask(task)}
+                    className="cursor-pointer"
+                  >
+                    編輯
+                  </DropdownMenuItem>
 
-                <DropdownMenuItem
-                  onClick={() => setOpenConfirm(true)}
-                  className="text-destructive cursor-pointer"
-                >
-                  刪除
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <DropdownMenuItem
+                    onClick={() => setOpenConfirm(true)}
+                    className="text-destructive cursor-pointer"
+                  >
+                    刪除
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
         </td>
@@ -127,7 +127,7 @@ export default function TaskRow({
                 aria-label={`${task.name}：${weekDays[dayIndex]} ${completed ? '已完成' : '未完成'}`}
                 className={`mx-auto flex h-8 w-8 items-center justify-center rounded-lg ${
                   completed
-                    ? 'bg-brand-600 text-white shadow-[0_4px_10px_-4px_rgba(79,111,88,0.6)]'
+                    ? 'bg-brand-600 dark:text-brand-50 text-white shadow-[0_4px_10px_-4px_rgba(79,111,88,0.6)]'
                     : 'border-border border-2'
                 }`}
               >
@@ -140,7 +140,7 @@ export default function TaskRow({
                 aria-pressed={completed}
                 className={`focus-visible:ring-ring/50 mx-auto flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg transition-all outline-none focus-visible:ring-[3px] active:scale-90 ${
                   completed
-                    ? 'bg-brand-600 text-white shadow-[0_4px_10px_-4px_rgba(79,111,88,0.6)]'
+                    ? 'bg-brand-600 dark:text-brand-50 text-white shadow-[0_4px_10px_-4px_rgba(79,111,88,0.6)]'
                     : 'border-border hover:border-brand-300 hover:bg-brand-50 border-2'
                 }`}
               >

@@ -10,13 +10,14 @@ import {
 import LandingNav from './_components/LandingNav'
 import Reveal from './_components/Reveal'
 import HeroAppPreview from './_components/HeroAppPreview'
+import GrowthStageIcon from './_components/GrowthStageIcon'
 
 // 招牌斜角主按鈕：品牌唯一刻意破格的記憶點（rounded-tl / rounded-br）
 const ctaPrimary =
-  'inline-flex items-center justify-center gap-2 rounded-tl-2xl rounded-br-2xl bg-brand-700 px-8 py-4 text-base font-semibold text-white shadow-[0_14px_30px_-12px_rgba(60,86,69,0.55)] transition hover:bg-brand-800 active:scale-[0.98] md:text-lg'
+  'inline-flex items-center justify-center gap-2 rounded-tl-2xl rounded-br-2xl bg-brand-700 px-8 py-4 text-base font-semibold text-white shadow-[0_14px_30px_-12px_rgba(60,86,69,0.55)] transition hover:bg-brand-800 active:scale-[0.98] md:text-lg dark:text-brand-50'
 
 const ctaOnDark =
-  'inline-flex items-center justify-center gap-2 rounded-tl-2xl rounded-br-2xl bg-white px-8 py-4 text-base font-semibold text-brand-800 transition hover:bg-brand-50 active:scale-[0.98] md:text-lg'
+  'inline-flex items-center justify-center gap-2 rounded-tl-2xl rounded-br-2xl bg-white px-8 py-4 text-base font-semibold text-brand-800 transition hover:bg-brand-50 active:scale-[0.98] md:text-lg dark:text-brand-100 dark:hover:bg-brand-900'
 
 // 英文小標（uppercase + 字距，排版重量）
 const kicker =
@@ -182,13 +183,13 @@ export default function Home() {
           </Reveal>
 
           <Reveal delay={150}>
-            <div className="relative mx-auto mt-16 aspect-[480/130] w-full max-w-3xl">
-              <Image
-                src="/logo-growth-stages.svg"
-                alt="習慣成長階段：種子、幼苗、樹苗、大樹"
-                fill
-                className="object-contain"
-              />
+            {/* 用元件而非靜態 SVG 檔：顏色走 token，深色模式自動適應 */}
+            <div
+              role="img"
+              aria-label="習慣成長階段：種子、幼苗、樹苗、大樹"
+              className="relative mx-auto mt-16 aspect-[480/130] w-full max-w-3xl"
+            >
+              <GrowthStageIcon full className="h-full w-full" />
             </div>
           </Reveal>
 

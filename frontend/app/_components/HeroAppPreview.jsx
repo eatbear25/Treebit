@@ -29,7 +29,7 @@ export default function HeroAppPreview() {
         <div className="bg-brand-200/40 absolute inset-x-6 top-8 -z-10 h-[85%] rounded-[50%] blur-3xl" />
 
         {/* 主卡：本週打卡 */}
-        <div className="animate-float bg-card rounded-2xl p-5 text-left shadow-[0_24px_60px_-24px_rgba(60,86,69,0.45)] sm:p-7">
+        <div className="animate-float bg-card rounded-2xl p-5 text-left shadow-[0_24px_60px_-24px_rgba(60,86,69,0.45)] sm:p-7 dark:ring-1 dark:ring-white/10">
           <div className="flex items-baseline justify-between gap-3">
             <p className="text-lg font-bold sm:text-xl">規律運動</p>
             <p className="text-muted-foreground text-xs sm:text-sm">
@@ -72,7 +72,7 @@ export default function HeroAppPreview() {
                     key={i}
                     className={`mx-auto flex h-6 w-6 items-center justify-center rounded-md text-xs sm:h-8 sm:w-8 sm:rounded-lg sm:text-sm ${
                       done
-                        ? 'bg-brand-600 text-white shadow-[0_4px_10px_-4px_rgba(79,111,88,0.6)]'
+                        ? 'bg-brand-600 dark:text-brand-50 text-white shadow-[0_4px_10px_-4px_rgba(79,111,88,0.6)]'
                         : 'border-border border-2'
                     }`}
                   >
@@ -91,7 +91,7 @@ export default function HeroAppPreview() {
 
         {/* 浮動小卡：連續打卡（streak 暖色僅此處使用） */}
         <div
-          className="animate-float bg-card absolute -top-9 -right-1 flex items-center gap-3 rounded-2xl px-4 py-3 shadow-[0_18px_40px_-18px_rgba(60,86,69,0.5)] sm:-top-10 sm:-right-8 sm:px-5 sm:py-4"
+          className="animate-float bg-card absolute -top-9 -right-1 flex items-center gap-3 rounded-2xl px-4 py-3 shadow-[0_18px_40px_-18px_rgba(60,86,69,0.5)] sm:-top-10 sm:-right-8 sm:px-5 sm:py-4 dark:ring-1 dark:ring-white/10"
           style={{ animationDelay: '-2.5s' }}
         >
           <PiFlameFill className="text-streak text-2xl sm:text-3xl" />
@@ -110,10 +110,10 @@ export default function HeroAppPreview() {
 
         {/* 浮動小卡：成長階段 */}
         <div
-          className="animate-float bg-card absolute -bottom-9 -left-1 flex items-center gap-3 rounded-2xl px-4 py-3 shadow-[0_18px_40px_-18px_rgba(60,86,69,0.5)] sm:-bottom-10 sm:-left-8 sm:px-5 sm:py-4"
+          className="animate-float bg-card absolute -bottom-9 -left-1 flex items-center gap-3 rounded-2xl px-4 py-3 shadow-[0_18px_40px_-18px_rgba(60,86,69,0.5)] sm:-bottom-10 sm:-left-8 sm:px-5 sm:py-4 dark:ring-1 dark:ring-white/10"
           style={{ animationDelay: '-5s' }}
         >
-          <div className="bg-brand-50 flex h-10 w-10 items-end justify-center overflow-hidden rounded-xl sm:h-12 sm:w-12">
+          <div className="bg-brand-50 dark:bg-brand-100 flex h-10 w-10 items-end justify-center overflow-hidden rounded-xl sm:h-12 sm:w-12">
             <GrowthStageIcon stage={2} className="h-8 w-8 sm:h-10 sm:w-10" />
           </div>
           <div className="text-left">

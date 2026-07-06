@@ -24,7 +24,7 @@ export default function TreebitRegister() {
 
         {/* Register Form */}
         <div className="w-full">
-          <div className="bg-card rounded-2xl p-7 shadow-[0_10px_30px_-14px_rgba(79,111,88,0.25)] md:p-8">
+          <div className="bg-card rounded-2xl p-7 shadow-[0_10px_30px_-14px_rgba(79,111,88,0.25)] md:p-8 dark:ring-1 dark:ring-white/10">
             {/* Social Login Buttons */}
             <div className="mb-6 space-y-4">
               <a

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
+import ThemeToggle from './ThemeToggle'
 
 function NavInner() {
   const { user, isAuthenticated, initialized } = useAuth()
@@ -39,40 +40,44 @@ function NavInner() {
           </Link>
         </div>
 
-        {/* 認證狀態確認前先隱藏，避免登入者閃現「登入 / 免費開始」 */}
-        <div
-          className={`flex items-center gap-1 transition-opacity duration-300 md:gap-3 ${
-            initialized ? 'opacity-100' : 'opacity-0'
-          }`}
-        >
-          {isAuthenticated ? (
-            <>
-              <span className="text-foreground/80 mr-1 hidden max-w-40 truncate text-base font-medium sm:inline">
-                嗨，{user?.username}
-              </span>
-              <Link
-                href="/habits"
-                className="bg-brand-700 hover:bg-brand-800 rounded-tl-xl rounded-br-xl px-4 py-2 text-base font-semibold text-white transition active:scale-[0.98] md:px-5"
-              >
-                習慣管理
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link
-                href="/login"
-                className="text-foreground/80 hover:text-foreground rounded-full px-4 py-2 text-base font-medium transition"
-              >
-                登入
-              </Link>
-              <Link
-                href="/register"
-                className="bg-brand-700 hover:bg-brand-800 rounded-tl-xl rounded-br-xl px-4 py-2 text-base font-semibold text-white transition active:scale-[0.98] md:px-5"
-              >
-                免費開始
-              </Link>
-            </>
-          )}
+        <div className="flex items-center gap-1 md:gap-2">
+          <ThemeToggle />
+
+          {/* 認證狀態確認前先隱藏，避免登入者閃現「登入 / 免費開始」 */}
+          <div
+            className={`flex items-center gap-1 transition-opacity duration-300 md:gap-3 ${
+              initialized ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            {isAuthenticated ? (
+              <>
+                <span className="text-foreground/80 mr-1 hidden max-w-40 truncate text-base font-medium sm:inline">
+                  嗨，{user?.username}
+                </span>
+                <Link
+                  href="/habits"
+                  className="bg-brand-700 hover:bg-brand-800 dark:text-brand-50 rounded-tl-xl rounded-br-xl px-4 py-2 text-base font-semibold text-white transition active:scale-[0.98] md:px-5"
+                >
+                  習慣管理
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="text-foreground/80 hover:text-foreground rounded-full px-4 py-2 text-base font-medium transition"
+                >
+                  登入
+                </Link>
+                <Link
+                  href="/register"
+                  className="bg-brand-700 hover:bg-brand-800 dark:text-brand-50 rounded-tl-xl rounded-br-xl px-4 py-2 text-base font-semibold text-white transition active:scale-[0.98] md:px-5"
+                >
+                  免費開始
+                </Link>
+              </>
+            )}
+          </div>
         </div>
       </nav>
     </header>

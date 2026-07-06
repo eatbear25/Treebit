@@ -25,12 +25,18 @@ export function getGrowthStage(
   return 3
 }
 
-export default function GrowthStageIcon({ stage = 0, className = '' }) {
+// 顏色走 CSS 變數（深色模式時 brand 色階反轉，圖自動適應）；
+// full 模式渲染整條四階段（首頁「成長階段」區使用，取代顏色固定的靜態 SVG 檔）
+export default function GrowthStageIcon({
+  stage = 0,
+  className = '',
+  full = false,
+}) {
   const index = Math.min(Math.max(stage, 0), 3)
 
   return (
     <svg
-      viewBox={`${index * 120} 10 120 110`}
+      viewBox={full ? '0 10 480 110' : `${index * 120} 10 120 110`}
       className={className}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -40,7 +46,7 @@ export default function GrowthStageIcon({ stage = 0, className = '' }) {
       <g>
         <path
           d="M40 104 H80"
-          stroke="#4F6F58"
+          stroke="var(--brand-700)"
           strokeWidth="6"
           strokeLinecap="round"
           opacity="0.5"
@@ -51,58 +57,58 @@ export default function GrowthStageIcon({ stage = 0, className = '' }) {
           rx="13"
           ry="9"
           transform="rotate(-20 60 90)"
-          fill="#C6D8C0"
+          fill="var(--brand-200)"
         />
       </g>
       {/* stage 2: sprout */}
       <g>
         <path
           d="M160 104 H200"
-          stroke="#4F6F58"
+          stroke="var(--brand-700)"
           strokeWidth="6"
           strokeLinecap="round"
           opacity="0.5"
         />
         <path
           d="M180 100 C180 86 180 78 180 68"
-          stroke="#7BA17D"
+          stroke="var(--brand-500)"
           strokeWidth="7"
           strokeLinecap="round"
         />
         <path
           d="M180 80 C193 78 205 68 208 54 C192 53 178 62 180 80 Z"
-          fill="#C6D8C0"
+          fill="var(--brand-200)"
         />
       </g>
       {/* stage 3: sapling */}
       <g>
         <path
           d="M280 104 H320"
-          stroke="#4F6F58"
+          stroke="var(--brand-700)"
           strokeWidth="6"
           strokeLinecap="round"
           opacity="0.5"
         />
         <path
           d="M300 100 C300 80 300 64 300 46"
-          stroke="#7BA17D"
+          stroke="var(--brand-500)"
           strokeWidth="8"
           strokeLinecap="round"
         />
         <path
           d="M300 70 C286 72 273 64 270 50 C285 46 299 55 300 70 Z"
-          fill="#A7C3A4"
+          fill="var(--brand-300)"
         />
         <path
           d="M300 58 C314 56 327 46 330 32 C313 30 298 40 300 58 Z"
-          fill="#C6D8C0"
+          fill="var(--brand-200)"
         />
       </g>
       {/* stage 4: tree */}
       <g>
         <path
           d="M400 104 H440"
-          stroke="#4F6F58"
+          stroke="var(--brand-700)"
           strokeWidth="6"
           strokeLinecap="round"
           opacity="0.5"
@@ -113,9 +119,9 @@ export default function GrowthStageIcon({ stage = 0, className = '' }) {
           strokeWidth="9"
           strokeLinecap="round"
         />
-        <circle cx="420" cy="42" r="26" fill="#7BA17D" />
-        <circle cx="402" cy="52" r="16" fill="#A7C3A4" />
-        <circle cx="438" cy="52" r="16" fill="#C6D8C0" />
+        <circle cx="420" cy="42" r="26" fill="var(--brand-500)" />
+        <circle cx="402" cy="52" r="16" fill="var(--brand-300)" />
+        <circle cx="438" cy="52" r="16" fill="var(--brand-200)" />
       </g>
     </svg>
   )

@@ -15,7 +15,9 @@ import {
   PiCaretRightBold,
   PiEye,
   PiEyeSlash,
+  PiPaletteBold,
 } from 'react-icons/pi'
+import { ThemeOptions } from '@/app/_components/ThemeToggle'
 
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -97,7 +99,8 @@ const passwordSchema = z
 const rowClass =
   'flex w-full cursor-pointer items-center gap-3 p-4 text-sm font-medium transition hover:bg-muted/60'
 
-export default function ProfileDialog() {
+// trigger：開啟對話框的元素（由呼叫端決定樣式，例如 Sidebar 的頭像列）
+export default function ProfileDialog({ trigger }) {
   const router = useRouter()
   const { user, refreshUser } = useAuth()
   const isGoogle = user?.provider === 'google'
@@ -191,15 +194,7 @@ export default function ProfileDialog() {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <button
-          aria-label="會員資料"
-          title={user?.username}
-          className="bg-brand-100 text-brand-800 font-outfit hover:ring-brand-300 flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full text-base font-semibold transition hover:ring-2 active:scale-95"
-        >
-          {initial}
-        </button>
-      </DialogTrigger>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
 
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -362,6 +357,15 @@ export default function ProfileDialog() {
               </DialogContent>
             </Dialog>
           )}
+
+          {/* 外觀（淺色 / 深色 / 系統） */}
+          <div className="flex w-full items-center gap-3 p-4 text-sm font-medium">
+            <PiPaletteBold className="text-muted-foreground text-lg" />
+            外觀
+            <div className="ml-auto">
+              <ThemeOptions />
+            </div>
+          </div>
         </div>
 
         <DialogFooter className="pt-2 sm:justify-between">

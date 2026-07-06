@@ -143,7 +143,7 @@ export default function ImportTasksDialog({
                   onClick={() => toggleItem(item.id)}
                   className={`flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md transition-all ${
                     item.checked
-                      ? 'bg-brand-600 text-white'
+                      ? 'bg-brand-600 dark:text-brand-50 text-white'
                       : 'border-border hover:border-brand-300 border-2'
                   }`}
                 >

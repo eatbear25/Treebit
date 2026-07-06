@@ -590,7 +590,7 @@ export default function HabitTracker() {
         </p>
         <Link
           href="/habits"
-          className="bg-brand-700 hover:bg-brand-800 mt-6 rounded-tl-xl rounded-br-xl px-6 py-2.5 text-sm font-semibold text-white transition active:scale-[0.98]"
+          className="bg-brand-700 hover:bg-brand-800 dark:text-brand-50 mt-6 rounded-tl-xl rounded-br-xl px-6 py-2.5 text-sm font-semibold text-white transition active:scale-[0.98]"
         >
           回習慣管理
         </Link>

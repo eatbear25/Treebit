@@ -59,7 +59,7 @@ export default function HabitList({ habits, onHabitsChanged }) {
               onClick={() => switchView(value)}
               className={`cursor-pointer rounded-md p-1.5 text-lg transition ${
                 view === value
-                  ? 'bg-card text-brand-700 shadow-sm'
+                  ? 'bg-card text-brand-700'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -114,7 +114,7 @@ export default function HabitList({ habits, onHabitsChanged }) {
               onClick={() => setPage(n)}
               className={`tnum h-9 w-9 cursor-pointer rounded-lg text-sm transition ${
                 n === currentPage
-                  ? 'bg-card text-brand-700 font-semibold shadow-sm'
+                  ? 'bg-card text-brand-700 font-semibold'
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               }`}
             >

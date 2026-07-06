@@ -80,6 +80,9 @@ body {
 }
 
 :root {
+  /* 原生控件（捲軸、表單元件）跟著主題走 */
+  color-scheme: light;
+
   /* 圓角：14px，較大圓潤呼應 Calm Organic */
   --radius: 0.875rem;
 
@@ -139,6 +142,8 @@ body {
 }
 
 .dark {
+  color-scheme: dark;
+
   --brand-50: #1a241c;
   --brand-100: #21302a;
   --brand-200: #2c4035;

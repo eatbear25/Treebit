@@ -54,7 +54,7 @@ export default function HistoryTaskTable({ tasks, weekDays }) {
                         <div
                           className={`mx-auto flex h-8 w-8 items-center justify-center rounded-lg ${
                             isCompleted
-                              ? 'bg-brand-600 text-white'
+                              ? 'bg-brand-600 dark:text-brand-50 text-white'
                               : 'border-border border-2'
                           }`}
                         >

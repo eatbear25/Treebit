@@ -1,8 +1,9 @@
 'use client'
 
+import Link from 'next/link'
 import Sidebar from '../_components/Sidebar'
+import AppToaster from '../_components/AppToaster'
 import { AuthProvider } from '@/contexts/AuthContext'
-import { Toaster } from 'sonner'
 
 export default function Layout({ children }) {
   return (
@@ -15,10 +16,18 @@ export default function Layout({ children }) {
               <Sidebar />
             </div>
 
+            {/* 手機／平板：頂部 logo，可導回首頁（桌面由 Sidebar 的 logo 負責） */}
+            <div className="mb-6 lg:hidden">
+              <Link href="/" className="inline-flex items-center gap-2">
+                <img src="/icon.svg" alt="Treebit Logo" className="w-8" />
+                <span className="font-outfit text-lg font-bold">Treebit</span>
+              </Link>
+            </div>
+
             {/* 主要內容區域，手機底部留空間給固定導覽列 */}
             <main className="w-full max-w-6xl pb-28 lg:pb-12">
               {children}
-              <Toaster position="top-center" richColors />
+              <AppToaster />
             </main>
           </div>
         </div>

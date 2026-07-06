@@ -62,7 +62,7 @@ export default function HistoryCard({
 
   return (
     <>
-      <div className="bg-card flex h-full flex-col rounded-2xl p-6 shadow-[0_10px_30px_-14px_rgba(79,111,88,0.25)] transition-shadow duration-300 hover:shadow-[0_18px_40px_-16px_rgba(79,111,88,0.38)] md:p-7">
+      <div className="bg-card flex h-full flex-col rounded-2xl p-6 shadow-[0_10px_30px_-14px_rgba(79,111,88,0.25)] transition-shadow duration-300 hover:shadow-[0_18px_40px_-16px_rgba(79,111,88,0.38)] md:p-7 dark:ring-1 dark:ring-white/10">
         {/* 標題列 + 選單 */}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">

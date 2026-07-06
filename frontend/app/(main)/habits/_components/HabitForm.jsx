@@ -97,7 +97,7 @@ export function HabitForm({ onHabitAdded }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button className="bg-brand-700 hover:bg-brand-800 flex cursor-pointer items-center gap-1.5 rounded-tl-xl rounded-br-xl px-4 py-2.5 text-sm font-semibold text-white transition active:scale-[0.98] md:px-5 md:text-base">
+        <button className="bg-brand-700 hover:bg-brand-800 dark:text-brand-50 flex cursor-pointer items-center gap-1.5 rounded-tl-xl rounded-br-xl px-4 py-2.5 text-sm font-semibold text-white transition active:scale-[0.98] md:px-5 md:text-base">
           <PiPlusBold />
           新增習慣
         </button>
