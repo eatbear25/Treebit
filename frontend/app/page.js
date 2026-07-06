@@ -4,10 +4,12 @@ import {
   PiCheckBold,
   PiFlameFill,
   PiChartLineUpBold,
-  PiGithubLogoBold,
+  PiUsersThreeBold,
+  PiPlusBold,
 } from 'react-icons/pi'
 import LandingNav from './_components/LandingNav'
 import Reveal from './_components/Reveal'
+import HeroAppPreview from './_components/HeroAppPreview'
 
 // 招牌斜角主按鈕：品牌唯一刻意破格的記憶點（rounded-tl / rounded-br）
 const ctaPrimary =
@@ -22,26 +24,31 @@ const kicker =
 
 const stages = [
   { name: '種子', desc: '第一次打卡' },
-  { name: '幼苗', desc: '連續幾天' },
-  { name: '樹苗', desc: '堅持數週' },
+  { name: '幼苗', desc: '持續了幾天' },
+  { name: '樹苗', desc: '堅持了幾週' },
   { name: '大樹', desc: '習慣成形' },
 ]
 
 const steps = [
   {
     no: '01',
-    title: '種下第一個習慣',
-    desc: '選一件想改變的事，設定週數，今天就開始。',
+    title: '種下一個習慣',
+    desc: '選一件想改變的事，決定要陪它走幾週。例如：八週的「規律運動」。',
   },
   {
     no: '02',
-    title: '每天打卡澆水',
-    desc: '完成任務後打個勾，看著連續天數一天天累積。',
+    title: '安排這週的任務',
+    desc: '把習慣拆成做得到的小行動，替每個任務設定一週要完成幾次。狀態好的週多排一點，忙碌的週就放輕，也可以一鍵匯入上週的任務。',
   },
   {
     no: '03',
+    title: '每天打卡澆水',
+    desc: '做到了就打個勾。連續天數與達成率自動累積，你的樹也跟著長大。',
+  },
+  {
+    no: '04',
     title: '寫下每週記事',
-    desc: '每週留幾分鐘記錄心得，回頭就看得見自己的改變。',
+    desc: '週末留幾分鐘，記下這一週的心得。幾週後回頭看，改變清清楚楚。',
   },
 ]
 
@@ -50,7 +57,7 @@ const features = [
     Icon: PiFlameFill,
     iconClass: 'text-streak',
     title: '連續天數',
-    desc: '連續完成越多天，火苗燒得越旺，讓你捨不得中斷。',
+    desc: '每多堅持一天，火苗就燒得更旺。那種捨不得中斷的感覺，就是習慣正在生根。',
   },
   {
     Icon: PiCheckBold,
@@ -62,7 +69,48 @@ const features = [
     Icon: PiChartLineUpBold,
     iconClass: 'text-brand-600',
     title: '達成率回顧',
-    desc: '用清楚的數據，隨時回顧自己一路走了多遠。',
+    desc: '每一週、每個習慣的達成率自動算好，隨時回顧自己走了多遠。',
+  },
+  {
+    Icon: PiUsersThreeBold,
+    iconClass: 'text-brand-600',
+    title: '和好友一起種',
+    desc: '把習慣設為好友可見，互相看看彼此的樹。一個人容易放棄，有伴走得遠。',
+  },
+]
+
+const faqs = [
+  {
+    q: 'Treebit 是什麼？',
+    a: 'Treebit 是一個習慣養成網站。選一件想改變的事、決定要走幾週，每天打卡記錄進度——你的堅持會化成一棵慢慢長大的樹，看得見，也捨不得中斷。',
+  },
+  {
+    q: '適合拿來養成哪些習慣？',
+    a: '只要是想長期累積的事都適合：規律運動、閱讀、早睡、寫作、練英文……訣竅是把它拆成每週做得到的小任務，一步一步來。',
+  },
+  {
+    q: '「習慣」和「任務」有什麼不同？',
+    a: '習慣是你想達成的多週目標，例如八週的「規律運動」；任務是每一週實際執行的小行動，例如「慢跑 30 分鐘」。每週的任務可以單獨調整，狀態好就加量，忙碌的週就放輕。',
+  },
+  {
+    q: '忘記打卡怎麼辦？',
+    a: '回到那一週，把漏掉的格子補上就好。數據以實際完成為準，不會因為晚了一天按，努力就不算數。',
+  },
+  {
+    q: '可以同時養成幾個習慣？',
+    a: '數量沒有限制，不過建議從一、兩個開始。等第一棵樹站穩了，再種下一棵。',
+  },
+  {
+    q: '週數走完之後呢？',
+    a: '可以把習慣封存，它會收進「歷史紀錄」，完整保留每週的打卡數據與記事，隨時回顧這趟旅程。然後——種下一棵新的。',
+  },
+  {
+    q: '別人看得到我的習慣嗎？',
+    a: '預設只有你自己看得到。你可以把個別習慣設為「好友可見」，加了好友之後就能互相查看進度、互相打氣。',
+  },
+  {
+    q: '手機能用嗎？要下載 App 嗎？',
+    a: '不用下載。Treebit 是響應式網站，手機瀏覽器打開就能打卡，體驗和電腦上一樣順。',
   },
 ]
 
@@ -74,8 +122,8 @@ export default function Home() {
       <main>
         {/* HERO */}
         <section className="relative">
-          <div className="container mx-auto px-6 pt-14 pb-20 text-center md:pt-24 md:pb-28 xl:px-0">
-            <p className={`${kicker} animate-rise`}>養成習慣，從今天開始</p>
+          <div className="container mx-auto px-6 pt-14 pb-24 text-center md:pt-24 md:pb-32 xl:px-0">
+            <p className={`${kicker} animate-rise`}>小小累積，慢慢成林</p>
 
             <h1
               className="animate-rise mx-auto mt-6 max-w-4xl text-4xl leading-[1.18] font-bold sm:text-5xl md:text-6xl lg:text-7xl"
@@ -88,10 +136,12 @@ export default function Home() {
             </h1>
 
             <p
-              className="text-muted-foreground animate-rise mx-auto mt-7 max-w-lg text-base md:text-xl"
+              className="text-muted-foreground animate-rise mx-auto mt-7 max-w-xl text-base md:text-xl"
               style={{ animationDelay: '220ms' }}
             >
-              選一件想改變的事，每天打卡，看著它一週週長大。
+              選一件想改變的事，拆成每週做得到的小任務。
+              <br className="hidden sm:block" />
+              每天打個勾，看著它從一顆種子，慢慢長成大樹。
             </p>
 
             <div
@@ -112,24 +162,12 @@ export default function Home() {
               </p>
             </div>
 
-            {/* 手機畫面：透明 PNG 直接浮在背景上，無外框，緩慢漂浮 */}
+            {/* app 畫面示意：以 design token 直接刻，不再用會過期的截圖 */}
             <div
-              className="animate-rise relative mt-16 flex justify-center md:mt-20"
+              className="animate-rise mt-20 md:mt-24"
               style={{ animationDelay: '460ms' }}
             >
-              {/* Hero 唯一的 sage 焦點光暈：只留這一處，避免整片暈染 */}
-              <div
-                aria-hidden
-                className="bg-brand-200/35 absolute top-6 left-1/2 -z-10 h-[70%] w-[min(78%,420px)] -translate-x-1/2 rounded-[50%] blur-3xl"
-              />
-              <Image
-                src="/app-screen02.png"
-                alt="Treebit 每週打卡介面"
-                width={1464}
-                height={2978}
-                priority
-                className="animate-float h-auto w-[230px] drop-shadow-[0_44px_70px_rgba(44,63,51,0.26)] sm:w-[270px] md:w-[310px]"
-              />
+              <HeroAppPreview />
             </div>
           </div>
         </section>
@@ -169,18 +207,23 @@ export default function Home() {
 
           <Reveal delay={200}>
             <p className="text-foreground/80 mx-auto mt-14 max-w-md text-lg md:text-xl">
-              你的每一次完成，都讓這棵樹長大一點。
+              每一次打卡，樹就長大一點。
+              <br />
+              它現在的樣子，就是你堅持的樣子。
             </p>
           </Reveal>
         </section>
 
-        {/* HOW IT WORKS：編號清單（髮絲線分隔，無框） */}
-        <section className="container mx-auto px-6 py-12 md:py-20 xl:px-0">
+        {/* HOW IT WORKS：新手上路四步驟（髮絲線分隔，無框） */}
+        <section
+          id="how-it-works"
+          className="container mx-auto scroll-mt-24 px-6 py-12 md:py-20 xl:px-0"
+        >
           <div className="mx-auto max-w-3xl">
             <Reveal>
               <p className={kicker}>How it works</p>
               <h2 className="mt-4 text-3xl font-bold md:text-5xl">
-                從想法到習慣，就這麼簡單
+                從想法到習慣，只要四步
               </h2>
             </Reveal>
 
@@ -206,10 +249,16 @@ export default function Home() {
                 </li>
               ))}
             </ol>
+
+            <Reveal delay={200}>
+              <p className="text-muted-foreground mt-10 text-base md:text-lg">
+                就這樣。沒有複雜的設定，習慣是陪自己走，不是逼自己撐。
+              </p>
+            </Reveal>
           </div>
         </section>
 
-        {/* PROGRESS：看得見的進度（無框三欄，純圖示） */}
+        {/* PROGRESS：看得見的進度（無框四欄，純圖示） */}
         <section className="container mx-auto px-6 py-24 md:py-32 xl:px-0">
           <div className="mx-auto max-w-3xl text-center">
             <Reveal>
@@ -220,18 +269,50 @@ export default function Home() {
             </Reveal>
           </div>
 
-          <div className="mx-auto mt-16 grid max-w-5xl gap-12 md:grid-cols-3 md:gap-10">
+          <div className="mx-auto mt-16 grid max-w-5xl gap-12 sm:grid-cols-2 md:gap-10 lg:grid-cols-4">
             {features.map(({ Icon, iconClass, title, desc }, i) => (
               <Reveal
                 key={title}
                 delay={i * 120}
-                className="text-center md:text-left"
+                className="text-center sm:text-left"
               >
                 <Icon className={`text-4xl ${iconClass}`} />
                 <h3 className="mt-5 text-xl font-bold md:text-2xl">{title}</h3>
                 <p className="text-muted-foreground mt-3">{desc}</p>
               </Reveal>
             ))}
+          </div>
+        </section>
+
+        {/* FAQ：常見問題（原生 details/summary，無需 JS） */}
+        <section
+          id="faq"
+          className="container mx-auto scroll-mt-24 px-6 py-12 pb-24 md:py-20 md:pb-32 xl:px-0"
+        >
+          <div className="mx-auto max-w-3xl">
+            <Reveal>
+              <p className={kicker}>FAQ</p>
+              <h2 className="mt-4 text-3xl font-bold md:text-5xl">常見問題</h2>
+            </Reveal>
+
+            <Reveal delay={150}>
+              <div className="border-border mt-12 border-t">
+                {faqs.map((faq) => (
+                  <details key={faq.q} className="group border-border border-b">
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-6 text-lg font-bold md:text-xl [&::-webkit-details-marker]:hidden">
+                      {faq.q}
+                      <PiPlusBold
+                        aria-hidden
+                        className="text-brand-700 shrink-0 text-xl transition-transform duration-300 group-open:rotate-45"
+                      />
+                    </summary>
+                    <p className="text-muted-foreground -mt-1 max-w-2xl pb-7 text-base leading-relaxed md:text-lg">
+                      {faq.a}
+                    </p>
+                  </details>
+                ))}
+              </div>
+            </Reveal>
           </div>
         </section>
 
@@ -243,9 +324,9 @@ export default function Home() {
                 今天，就種下第一顆種子
               </h2>
               <p className="mt-6 max-w-xl text-base text-white/75 md:text-lg">
-                習慣不必一次到位，從一個小目標開始就好。
+                不必一次改變所有事，先從一個小目標開始。
                 <br className="hidden sm:block" />
-                Treebit 會一直陪著你，慢慢長成想要的樣子。
+                Treebit 會陪著你，一天一點，長成你想要的樣子。
               </p>
               <Link href="/register" className={`${ctaOnDark} mt-10`}>
                 免費開始種一棵樹
@@ -266,19 +347,7 @@ export default function Home() {
             每天一點點，把習慣種成一棵樹。
           </p>
 
-          <div className="text-muted-foreground flex items-center gap-4 text-sm">
-            <a
-              href="https://github.com/eatbear25/Treebit"
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-foreground inline-flex items-center gap-1.5 font-medium transition-colors"
-            >
-              <PiGithubLogoBold className="text-base" />
-              GitHub
-            </a>
-            <span aria-hidden>·</span>
-            <span>© 2026 Treebit</span>
-          </div>
+          <p className="text-muted-foreground text-sm">© 2026 Treebit</p>
         </div>
       </footer>
     </>

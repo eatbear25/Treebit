@@ -198,6 +198,13 @@ body {
   }
 }
 
+/* 頁內錨點（首頁「使用方式 / 常見問題」）平滑捲動；尊重 reduced-motion */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 /* --- 首頁進場動畫 --- */
 
 /* 元素由下往上浮現（搭配 style 設定 animation-delay 做 stagger） */

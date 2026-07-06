@@ -23,6 +23,22 @@ function NavInner() {
           </span>
         </Link>
 
+        {/* 頁內導覽：帶新手快速找到「怎麼用」與「常見問題」 */}
+        <div className="hidden items-center gap-1 md:flex">
+          <Link
+            href="/#how-it-works"
+            className="text-foreground/80 hover:text-foreground rounded-full px-4 py-2 text-base font-medium transition"
+          >
+            使用方式
+          </Link>
+          <Link
+            href="/#faq"
+            className="text-foreground/80 hover:text-foreground rounded-full px-4 py-2 text-base font-medium transition"
+          >
+            常見問題
+          </Link>
+        </div>
+
         {/* 認證狀態確認前先隱藏，避免登入者閃現「登入 / 免費開始」 */}
         <div
           className={`flex items-center gap-1 transition-opacity duration-300 md:gap-3 ${
