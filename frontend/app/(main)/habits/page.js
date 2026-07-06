@@ -13,9 +13,9 @@ export default function Habits() {
   const [habits, setHabits] = useState([])
   const [loading, setLoading] = useState(false)
 
-  // 獲取習慣列表的函數
-  const fetchHabits = async () => {
-    setLoading(true)
+  // 獲取習慣列表的函數；silent = 背景更新（不顯示 Loader，保留列表分頁狀態）
+  const fetchHabits = async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true)
     try {
       const res = await fetch(`${API_BASE_URL}/api/habits`, {
         credentials: 'include',
@@ -29,7 +29,7 @@ export default function Habits() {
     } catch (error) {
       console.error('fetch error:', error)
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
   }
 
@@ -39,7 +39,7 @@ export default function Habits() {
   }, [])
 
   const refreshHabits = () => {
-    fetchHabits()
+    fetchHabits({ silent: true })
   }
 
   return (

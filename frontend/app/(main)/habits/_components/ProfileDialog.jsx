@@ -10,7 +10,6 @@ import { logout as logoutApi } from '@/utils/auth'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import {
-  PiGearBold,
   PiNotePencilBold,
   PiLockKeyBold,
   PiCaretRightBold,
@@ -195,9 +194,10 @@ export default function ProfileDialog() {
       <DialogTrigger asChild>
         <button
           aria-label="會員資料"
-          className="text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer rounded-lg p-2.5 text-2xl transition active:scale-95"
+          title={user?.username}
+          className="bg-brand-100 text-brand-800 font-outfit hover:ring-brand-300 flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full text-base font-semibold transition hover:ring-2 active:scale-95"
         >
-          <PiGearBold />
+          {initial}
         </button>
       </DialogTrigger>
 
@@ -238,7 +238,7 @@ export default function ProfileDialog() {
                   name="username"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>顯示名稱</FormLabel>
+                      <FormLabel required>顯示名稱</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -306,7 +306,7 @@ export default function ProfileDialog() {
                       name="currentPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>當前密碼</FormLabel>
+                          <FormLabel required>當前密碼</FormLabel>
                           <FormControl>
                             <PasswordInput
                               {...field}
@@ -322,7 +322,7 @@ export default function ProfileDialog() {
                       name="newPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>新密碼</FormLabel>
+                          <FormLabel required>新密碼</FormLabel>
                           <FormControl>
                             <PasswordInput
                               {...field}
@@ -338,7 +338,7 @@ export default function ProfileDialog() {
                       name="confirmPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>確認新密碼</FormLabel>
+                          <FormLabel required>確認新密碼</FormLabel>
                           <FormControl>
                             <PasswordInput
                               {...field}

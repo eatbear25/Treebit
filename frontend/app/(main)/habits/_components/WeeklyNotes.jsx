@@ -174,7 +174,7 @@ export default function WeeklyNotes({
                   name="content"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>記事內容</FormLabel>
+                      <FormLabel required>記事內容</FormLabel>
                       <FormControl>
                         <textarea
                           rows={4}
@@ -223,7 +223,7 @@ export default function WeeklyNotes({
                   name="content"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>記事內容</FormLabel>
+                      <FormLabel required>記事內容</FormLabel>
                       <FormControl>
                         <textarea
                           rows={4}

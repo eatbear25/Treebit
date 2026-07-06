@@ -200,110 +200,110 @@ export default function TaskTable({
         )}
 
         {readOnly ? null : (
-        <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <button
-                onClick={() => {
-                  setEditingTask(null)
-                  form.reset()
-                  setOpen(true)
-                }}
-                className="border-border text-muted-foreground hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed py-2.5 text-sm font-medium transition active:scale-[0.99]"
-              >
-                <span className="text-base leading-none">＋</span>
-                <span>新增任務</span>
-              </button>
-            </DialogTrigger>
-
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingTask ? '編輯任務' : '新增任務'}
-                </DialogTitle>
-                <DialogDescription>
-                  {editingTask
-                    ? '修改任務資料後，請點擊保存。'
-                    : '在這裡新增任務，完成後請點擊新增。'}
-                </DialogDescription>
-              </DialogHeader>
-
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-6"
+          <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <button
+                  onClick={() => {
+                    setEditingTask(null)
+                    form.reset()
+                    setOpen(true)
+                  }}
+                  className="border-border text-muted-foreground hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed py-2.5 text-sm font-medium transition active:scale-[0.99]"
                 >
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>任務名稱</FormLabel>
-                        <FormControl>
-                          <Input placeholder="請輸入任務名稱" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <span className="text-base leading-none">＋</span>
+                  <span>新增任務</span>
+                </button>
+              </DialogTrigger>
 
-                  <FormField
-                    control={form.control}
-                    name="target_days"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>目標次數</FormLabel>
-                        <FormControl>
-                          <Select
-                            value={field.value}
-                            onValueChange={field.onChange}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="請選擇目標次數" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Array.from({ length: 7 }).map((_, i) => (
-                                <SelectItem key={i + 1} value={String(i + 1)}>
-                                  {i + 1} 次
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingTask ? '編輯任務' : '新增任務'}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {editingTask
+                      ? '修改任務資料後，請點擊保存。'
+                      : '在這裡新增任務，完成後請點擊新增。'}
+                  </DialogDescription>
+                </DialogHeader>
 
-                  <DialogFooter className="pt-4">
-                    <DialogClose asChild>
-                      <Button variant="outline" type="button">
-                        關閉
+                <Form {...form}>
+                  <form
+                    onSubmit={form.handleSubmit(onSubmit)}
+                    className="space-y-6"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel required>任務名稱</FormLabel>
+                          <FormControl>
+                            <Input placeholder="請輸入任務名稱" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="target_days"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel required>目標次數</FormLabel>
+                          <FormControl>
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="請選擇目標次數" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Array.from({ length: 7 }).map((_, i) => (
+                                  <SelectItem key={i + 1} value={String(i + 1)}>
+                                    {i + 1} 次
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <DialogFooter className="pt-4">
+                      <DialogClose asChild>
+                        <Button variant="outline" type="button">
+                          關閉
+                        </Button>
+                      </DialogClose>
+                      <Button type="submit" disabled={loading}>
+                        {loading
+                          ? editingTask
+                            ? '儲存中...'
+                            : '新增中...'
+                          : editingTask
+                            ? '保存'
+                            : '新增'}
                       </Button>
-                    </DialogClose>
-                    <Button type="submit" disabled={loading}>
-                      {loading
-                        ? editingTask
-                          ? '儲存中...'
-                          : '新增中...'
-                        : editingTask
-                          ? '保存'
-                          : '新增'}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
 
-          {prevWeekId && (
-            <ImportTasksDialog
-              prevWeekId={prevWeekId}
-              currentTaskNames={tasks.map((t) => t.name)}
-              onImportTasks={onImportTasks}
-            />
-          )}
-        </div>
+            {prevWeekId && (
+              <ImportTasksDialog
+                prevWeekId={prevWeekId}
+                currentTaskNames={tasks.map((t) => t.name)}
+                onImportTasks={onImportTasks}
+              />
+            )}
+          </div>
         )}
       </div>
     </div>

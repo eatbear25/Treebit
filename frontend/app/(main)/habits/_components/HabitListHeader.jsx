@@ -13,7 +13,7 @@ export default function HabitHeader({ habitsNum, onHabitAdded }) {
         </p>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         <HabitForm onHabitAdded={onHabitAdded} />
         <ProfileDialog />
       </div>

@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 
 function NavInner() {
-  const { isAuthenticated, initialized } = useAuth()
+  const { user, isAuthenticated, initialized } = useAuth()
 
   return (
     <header className="border-border/80 bg-surface/85 sticky top-0 z-40 border-b backdrop-blur-md">
@@ -30,12 +30,17 @@ function NavInner() {
           }`}
         >
           {isAuthenticated ? (
-            <Link
-              href="/habits"
-              className="bg-brand-700 hover:bg-brand-800 rounded-tl-xl rounded-br-xl px-4 py-2 text-base font-semibold text-white transition active:scale-[0.98] md:px-5"
-            >
-              習慣管理
-            </Link>
+            <>
+              <span className="text-foreground/80 mr-1 hidden max-w-40 truncate text-base font-medium sm:inline">
+                嗨，{user?.username}
+              </span>
+              <Link
+                href="/habits"
+                className="bg-brand-700 hover:bg-brand-800 rounded-tl-xl rounded-br-xl px-4 py-2 text-base font-semibold text-white transition active:scale-[0.98] md:px-5"
+              >
+                習慣管理
+              </Link>
+            </>
           ) : (
             <>
               <Link

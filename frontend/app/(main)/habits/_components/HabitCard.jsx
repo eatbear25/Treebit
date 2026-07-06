@@ -1,25 +1,7 @@
 'use client'
 
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { PiDotsThreeBold, PiFlameFill, PiUsersThree } from 'react-icons/pi'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { toast } from 'sonner'
+import { PiFlameFill, PiUsersThree } from 'react-icons/pi'
 import GrowthStageIcon, {
   GROWTH_STAGES,
   getGrowthStage,
@@ -29,9 +11,7 @@ import {
   formatTimestampToTaiwanYMD,
   getCurrentWeekNumber,
 } from '@/lib/utils'
-
-const API_BASE_URL =
-  process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3001'
+import HabitActionsMenu from './HabitActionsMenu'
 
 export default function HabitCard({
   title,
@@ -50,8 +30,6 @@ export default function HabitCard({
   detailHref,
 }) {
   const router = useRouter()
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [showArchiveDialog, setShowArchiveDialog] = useState(false)
 
   // 起始日以第一週 start_date 為準（DATE 字串）；舊資料缺值時退回 created_at
   const startYMD = first_start_date
@@ -85,267 +63,118 @@ export default function HabitCard({
     router.push(detailHref || `/habits/${id}`)
   }
 
-  const deleteHabit = async function (habitId) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/habits/${habitId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      })
-
-      const data = await res.json()
-
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || '刪除習慣失敗')
-      }
-
-      toast.success(data.message || '刪除成功')
-      if (onHabitsChanged) onHabitsChanged()
-
-      return data.message || '刪除成功'
-    } catch (err) {
-      console.error('刪除習慣失敗', err)
-      toast.error(err.message || '刪除失敗')
-      throw err
-    }
-  }
-  const archiveHabit = async function (habitId) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/habits/${habitId}/archive`, {
-        method: 'PATCH',
-        credentials: 'include',
-      })
-
-      const data = await res.json()
-
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || '封存習慣失敗')
-      }
-
-      toast.success(data.message || '封存成功')
-      if (onHabitsChanged) onHabitsChanged()
-
-      return data.message || '封存成功'
-    } catch (err) {
-      console.error('封存習慣失敗', err)
-      toast.error(err.message || '封存失敗')
-      throw err
-    }
-  }
-
-  const isShared = visibility === 'friends'
-
-  const toggleVisibility = async () => {
-    const next = isShared ? 'private' : 'friends'
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/habits/${id}/visibility`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ visibility: next }),
-      })
-
-      const data = await res.json()
-
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || '更新可見性失敗')
-      }
-
-      toast.success(data.message)
-      if (onHabitsChanged) onHabitsChanged()
-    } catch (err) {
-      console.error('更新可見性失敗', err)
-      toast.error(err.message || '更新可見性失敗')
-    }
-  }
-
-  const handleConfirmDelete = async () => {
-    await deleteHabit(id)
-    setShowDeleteDialog(false)
-  }
-
-  const handleConfirmArchive = async () => {
-    await archiveHabit(id)
-    setShowArchiveDialog(false)
-  }
-
   return (
-    <>
-      <div className="group bg-card flex h-full flex-col rounded-2xl p-6 shadow-[0_10px_30px_-14px_rgba(79,111,88,0.25)] transition-shadow duration-300 hover:shadow-[0_18px_40px_-16px_rgba(79,111,88,0.38)] md:p-7">
-        {/* 標題列：成長階段 + 名稱 + 選單 */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3.5">
-            <div
-              className="bg-brand-50 flex h-12 w-12 shrink-0 items-end justify-center overflow-hidden rounded-xl"
-              title={`成長階段：${GROWTH_STAGES[stage]}`}
-            >
-              <GrowthStageIcon stage={stage} className="h-10 w-10" />
-            </div>
-            <div className="min-w-0">
-              <h3 className="truncate text-xl font-bold md:text-2xl">
-                {title}
-              </h3>
-              <p className="text-muted-foreground mt-1 text-sm">
-                <span className="font-outfit tnum">{startYMD}</span> 開始 · 共{' '}
-                <span className="tnum">{total_weeks}</span> 週
-              </p>
-            </div>
-          </div>
-
-          <div className="flex shrink-0 items-center gap-1">
-            {visibility === 'friends' && !readOnly && (
-              <span
-                title="好友可見"
-                className="bg-brand-50 text-brand-700 flex h-8 w-8 items-center justify-center rounded-full text-lg"
-              >
-                <PiUsersThree />
-              </span>
-            )}
-
-            {!readOnly && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    aria-label="更多操作"
-                    className="text-muted-foreground hover:bg-muted hover:text-foreground -mt-1 -mr-1 cursor-pointer rounded-lg p-2 text-xl transition"
-                  >
-                    <PiDotsThreeBold />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    className="cursor-pointer"
-                    onClick={toggleVisibility}
-                  >
-                    {isShared ? '取消分享' : '分享給好友'}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="cursor-pointer"
-                    onClick={() => setShowArchiveDialog(true)}
-                  >
-                    封存
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="text-destructive cursor-pointer"
-                    onClick={() => setShowDeleteDialog(true)}
-                  >
-                    刪除
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
-        </div>
-
-        {/* 週進度 */}
-        <div className="mt-6">
-          <div className="flex items-baseline justify-between text-sm">
-            <span>
-              <span className="text-brand-700 font-semibold">
-                第 <span className="tnum">{currentWeek}</span> 週
-              </span>
-              <span className="text-muted-foreground">
-                {' '}
-                · {GROWTH_STAGES[stage]}
-              </span>
-            </span>
-            <span className="font-outfit tnum text-muted-foreground">
-              {currentWeek} / {total_weeks} 週
-            </span>
-          </div>
+    <div className="group bg-card flex h-full flex-col rounded-2xl p-6 shadow-[0_10px_30px_-14px_rgba(79,111,88,0.25)] transition-shadow duration-300 hover:shadow-[0_18px_40px_-16px_rgba(79,111,88,0.38)] md:p-7">
+      {/* 標題列：成長階段 + 名稱 + 選單 */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3.5">
           <div
-            role="progressbar"
-            aria-valuenow={currentWeek}
-            aria-valuemin={1}
-            aria-valuemax={total_weeks}
-            aria-label="週數進度"
-            className="bg-brand-100 mt-2 h-2 overflow-hidden rounded-full"
+            className="bg-brand-50 flex h-12 w-12 shrink-0 items-end justify-center overflow-hidden rounded-xl"
+            title={`成長階段：${GROWTH_STAGES[stage]}`}
           >
-            <div
-              className="bg-brand-500 h-full rounded-full transition-[width] duration-500"
-              style={{ width: `${weekPercent}%` }}
-            />
+            <GrowthStageIcon stage={stage} className="h-10 w-10" />
+          </div>
+          <div className="min-w-0">
+            <h3 className="truncate text-xl font-bold md:text-2xl">{title}</h3>
+            <p className="text-muted-foreground mt-1 text-sm">
+              <span className="font-outfit tnum">{startYMD}</span> 開始 · 共{' '}
+              <span className="tnum">{total_weeks}</span> 週
+            </p>
           </div>
         </div>
 
-        {/* 累積數據 */}
-        <dl className="mt-6 mb-7 grid grid-cols-2 gap-4">
-          <div>
-            <dt className="text-muted-foreground text-sm">目標達成率</dt>
-            <dd className="font-outfit mt-1 text-2xl font-bold md:text-3xl">
-              {completionRate !== null ? (
-                <>
-                  {completionRate}
-                  <span className="text-muted-foreground ml-0.5 text-base font-semibold">
-                    %
-                  </span>
-                </>
-              ) : (
-                <span className="text-muted-foreground text-base font-medium">
-                  尚未設定任務
-                </span>
-              )}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-muted-foreground text-sm">連續打卡</dt>
-            <dd className="font-outfit mt-1 flex items-center gap-1.5 text-2xl font-bold md:text-3xl">
-              <PiFlameFill
-                className={`text-xl ${streak > 0 ? 'text-streak' : 'text-muted-foreground/40'}`}
-              />
-              {streak}
-              <span className="text-muted-foreground text-base font-semibold">
-                天
-              </span>
-            </dd>
-          </div>
-        </dl>
+        <div className="flex shrink-0 items-center gap-1">
+          {visibility === 'friends' && !readOnly && (
+            <span
+              title="好友可見"
+              className="bg-brand-50 text-brand-700 flex h-8 w-8 items-center justify-center rounded-full text-lg"
+            >
+              <PiUsersThree />
+            </span>
+          )}
 
-        <button
-          onClick={handleViewTask}
-          className="bg-brand-700 hover:bg-brand-800 mt-auto w-full cursor-pointer rounded-tl-xl rounded-br-xl py-3 text-base font-semibold text-white shadow-[0_8px_20px_-8px_rgba(60,86,69,0.5)] transition active:scale-[0.99]"
-        >
-          {readOnly ? '查看' : '查看任務'}
-        </button>
+          {!readOnly && (
+            <HabitActionsMenu
+              id={id}
+              title={title}
+              visibility={visibility}
+              onHabitsChanged={onHabitsChanged}
+              className="-mt-1 -mr-1"
+            />
+          )}
+        </div>
       </div>
 
-      {/* 刪除確認對話框 */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>確定要刪除「{title}」嗎？</AlertDialogTitle>
-            <AlertDialogDescription>
-              刪除後，這個習慣的所有任務與打卡紀錄將一併移除，無法復原。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmDelete}
-              className="bg-destructive hover:bg-destructive/90 text-white"
-            >
-              確定刪除
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* 週進度 */}
+      <div className="mt-6">
+        <div className="flex items-baseline justify-between text-sm">
+          <span>
+            <span className="text-brand-700 font-semibold">
+              第 <span className="tnum">{currentWeek}</span> 週
+            </span>
+            <span className="text-muted-foreground">
+              {' '}
+              · {GROWTH_STAGES[stage]}
+            </span>
+          </span>
+          <span className="font-outfit tnum text-muted-foreground">
+            {currentWeek} / {total_weeks} 週
+          </span>
+        </div>
+        <div
+          role="progressbar"
+          aria-valuenow={currentWeek}
+          aria-valuemin={1}
+          aria-valuemax={total_weeks}
+          aria-label="週數進度"
+          className="bg-brand-100 mt-2 h-2 overflow-hidden rounded-full"
+        >
+          <div
+            className="bg-brand-500 h-full rounded-full transition-[width] duration-500"
+            style={{ width: `${weekPercent}%` }}
+          />
+        </div>
+      </div>
 
-      {/* 封存確認對話框 */}
-      <AlertDialog open={showArchiveDialog} onOpenChange={setShowArchiveDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>要封存「{title}」嗎？</AlertDialogTitle>
-            <AlertDialogDescription>
-              封存後會移到「歷史紀錄」保存成果，隨時可以取消封存繼續進行。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmArchive}>
-              確定封存
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+      {/* 累積數據 */}
+      <dl className="mt-6 mb-7 grid grid-cols-2 gap-4">
+        <div>
+          <dt className="text-muted-foreground text-sm">目標達成率</dt>
+          <dd className="font-outfit mt-1 text-2xl font-bold md:text-3xl">
+            {completionRate !== null ? (
+              <>
+                {completionRate}
+                <span className="text-muted-foreground ml-0.5 text-base font-semibold">
+                  %
+                </span>
+              </>
+            ) : (
+              <span className="text-muted-foreground text-base font-medium">
+                尚未設定任務
+              </span>
+            )}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-muted-foreground text-sm">連續打卡</dt>
+          <dd className="font-outfit mt-1 flex items-center gap-1.5 text-2xl font-bold md:text-3xl">
+            <PiFlameFill
+              className={`text-xl ${streak > 0 ? 'text-streak' : 'text-muted-foreground/40'}`}
+            />
+            {streak}
+            <span className="text-muted-foreground text-base font-semibold">
+              天
+            </span>
+          </dd>
+        </div>
+      </dl>
+
+      <button
+        onClick={handleViewTask}
+        className="bg-brand-700 hover:bg-brand-800 mt-auto w-full cursor-pointer rounded-tl-xl rounded-br-xl py-3 text-base font-semibold text-white shadow-[0_8px_20px_-8px_rgba(60,86,69,0.5)] transition active:scale-[0.99]"
+      >
+        {readOnly ? '查看' : '查看任務'}
+      </button>
+    </div>
   )
 }

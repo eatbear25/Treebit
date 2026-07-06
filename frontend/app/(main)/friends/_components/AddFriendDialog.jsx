@@ -116,19 +116,22 @@ export default function AddFriendDialog({ onRequestSent }) {
           <form onSubmit={handleSubmit}>
             <p className="text-muted-foreground text-sm font-medium">
               輸入朋友的好友碼
+              <span aria-hidden="true" className="text-destructive ml-0.5">
+                *
+              </span>
             </p>
             <div className="mt-2 flex gap-2">
               <Input
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
-                placeholder="例如：TB-8K3F"
                 maxLength={8}
-                className="font-outfit flex-1 uppercase"
+                className="font-outfit h-11 flex-1 uppercase"
               />
               <Button
                 type="submit"
                 variant="treebit"
-                disabled={sending || !code.trim()}
+                disabled={sending}
+                className="h-11 px-5 py-0"
               >
                 {sending ? '送出中...' : '送出邀請'}
               </Button>

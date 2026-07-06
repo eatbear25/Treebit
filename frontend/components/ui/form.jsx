@@ -62,7 +62,7 @@ function FormItem({ className, ...props }) {
   )
 }
 
-function FormLabel({ className, ...props }) {
+function FormLabel({ className, required = false, children, ...props }) {
   const { error, formItemId } = useFormField()
 
   return (
@@ -72,7 +72,14 @@ function FormLabel({ className, ...props }) {
       className={cn('data-[error=true]:text-destructive', className)}
       htmlFor={formItemId}
       {...props}
-    />
+    >
+      {children}
+      {required && (
+        <span aria-hidden="true" className="text-destructive -ml-1.5">
+          *
+        </span>
+      )}
+    </Label>
   )
 }
 

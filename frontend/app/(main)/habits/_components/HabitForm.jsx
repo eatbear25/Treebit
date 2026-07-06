@@ -118,9 +118,9 @@ export function HabitForm({ onHabitAdded }) {
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>習慣名稱</FormLabel>
+                  <FormLabel required>習慣名稱</FormLabel>
                   <FormControl>
-                    <Input placeholder="例如：讓自己變得更好" {...field} />
+                    <Input placeholder="例如：規律運動" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -132,7 +132,7 @@ export function HabitForm({ onHabitAdded }) {
               name="total_weeks"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>總週數</FormLabel>
+                  <FormLabel required>總週數</FormLabel>
                   <FormControl>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger className="w-full">

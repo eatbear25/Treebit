@@ -296,6 +296,38 @@ router.patch("/:habitId/visibility", authenticate, async (req, res) => {
   }
 });
 
+// 修改習慣名稱
+router.patch("/:habitId", authenticate, async (req, res) => {
+  try {
+    const habitId = req.params.habitId;
+    const userId = req.user.id;
+
+    const title =
+      typeof req.body.title === "string" ? req.body.title.trim() : "";
+    if (!title) {
+      return sendResponse(res, 400, false, null, "標題為必填");
+    }
+    if (title.length > 255) {
+      return sendResponse(res, 400, false, null, "標題最多 255 個字");
+    }
+
+    const isOwner = await checkHabitOwner(habitId, userId);
+    if (!isOwner) {
+      return sendResponse(res, 403, false, null, "無權修改此習慣");
+    }
+
+    await db.query(
+      `UPDATE habits SET title = ?, updated_at = NOW() WHERE id = ? AND user_id = ?`,
+      [title, habitId, userId]
+    );
+
+    sendResponse(res, 200, true, { title }, "習慣名稱已更新");
+  } catch (error) {
+    console.error(error);
+    sendResponse(res, 500, false, null, "更新習慣名稱失敗");
+  }
+});
+
 // 查看單一習慣
 router.get("/:habitId", authenticate, async (req, res) => {
   try {
