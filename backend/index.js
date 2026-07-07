@@ -83,6 +83,11 @@ app.use((req, res) => {
 
 const port = process.env.PORT || 3001;
 
-app.listen(port, () => {
-  console.log(`Express Server 啟動: http://localhost:${port}`);
-});
+// Vercel 上以 serverless function 執行（見 vercel.json），只在本地啟動 listener
+if (!process.env.VERCEL) {
+  app.listen(port, () => {
+    console.log(`Express Server 啟動: http://localhost:${port}`);
+  });
+}
+
+export default app;
