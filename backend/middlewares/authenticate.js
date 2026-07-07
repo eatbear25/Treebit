@@ -1,4 +1,5 @@
 import jsonwebtoken from "jsonwebtoken";
+import { clearAuthCookie } from "../utils/cookie.js";
 
 const accessTokenSecret = process.env.JWT_SECRET;
 
@@ -38,7 +39,7 @@ export default function authenticate(req, res, next) {
         }
 
         // Token 過期或無效時，清除 cookie
-        res.clearCookie("accessToken");
+        clearAuthCookie(res);
 
         return res.status(401).json({
           success: false,
@@ -87,7 +88,7 @@ export function optionalAuthenticate(req, res, next) {
         req.user = null;
 
         if (err.name === "TokenExpiredError") {
-          res.clearCookie("accessToken");
+          clearAuthCookie(res);
         }
       }
 

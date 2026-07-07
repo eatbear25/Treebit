@@ -95,6 +95,9 @@ router.post("/", authenticate, async (req, res) => {
   if (!title) {
     return sendResponse(res, 400, false, null, "標題為必填");
   }
+  if (title.length > 255) {
+    return sendResponse(res, 400, false, null, "標題最多 255 個字");
+  }
   if (!Number.isInteger(totalWeeks) || totalWeeks < 1 || totalWeeks > 52) {
     return sendResponse(res, 400, false, null, "總週數需為 1~52 的整數");
   }
@@ -438,6 +441,9 @@ router.post("/weeks/:weekId/tasks", authenticate, async (req, res) => {
     if (!name) {
       return sendResponse(res, 400, false, null, "任務名稱必填");
     }
+    if (name.length > 255) {
+      return sendResponse(res, 400, false, null, "任務名稱最多 255 個字");
+    }
     if (!Number.isInteger(targetDays) || targetDays < 1 || targetDays > 7) {
       return sendResponse(res, 400, false, null, "目標天數需為 1~7 的整數");
     }
@@ -547,6 +553,9 @@ router.patch("/weeks/:weekId/tasks/:taskId", authenticate, async (req, res) => {
     if (!name) {
       return sendResponse(res, 400, false, null, "任務名稱必填");
     }
+    if (name.length > 255) {
+      return sendResponse(res, 400, false, null, "任務名稱最多 255 個字");
+    }
     if (!Number.isInteger(targetDays) || targetDays < 1 || targetDays > 7) {
       return sendResponse(res, 400, false, null, "目標天數需為 1~7 的整數");
     }
@@ -594,8 +603,16 @@ router.patch("/tasks/:taskId/logs", authenticate, async (req, res) => {
     const taskId = req.params.taskId;
     const userId = req.user.id;
 
-    const isOwner = await checkTaskOwner(taskId, userId);
-    if (!isOwner) {
+    // 一次查出擁有權與該週起始日
+    const [taskRows] = await db.query(
+      `SELECT hw.start_date
+       FROM habit_week_tasks hwt
+       JOIN habit_weeks hw ON hw.id = hwt.habit_week_id
+       JOIN habits h ON h.id = hw.habit_id
+       WHERE hwt.id = ? AND h.user_id = ?`,
+      [taskId, userId]
+    );
+    if (taskRows.length === 0) {
       return sendResponse(res, 403, false, null, "無權修改此任務打卡");
     }
 
@@ -604,26 +621,23 @@ router.patch("/tasks/:taskId/logs", authenticate, async (req, res) => {
       return sendResponse(res, 400, false, null, "日期格式需為 YYYY-MM-DD");
     }
 
+    // 打卡日期必須落在該任務所屬週的 7 天內（YYYY-MM-DD 字串可直接比大小）
+    const weekStart = taskRows[0].start_date;
+    const weekEnd = addDaysToYMD(weekStart, 6);
+    if (date < weekStart || date > weekEnd) {
+      return sendResponse(res, 400, false, null, "打卡日期不在此任務的週期內");
+    }
+
     const completedValue =
       is_completed === true || is_completed === "true" ? true : false;
 
-    const [exist] = await db.query(
-      `SELECT * FROM habit_task_logs WHERE task_id = ? AND date = ?`,
-      [taskId, date]
+    // UNIQUE(task_id, date) 直接 upsert，省去先查再寫的兩趟查詢
+    await db.query(
+      `INSERT INTO habit_task_logs (task_id, date, is_completed)
+       VALUES (?, ?, ?)
+       ON CONFLICT (task_id, date) DO UPDATE SET is_completed = EXCLUDED.is_completed`,
+      [taskId, date, completedValue]
     );
-
-    if (exist.length > 0) {
-      await db.query(
-        `UPDATE habit_task_logs SET is_completed = ? WHERE task_id = ? AND date = ?`,
-        [completedValue, taskId, date]
-      );
-    } else {
-      await db.query(
-        `INSERT INTO habit_task_logs (task_id, date, is_completed)
-         VALUES (?, ?, ?)`,
-        [taskId, date, completedValue]
-      );
-    }
 
     sendResponse(res, 200, true, null, "更新打卡成功");
   } catch (error) {
@@ -645,9 +659,13 @@ router.post("/weeks/:weekId/notes", authenticate, async (req, res) => {
       return sendResponse(res, 403, false, null, "無權新增此週次筆記");
     }
 
-    const { content } = req.body;
+    const content =
+      typeof req.body.content === "string" ? req.body.content.trim() : "";
     if (!content) {
       return sendResponse(res, 400, false, null, "筆記內容不能為空");
+    }
+    if (content.length > 2000) {
+      return sendResponse(res, 400, false, null, "筆記內容最多 2000 個字");
     }
 
     const [result] = await db.query(
@@ -720,9 +738,13 @@ router.patch("/weeks/:weekId/notes/:noteId", authenticate, async (req, res) => {
       return sendResponse(res, 403, false, null, "無權編輯此筆記");
     }
 
-    const { content } = req.body;
+    const content =
+      typeof req.body.content === "string" ? req.body.content.trim() : "";
     if (!content) {
       return sendResponse(res, 400, false, null, "筆記內容不能為空");
+    }
+    if (content.length > 2000) {
+      return sendResponse(res, 400, false, null, "筆記內容最多 2000 個字");
     }
 
     await db.query(

@@ -1,9 +1,22 @@
 import express from "express";
+import { rateLimit } from "express-rate-limit";
 import db from "../config/connect-postgresql.js";
 import authenticate from "../middlewares/authenticate.js";
 import { getTaiwanTodayYMD, computeCurrentStreak } from "../utils/date.js";
 
 const router = express.Router();
+
+// 好友碼只有約 92 萬種組合，限制送邀請頻率避免暴力枚舉（每 IP 15 分鐘 30 次）
+const sendRequestLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "嘗試次數過多，請稍後再試",
+  },
+});
 
 // 統一回傳格式（同 habits 路由）
 const sendResponse = (
@@ -96,7 +109,7 @@ router.get("/me/code", authenticate, async (req, res) => {
 // --- 邀請 ---
 
 // 依好友碼送出邀請
-router.post("/requests", authenticate, async (req, res) => {
+router.post("/requests", authenticate, sendRequestLimiter, async (req, res) => {
   try {
     const userId = req.user.id;
     const code =

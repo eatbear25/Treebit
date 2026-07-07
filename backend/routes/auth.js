@@ -8,6 +8,7 @@ import authenticate, {
 } from "../middlewares/authenticate.js";
 import passport from "passport";
 import { rateLimit } from "express-rate-limit";
+import { setAuthCookie, clearAuthCookie } from "../utils/cookie.js";
 
 const router = express.Router();
 
@@ -28,25 +29,6 @@ const authLimiter = rateLimit({
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
-const isProd = process.env.NODE_ENV === "production";
-
-const cookieBaseOptions = {
-  httpOnly: true,
-  secure: isProd,
-  sameSite: isProd ? "none" : "lax",
-  path: "/",
-};
-
-function setAuthCookie(res, token, maxAgeMs = 7 * 24 * 60 * 60 * 1000) {
-  res.cookie("accessToken", token, {
-    ...cookieBaseOptions,
-    maxAge: maxAgeMs,
-  });
-}
-
-function clearAuthCookie(res) {
-  res.clearCookie("accessToken", { ...cookieBaseOptions });
-}
 /** ------------------------------------------------------------------- */
 
 // 本地 zod 驗證
@@ -72,7 +54,11 @@ const loginSchema = z.object({
 
 // 會員資料只開放修改顯示名稱（密碼有專用 API）
 const updateProfileSchema = z.object({
-  username: z.string().min(2, { message: "用戶名稱至少需 2 個字" }).optional(),
+  username: z
+    .string()
+    .min(2, { message: "用戶名稱至少需 2 個字" })
+    .max(50, { message: "用戶名稱最多 50 個字" })
+    .optional(),
 });
 
 // 更改密碼：新密碼長度規則與註冊一致（6~20）
@@ -118,13 +104,11 @@ router.post("/register", authLimiter, async (req, res) => {
     });
     setAuthCookie(res, token);
 
+    // token 只放 httpOnly Cookie，不回傳於 body，降低外洩面
     return res.status(201).json({
       success: true,
       message: "註冊成功",
-      data: {
-        user: data,
-        token,
-      },
+      data: { user: data },
     });
   } catch (error) {
     console.error("註冊錯誤:", error);
@@ -189,10 +173,7 @@ router.post("/login", authLimiter, async (req, res) => {
     return res.json({
       success: true,
       message: "登入成功",
-      data: {
-        user: data,
-        token,
-      },
+      data: { user: data },
     });
   } catch (error) {
     console.error("登入錯誤:", error);
