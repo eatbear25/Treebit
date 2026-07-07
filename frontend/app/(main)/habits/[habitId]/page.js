@@ -255,6 +255,15 @@ export default function HabitTracker() {
     const currentStatus = taskLogs[taskId]?.[date] || false
     const newStatus = !currentStatus
 
+    // 樂觀更新：點擊立即打勾，API 失敗時再還原
+    setTaskLogs((prev) => ({
+      ...prev,
+      [taskId]: {
+        ...prev[taskId],
+        [date]: newStatus,
+      },
+    }))
+
     try {
       const res = await fetch(
         `${API_BASE_URL}/api/habits/tasks/${taskId}/logs`,
@@ -272,21 +281,22 @@ export default function HabitTracker() {
       )
 
       const data = await res.json()
-      if (data.success) {
-        setTaskLogs((prev) => ({
-          ...prev,
-          [taskId]: {
-            ...prev[taskId],
-            [date]: newStatus,
-          },
-        }))
-        // 打卡後同步更新整體統計
-        fetchStats()
-      } else {
-        console.error('更新打卡失敗:', data.message)
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || '更新打卡失敗')
       }
+      // 打卡後同步更新整體統計
+      fetchStats()
     } catch (err) {
       console.error('更新打卡錯誤:', err)
+      // 還原打勾狀態
+      setTaskLogs((prev) => ({
+        ...prev,
+        [taskId]: {
+          ...prev[taskId],
+          [date]: currentStatus,
+        },
+      }))
+      toast.error('打卡失敗，請稍後再試')
     }
   }
 
