@@ -59,7 +59,7 @@ users ─┬─> habits ─> habit_weeks ─┬─> habit_week_tasks ─> habit_
 - `contexts/AuthContext.js`：`user`、`isAuthenticated`、`initialized`；`login()` / `logout()` / `refreshUser()`
 - `utils/auth.js`：`apiRequest()`（帶 credentials，401 自動導回 /login）
 - `lib/utils.js`：`cn()` 與所有日期工具
-- API base 模式（各頁面皆同，沿用它）：`process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3001'`——生產走相對路徑由 rewrites 代理
+- `lib/api.js`：`API_BASE_URL` 唯一出口（開發直連 localhost:3001，生產空字串走相對路徑由 rewrites 代理）——所有 fetch 都 `import { API_BASE_URL } from '@/lib/api'`，不要在各檔案自己宣告
 
 ## 認證重點
 
