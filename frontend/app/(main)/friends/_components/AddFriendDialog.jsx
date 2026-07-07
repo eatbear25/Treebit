@@ -77,7 +77,10 @@ export default function AddFriendDialog({ onRequestSent }) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="treebit">
+        <Button
+          variant="treebit"
+          className="h-auto gap-1.5 px-4 py-2.5 text-sm md:px-5 md:text-base"
+        >
           <PiPlusBold />
           加好友
         </Button>
