@@ -1,38 +1,30 @@
 <img width="100" src="./docs/icon.svg" alt="Treebit logo">
 
-## 📖 專案簡介
+# Treebit — 每天一點點，長出你的習慣之樹
 
-Treebit 是一個專注於習慣養成的網站，幫助使用者建立每日與每週的目標，透過勾選 checkbox 記錄每天是否完成，把幾週的累積進度視覺化呈現，讓養成新習慣的過程更有成就感。發想靈感來自筆記軟體，但進一步簡化流程，讓使用者能更直覺地建立並追蹤習慣。
+Treebit 是一個習慣養成追蹤網站。建立習慣、設定挑戰週數，為每一週安排任務並逐日打卡，看著累積的進度把一棵樹慢慢養大。
 
-使用者登入後即可：
-
-- 建立 / 管理習慣，並設定挑戰的總週數
-- 為每一週新增任務、記事，並逐日打卡
-- 追蹤每週達成率與整體進度
-- 封存已完成的習慣，並在歷史頁面回顧
-- 所有資料皆儲存在資料庫中，跨裝置也能保留完整進度
-
-## 🔗 Demo 網站：https://treebit-site.vercel.app/
-
-部署：Vercel（前端 + 後端）、Supabase（PostgreSQL 資料庫）
-
-```bash
-# 測試帳號
-帳號：wang
-密碼：Ss5566123
-```
+**🔗 Demo：** https://treebit-site.vercel.app/
 
 ![Treebit 首頁](./docs/home.png)
 
 ![Treebit 手機畫面](./docs/app-screen.png)
 
-## ✨ 功能介紹
+## ✨ 功能
+
+- **習慣管理**：建立習慣並設定總週數，可重新命名、封存、恢復、刪除
+- **每週任務與打卡**：每週自訂任務與目標天數，逐日勾選打卡；支援拖曳排序、一鍵匯入上週任務
+- **進度視覺化**：每週達成率、整體進度、連續打卡天數（streak）、樹的成長階段
+- **週記事**：為每一週留下筆記
+- **歷史回顧**：封存完成的習慣，在歷史頁面回顧成果
+- **好友系統**：以好友碼（TB-XXXX）互加好友，可選擇把習慣分享給好友唯讀檢視
+- **深色模式**、響應式設計（手機底部導覽列）
 
 #### 建立習慣
 
 ![Demo-01](./docs/demo-01.gif)
 
-#### 新增每週任務、記事，及打卡功能
+#### 新增每週任務、記事，及打卡
 
 ![Demo-02](./docs/demo-02.gif)
 
@@ -42,19 +34,40 @@ Treebit 是一個專注於習慣養成的網站，幫助使用者建立每日與
 
 ## 🛠 技術棧
 
-| 分類     | 技術                                                          |
-| -------- | ----------------------------------------------------------- |
-| 前端     | Next.js 15（App Router）、React 19                            |
-| 樣式     | Tailwind CSS、shadcn/ui（Radix UI）                          |
-| 表單驗證 | React Hook Form + Zod                                        |
-| 後端     | Node.js / Express                                            |
-| 認證     | JWT + Passport.js（本地帳號密碼 + Google OAuth）             |
-| 資料庫   | Supabase（PostgreSQL）                                       |
-| 部署     | Vercel（前端、後端）                                         |
+| 分類     | 技術                                             |
+| -------- | ------------------------------------------------ |
+| 前端     | Next.js 15（App Router）、React 19               |
+| 樣式     | Tailwind CSS 4、shadcn/ui（Radix UI）            |
+| 表單驗證 | React Hook Form + Zod（前後端皆用 Zod）          |
+| 後端     | Node.js / Express（ESM）                         |
+| 認證     | JWT（httpOnly Cookie）+ Passport.js Google OAuth |
+| 資料庫   | PostgreSQL（Supabase）                           |
+| 部署     | Vercel（前端、後端各一個專案）                   |
 
-> 認證採用 JWT，token 同時支援 httpOnly Cookie 與 Bearer Header；本地帳號以「帳號 + 密碼」登入，另支援 Google 第三方登入。
+**架構重點**：生產環境中，前端透過 Next.js rewrites 把 `/api/*` 代理到後端專案，瀏覽器只跟前端網域溝通——Cookie 是第一方、無 CORS 與第三方 Cookie 問題。
 
-## 🚀 本地開發 / 測試
+## 🗂 資料表設計
+
+```
+users ─┬─> habits ─> habit_weeks ─┬─> habit_week_tasks ─> habit_task_logs（打卡）
+       │                          └─> habit_weekly_notes（週記事）
+       └─ friendships（好友關係）
+```
+
+| Table              | 說明                                         |
+| ------------------ | -------------------------------------------- |
+| users              | 會員（本地帳號 / Google，含好友碼）          |
+| habits             | 習慣（標題、總週數、封存狀態、好友可見性）   |
+| habit_weeks        | 各習慣的週期與起始日                         |
+| habit_week_tasks   | 每週任務與目標天數                           |
+| habit_task_logs    | 每日打卡紀錄（UNIQUE(task_id, date)）        |
+| habit_weekly_notes | 每週記事                                     |
+| friendships        | 好友關係（pending / accepted，一對關係一列） |
+
+- 完整 schema：`backend/schema-postgresql.sql`（全新建立資料庫用）
+- 既有資料庫的增量調整：依序執行 `backend/migrations/` 內的 SQL
+
+## 🚀 本地開發
 
 ### 1. 取得專案
 
@@ -63,33 +76,27 @@ git clone https://github.com/eatbear25/Treebit.git
 cd Treebit
 ```
 
-### 2. 準備資料庫（PostgreSQL）
+### 2. 準備資料庫（擇一）
 
-本專案使用 PostgreSQL，本地測試有兩種做法，擇一即可：
+**做法 A：本地 PostgreSQL（推薦）**
 
-**做法 A：本地安裝 PostgreSQL（推薦）**
+1. 安裝 [PostgreSQL](https://www.postgresql.org/download/)（附 pgAdmin）
+2. 建立資料庫 `treebit`，執行 `backend/schema-postgresql.sql` 建立所有資料表
 
-1. 下載並安裝 [PostgreSQL 官方安裝包](https://www.postgresql.org/download/windows/)（會一併安裝 GUI 工具 **pgAdmin**）。
-   - 安裝時設定的 superuser（預設帳號 `postgres`）密碼請記下來。
-2. 用 pgAdmin（或 [DBeaver](https://dbeaver.io/)，可同時連 MySQL / PostgreSQL）連線，建立一個資料庫，例如 `treebit`。
-3. 開啟 SQL 編輯器，貼上並執行 `backend/schema-postgresql.sql` 建立所有資料表。
+**做法 B：直連 Supabase**
 
-> 💡 MySQL Workbench 只能連 MySQL，無法連 PostgreSQL；請改用 pgAdmin 或 DBeaver。
-
-**做法 B：直接連 Supabase 測試（免安裝）**
-
-把後端 `.env` 的 `DATABASE_URL` 指向 Supabase 連線字串即可，不需在本機安裝資料庫（缺點是本地測試會動到雲端資料）。
+把後端 `.env` 的 `DATABASE_URL` 指向 Supabase 連線字串（缺點：本地測試會動到雲端資料）。
 
 ### 3. 設定環境變數
 
-前後端各有 `.env.example`，請複製為 `.env` 並填入實際值：
+前後端各有 `.env.example`，複製為 `.env` 填入實際值：
 
 ```bash
-# 後端 backend/.env（重點欄位）
+# backend/.env（重點欄位）
 DATABASE_URL=postgresql://postgres:你的密碼@localhost:5432/treebit
-JWT_SECRET=請填一段夠長的隨機字串   # 必填，未設定後端不會啟動
+JWT_SECRET=一段夠長的隨機字串    # 必填，未設定後端不會啟動
 FRONTEND_URL=http://localhost:3000
-# Google 登入（選用）
+# Google 登入（選用，不設定則停用 Google 登入）
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
 GOOGLE_CALLBACK_URL=http://localhost:3001/api/auth/google/redirect
@@ -99,39 +106,51 @@ GOOGLE_CALLBACK_URL=http://localhost:3001/api/auth/google/redirect
 
 ```bash
 # 後端
-cd backend
-npm install
-npm run dev   # http://localhost:3001
+cd backend && npm install && npm run dev   # http://localhost:3001
 
-# 前端（另開一個終端機）
-cd frontend
-npm install
-npm run dev   # http://localhost:3000
+# 前端（另開終端機）
+cd frontend && npm install && npm run dev  # http://localhost:3000
 ```
 
-開啟 http://localhost:3000，即可註冊帳號並開始使用。
+## ☁️ 部署（Vercel + Supabase）
 
-## 🗂 資料表設計
+前後端是**兩個獨立的 Vercel 專案**，部署順序：Supabase → 後端 → 前端 → Google OAuth。
 
-| Table              | 說明                               |
-| ------------------ | ---------------------------------- |
-| users              | 會員資訊（本地帳號 / Google）      |
-| habits             | 習慣設定（標題、總週數、封存狀態） |
-| habit_weeks        | 各習慣的週期與起始日               |
-| habit_week_tasks   | 每週任務與目標天數                 |
-| habit_task_logs    | 每日打卡完成紀錄                   |
-| habit_weekly_notes | 每週記事                           |
+### 1. Supabase（資料庫）
 
-關聯結構：
+1. 建立專案後，到 **SQL Editor** 執行 `backend/schema-postgresql.sql`
+2. 到 **Connect（連線資訊）** 複製 **Transaction pooler** 的連線字串（port `6543`）——Vercel 是 serverless，務必用 pooler，不要用 Direct connection（port 5432），否則連線數很快耗盡
 
-```
-users
- └─ habits
-     └─ habit_weeks
-         ├─ habit_week_tasks
-         │   └─ habit_task_logs
-         └─ habit_weekly_notes
-```
+### 2. 後端專案
 
-- 完整 schema：`backend/schema-postgresql.sql`
-- 若是「既有資料庫」要套用帳號（account）登入的調整，請執行 `backend/migrations/001_add_account.sql`
+Vercel 新增專案 → 匯入此 repo → **Root Directory 設為 `backend`** → 環境變數：
+
+| 變數                   | 值                                                    |
+| ---------------------- | ----------------------------------------------------- |
+| `DATABASE_URL`         | Supabase Transaction pooler 連線字串（port 6543）     |
+| `JWT_SECRET`           | 隨機長字串（可用 `openssl rand -base64 48` 產生）     |
+| `NODE_ENV`             | `production`                                          |
+| `FRONTEND_URL`         | 前端網址，如 `https://treebit-site.vercel.app`        |
+| `GOOGLE_CLIENT_ID`     | Google OAuth 用戶端 ID                                |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth 用戶端密鑰                               |
+| `GOOGLE_CALLBACK_URL`  | **前端網域** + `/api/auth/google/redirect`（見下方）  |
+
+### 3. 前端專案
+
+Vercel 再新增一個專案 → 同一個 repo → **Root Directory 設為 `frontend`**。
+
+部署前，把 `frontend/next.config.js` rewrites 中的後端網址改成你的新後端網域（`frontend/vercel.json` 與其重複，二擇一維護即可）。
+
+### 4. Google OAuth（Google Cloud Console）
+
+1. [Google Cloud Console](https://console.cloud.google.com/apis/credentials) → 建立 OAuth 2.0 用戶端 ID（網頁應用程式）
+2. **已授權的重新導向 URI** 填：
+   - `https://<前端網域>/api/auth/google/redirect`（生產）
+   - `http://localhost:3001/api/auth/google/redirect`（本地開發）
+
+> ⚠️ 生產環境的 callback 一定要走**前端網域**：Google 導回前端網域 → rewrites 代理到後端 → 後端的 Set-Cookie 落在前端網域，成為第一方 Cookie。若 callback 直接填後端網域，Cookie 會落在後端網域，前端拿不到登入狀態（跨網域第三方 Cookie 會被瀏覽器擋掉）。
+
+### 5. 部署後檢查
+
+- `https://<前端網域>/api/auth/me` 回傳 `{"success":true,...}` → 代理正常
+- 註冊 / 登入 / Google 登入 / 打卡各流程走一遍
