@@ -14,7 +14,13 @@ import {
 } from '@/components/ui/dropdown-menu'
 import Loader from '@/app/_components/Loader'
 import { getGrowthStage } from '@/app/_components/GrowthStageIcon'
-import { getWeekDates } from '@/lib/utils'
+import {
+  getWeekDates,
+  getTaiwanTodayYMD,
+  formatDateToLocalYMD,
+  addDaysToYMD,
+} from '@/lib/utils'
+import { API_BASE_URL } from '@/lib/api'
 import HabitHeader from '../_components/HabitHeader'
 import HabitStats from '../_components/HabitStats'
 import TaskTable from '../_components/TaskTable'
@@ -39,9 +45,6 @@ export default function HabitTracker() {
   // 不參與 render，改成 state 反而會讓它變動時觸發 effect 重跑、重複打 API
   const isInitialLoadRef = useRef(true)
 
-  const API_BASE_URL =
-    process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3001'
-
   const fetchHabit = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/habits/${habitId}`, {
@@ -57,7 +60,7 @@ export default function HabitTracker() {
       console.error('獲取習慣資訊錯誤:', err)
       setError('載入習慣資訊失敗')
     }
-  }, [habitId, API_BASE_URL])
+  }, [habitId])
 
   // 整體統計（累計完成、目標總次數），打卡後同步更新
   const fetchStats = useCallback(async () => {
@@ -72,7 +75,7 @@ export default function HabitTracker() {
     } catch (err) {
       console.error('獲取統計資料錯誤:', err)
     }
-  }, [habitId, API_BASE_URL])
+  }, [habitId])
 
   const fetchAllWeeks = useCallback(async () => {
     try {
@@ -83,19 +86,13 @@ export default function HabitTracker() {
       if (data.success) {
         setAllWeeks(data.data)
 
-        // 計算當前週的索引（使用台灣時區）
-        const now = new Date()
+        // 計算當前週的索引：以台灣時區的今天做純字串比較，避免瀏覽器時區位移
+        const todayYMD = getTaiwanTodayYMD()
 
         const currentWeekIdx = data.data.findIndex((week) => {
-          // 取得 start_date 的日期部分（忽略時間）
-          const startDateStr = week.start_date.split('T')[0] // "2026-01-05"
-          const startDate = new Date(startDateStr + 'T00:00:00+08:00') // 台灣時區
-
-          const endDate = new Date(startDate)
-          endDate.setDate(startDate.getDate() + 6) // 週結束日期
-          endDate.setHours(23, 59, 59, 999) // 設定為當天最後一刻
-
-          return now >= startDate && now <= endDate
+          const start = formatDateToLocalYMD(week.start_date)
+          const end = addDaysToYMD(start, 6)
+          return todayYMD >= start && todayYMD <= end
         })
 
         // 如果找到當前週，設定索引；否則使用最後一週
@@ -110,81 +107,72 @@ export default function HabitTracker() {
       console.error('獲取週次資料錯誤:', err)
       setError('載入週次資料失敗')
     }
-  }, [habitId, API_BASE_URL])
+  }, [habitId])
 
-  const fetchCurrentWeekTasks = useCallback(
-    async (weekId) => {
-      try {
-        const res = await fetch(
-          `${API_BASE_URL}/api/habits/weeks/${weekId}/tasks`,
-          {
-            credentials: 'include',
-          }
-        )
-        const data = await res.json()
-        if (data.success) {
-          setTasks(data.data)
+  const fetchCurrentWeekTasks = useCallback(async (weekId) => {
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/habits/weeks/${weekId}/tasks`,
+        {
+          credentials: 'include',
         }
-      } catch (err) {
-        console.error('獲取任務資料錯誤:', err)
+      )
+      const data = await res.json()
+      if (data.success) {
+        setTasks(data.data)
       }
-    },
-    [API_BASE_URL]
-  )
+    } catch (err) {
+      console.error('獲取任務資料錯誤:', err)
+    }
+  }, [])
 
-  const fetchCurrentWeekNotes = useCallback(
-    async (weekId) => {
-      try {
-        const res = await fetch(
-          `${API_BASE_URL}/api/habits/weeks/${weekId}/notes`,
-          {
-            credentials: 'include',
-          }
-        )
-        const data = await res.json()
-        if (data.success) {
-          setWeeklyNotes(data.data)
+  const fetchCurrentWeekNotes = useCallback(async (weekId) => {
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/habits/weeks/${weekId}/notes`,
+        {
+          credentials: 'include',
         }
-      } catch (err) {
-        console.error('獲取筆記資料錯誤:', err)
+      )
+      const data = await res.json()
+      if (data.success) {
+        setWeeklyNotes(data.data)
       }
-    },
-    [API_BASE_URL]
-  )
+    } catch (err) {
+      console.error('獲取筆記資料錯誤:', err)
+    }
+  }, [])
 
-  const fetchCurrentWeekLogs = useCallback(
-    async (weekId) => {
-      try {
-        const res = await fetch(
-          `${API_BASE_URL}/api/habits/weeks/${weekId}/logs`,
-          {
-            credentials: 'include',
-          }
-        )
-        const data = await res.json()
-        if (data.success) {
-          const logsMap = {}
-          data.data.forEach((log) => {
-            const taskId = Number(log.task_id)
-            if (!logsMap[taskId]) {
-              logsMap[taskId] = {}
-            }
-
-            // 資料庫儲存的日期已經是 YYYY-MM-DD 格式，直接使用即可
-            const dateStr = log.date.split('T')[0]
-
-            // PostgreSQL boolean 經 JSON 回傳為 true/false
-            logsMap[taskId][dateStr] = log.is_completed === true
-          })
-
-          setTaskLogs(logsMap)
+  const fetchCurrentWeekLogs = useCallback(async (weekId) => {
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/habits/weeks/${weekId}/logs`,
+        {
+          credentials: 'include',
         }
-      } catch (err) {
-        console.error('獲取打卡記錄錯誤:', err)
+      )
+      const data = await res.json()
+      if (data.success) {
+        const logsMap = {}
+        data.data.forEach((log) => {
+          const taskId = Number(log.task_id)
+          if (!logsMap[taskId]) {
+            logsMap[taskId] = {}
+          }
+
+          // 資料庫儲存的日期已經是 YYYY-MM-DD 格式，直接使用即可
+          const dateStr = log.date.split('T')[0]
+
+          // PostgreSQL boolean 經 JSON 回傳為 true/false
+          logsMap[taskId][dateStr] = log.is_completed === true
+        })
+
+        setTaskLogs(logsMap)
       }
-    },
-    [API_BASE_URL]
-  )
+    } catch (err) {
+      console.error('獲取打卡記錄錯誤:', err)
+    }
+  }, [])
 
   const getCurrentWeekDates = () => getWeekDates(currentWeekData?.start_date)
 
@@ -234,9 +222,12 @@ export default function HabitTracker() {
         if (!isInitialLoadRef.current) {
           setIsWeekDataLoading(true)
         }
-        await fetchCurrentWeekTasks(currentWeek.id)
-        await fetchCurrentWeekNotes(currentWeek.id)
-        await fetchCurrentWeekLogs(currentWeek.id)
+        // 三支互不依賴，並行載入
+        await Promise.all([
+          fetchCurrentWeekTasks(currentWeek.id),
+          fetchCurrentWeekNotes(currentWeek.id),
+          fetchCurrentWeekLogs(currentWeek.id),
+        ])
         setIsWeekDataLoading(false)
 
         // 初始載入完成後，關閉主要的 loading 狀態
@@ -323,8 +314,10 @@ export default function HabitTracker() {
 
       if (data.success) {
         toast.success('新增任務成功！')
-        await fetchCurrentWeekTasks(currentWeekData.id)
-        await fetchCurrentWeekLogs(currentWeekData.id)
+        await Promise.all([
+          fetchCurrentWeekTasks(currentWeekData.id),
+          fetchCurrentWeekLogs(currentWeekData.id),
+        ])
         fetchStats()
       } else {
         toast.error(data.message || '新增任務失敗')
@@ -357,8 +350,10 @@ export default function HabitTracker() {
       const data = await res.json()
       if (data.success) {
         toast.success(data.message || '編輯任務成功！')
-        await fetchCurrentWeekTasks(currentWeekData.id)
-        await fetchCurrentWeekLogs(currentWeekData.id)
+        await Promise.all([
+          fetchCurrentWeekTasks(currentWeekData.id),
+          fetchCurrentWeekLogs(currentWeekData.id),
+        ])
         fetchStats()
         return data.message || '編輯任務成功！'
       } else {
@@ -387,8 +382,10 @@ export default function HabitTracker() {
 
       if (data.success) {
         toast.success('刪除任務成功！')
-        await fetchCurrentWeekTasks(currentWeekData.id)
-        await fetchCurrentWeekLogs(currentWeekData.id)
+        await Promise.all([
+          fetchCurrentWeekTasks(currentWeekData.id),
+          fetchCurrentWeekLogs(currentWeekData.id),
+        ])
         fetchStats()
       } else {
         toast.error(data.message || '刪除任務失敗')

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { PiCaretLeftBold } from 'react-icons/pi'
 import Loader from '@/app/_components/Loader'
 import { formatDateToLocalYMD, getWeekDates } from '@/lib/utils'
+import { API_BASE_URL } from '@/lib/api'
 
 import HistoryHabitHeader from '../_components/HistoryHabitHeader'
 import HistoryTaskTable from '../_components/HistoryTaskTable'
@@ -27,9 +28,6 @@ export default function HabitHistoryTracker() {
   const [error, setError] = useState(null)
   const [isWeekDataLoading, setIsWeekDataLoading] = useState(false)
   const [isInitialLoad, setIsInitialLoad] = useState(true)
-
-  const API_BASE_URL =
-    process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3001'
 
   const fetchHabit = async () => {
     try {

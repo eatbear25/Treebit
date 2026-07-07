@@ -14,8 +14,7 @@ import HabitStats from '@/app/(main)/habits/_components/HabitStats'
 import TaskTable from '@/app/(main)/habits/_components/TaskTable'
 import AvatarInitial from '../../../_components/AvatarInitial'
 
-const API_BASE_URL =
-  process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3001'
+import { API_BASE_URL } from '@/lib/api'
 
 // 好友習慣的唯讀詳情：後端一次回傳整包（habit + weeks + tasks + logs + stats），
 // 週次切換為純前端操作，不再逐週打 API

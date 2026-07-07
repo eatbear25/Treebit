@@ -6,8 +6,7 @@ import AuthGuard from '@/app/_components/AuthGuard'
 import { useEffect, useState } from 'react'
 import Loader from '@/app/_components/Loader'
 
-const API_BASE_URL =
-  process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3001'
+import { API_BASE_URL } from '@/lib/api'
 
 export default function Habits() {
   const [habits, setHabits] = useState([])

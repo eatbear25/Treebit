@@ -28,8 +28,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 
-const API_BASE_URL =
-  process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3001'
+import { API_BASE_URL } from '@/lib/api'
 
 // 選中 tab 用「白卡浮起」呈現（design-system：不用淡綠底疊暖白）
 const tabTriggerClass =

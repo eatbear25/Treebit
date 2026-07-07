@@ -21,8 +21,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import RenameHabitDialog from './RenameHabitDialog'
 
-const API_BASE_URL =
-  process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3001'
+import { API_BASE_URL } from '@/lib/api'
 
 // 習慣的「⋯」操作選單（重新命名／分享／封存／刪除），卡片與條列檢視共用
 export default function HabitActionsMenu({

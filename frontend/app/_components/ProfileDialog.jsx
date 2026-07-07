@@ -51,8 +51,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 
-const API_BASE_URL =
-  process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3001'
+import { API_BASE_URL } from '@/lib/api'
 
 const PasswordInput = forwardRef(({ className, ...props }, ref) => {
   const [showPassword, setShowPassword] = useState(false)

@@ -1,5 +1,4 @@
-const API_BASE_URL =
-  process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3001'
+import { API_BASE_URL } from '@/lib/api'
 
 export async function apiRequest(url, options = {}) {
   const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`

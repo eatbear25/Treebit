@@ -23,8 +23,7 @@ import {
 } from '@/components/ui/select'
 import Loader from '@/app/_components/Loader'
 
-const API_BASE_URL =
-  process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3001'
+import { API_BASE_URL } from '@/lib/api'
 
 // 匯入上週任務：勾選要帶到本週的任務，目標次數可先調整
 export default function ImportTasksDialog({

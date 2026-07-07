@@ -1,13 +1,9 @@
 import Link from 'next/link'
 import { RegisterForm } from '@/app/(auth)/_components/RegisterForm'
 import GuestGuard from '@/app/_components/GuestGuard'
+import { API_BASE_URL } from '@/lib/api'
 
 export default function TreebitRegister() {
-  // const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
-
-  const API_URL =
-    process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3001'
-
   return (
     <GuestGuard>
       {/* Main Content */}
@@ -28,7 +24,7 @@ export default function TreebitRegister() {
             {/* Social Login Buttons */}
             <div className="mb-6 space-y-4">
               <a
-                href={`${API_URL}/api/auth/google`}
+                href={`${API_BASE_URL}/api/auth/google`}
                 className="border-border hover:bg-muted flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border px-4 py-3 transition-colors active:scale-[0.99]"
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24">

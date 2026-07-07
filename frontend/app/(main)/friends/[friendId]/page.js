@@ -10,8 +10,7 @@ import Loader from '@/app/_components/Loader'
 import HabitCard from '@/app/(main)/habits/_components/HabitCard'
 import AvatarInitial from '../_components/AvatarInitial'
 
-const API_BASE_URL =
-  process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3001'
+import { API_BASE_URL } from '@/lib/api'
 
 export default function FriendHabits() {
   const params = useParams()
