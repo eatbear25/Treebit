@@ -16,9 +16,7 @@ export default function BackToTopButton() {
   }, [])
 
   const scrollToTop = () => {
-    const reduce = window.matchMedia(
-      '(prefers-reduced-motion: reduce)'
-    ).matches
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' })
   }
 
@@ -27,7 +25,7 @@ export default function BackToTopButton() {
       type="button"
       onClick={scrollToTop}
       aria-label="回到頂端"
-      className={`bg-brand-700 hover:bg-brand-800 dark:text-brand-50 fixed right-6 bottom-6 z-40 flex h-12 w-12 items-center justify-center rounded-full text-white shadow-[0_10px_24px_-10px_rgba(60,86,69,0.55)] transition-[opacity,transform,background-color] duration-300 active:scale-[0.95] md:right-8 md:bottom-8 ${
+      className={`bg-brand-700 hover:bg-brand-800 dark:text-brand-50 fixed right-6 bottom-6 z-40 flex h-12 w-12 items-center justify-center rounded-full text-white shadow-[0_10px_24px_-10px_rgba(60,86,69,0.55)] transition-[opacity,transform,background-color] duration-300 hover:cursor-pointer active:scale-[0.95] md:right-8 md:bottom-8 ${
         visible
           ? 'translate-y-0 opacity-100'
           : 'pointer-events-none translate-y-3 opacity-0'
