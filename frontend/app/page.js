@@ -9,6 +9,7 @@ import {
 } from 'react-icons/pi'
 import LandingNav from './_components/LandingNav'
 import Reveal from './_components/Reveal'
+import BackToTopButton from './_components/BackToTopButton'
 import HeroAppPreview from './_components/HeroAppPreview'
 import GrowthStageIcon from './_components/GrowthStageIcon'
 
@@ -351,6 +352,8 @@ export default function Home() {
           <p className="text-muted-foreground text-sm">© 2026 Treebit</p>
         </div>
       </footer>
+
+      <BackToTopButton />
     </>
   )
 }
