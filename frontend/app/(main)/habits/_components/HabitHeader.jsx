@@ -1,8 +1,66 @@
-import { PiTargetBold } from 'react-icons/pi'
+'use client'
+
+import { useLayoutEffect, useState } from 'react'
+import { PiTargetBold, PiCaretDownBold } from 'react-icons/pi'
 import WeekNavigation from './WeekNavigation'
 import GrowthStageIcon, {
   GROWTH_STAGES,
 } from '@/app/_components/GrowthStageIcon'
+
+// 目標文字可能超長：預設單行截斷，偵測到溢出才允許點擊展開／收起
+function HabitGoal({ goal }) {
+  const [textEl, setTextEl] = useState(null)
+  const [expanded, setExpanded] = useState(false)
+  const [clamped, setClamped] = useState(false)
+
+  useLayoutEffect(() => {
+    if (!textEl || expanded) return
+    const check = () => setClamped(textEl.scrollWidth > textEl.clientWidth)
+    check()
+    const observer = new ResizeObserver(check)
+    observer.observe(textEl)
+    return () => observer.disconnect()
+  }, [textEl, goal, expanded])
+
+  const toggleable = clamped || expanded
+
+  const content = (
+    <>
+      <PiTargetBold className="text-brand-700 mt-[3px] shrink-0" />
+      <span
+        ref={setTextEl}
+        className={expanded ? 'min-w-0 break-words' : 'min-w-0 truncate'}
+      >
+        {goal}
+      </span>
+      {toggleable && (
+        <PiCaretDownBold
+          className={`text-muted-foreground/70 mt-1 shrink-0 text-xs transition-transform ${
+            expanded ? 'rotate-180' : ''
+          }`}
+        />
+      )}
+    </>
+  )
+
+  const baseClass = 'text-muted-foreground mt-1 flex items-start gap-1.5 text-sm'
+
+  if (!toggleable) {
+    return <p className={baseClass}>{content}</p>
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => setExpanded((v) => !v)}
+      aria-expanded={expanded}
+      title={expanded ? '收起' : '展開完整目標'}
+      className={`${baseClass} w-full cursor-pointer text-left`}
+    >
+      {content}
+    </button>
+  )
+}
 
 export default function HabitHeader({
   challengeName,
@@ -37,12 +95,7 @@ export default function HabitHeader({
             共 <span className="tnum">{totalWeeks}</span> 週 ·{' '}
             {GROWTH_STAGES[stage]}
           </p>
-          {goal && (
-            <p className="text-muted-foreground mt-1 flex items-center gap-1.5 text-sm">
-              <PiTargetBold className="text-brand-700 shrink-0" />
-              <span className="truncate">{goal}</span>
-            </p>
-          )}
+          {goal && <HabitGoal goal={goal} />}
         </div>
         {menu}
       </div>
