@@ -45,7 +45,7 @@ const steps = [
   {
     no: '03',
     title: '每天打卡澆水',
-    desc: '做到了就打個勾。連續天數與達成率自動累積，你的樹也跟著長大。',
+    desc: '做到了就打個勾。連續達標週數與達成率自動累積，你的樹也跟著長大。',
   },
   {
     no: '04',
@@ -58,8 +58,8 @@ const features = [
   {
     Icon: PiFlameFill,
     iconClass: 'text-streak',
-    title: '連續天數',
-    desc: '每多堅持一天，火苗就燒得更旺。那種捨不得中斷的感覺，就是習慣正在生根。',
+    title: '連續達標',
+    desc: '每週完成八成五的計畫，火苗就繼續燒。不必完美，持續就是勝利。',
   },
   {
     Icon: PiCheckBold,

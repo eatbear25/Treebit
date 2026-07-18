@@ -2,7 +2,7 @@ import express from "express";
 import { rateLimit } from "express-rate-limit";
 import db from "../config/connect-postgresql.js";
 import authenticate from "../middlewares/authenticate.js";
-import { getTaiwanTodayYMD, computeCurrentStreak } from "../utils/date.js";
+import { getTaiwanTodayYMD, computeWeeklyStreak } from "../utils/date.js";
 
 const router = express.Router();
 
@@ -267,29 +267,35 @@ router.get("/:friendId/habits", authenticate, async (req, res) => {
       [friendId]
     );
 
-    // 連續打卡：與 GET /habits 相同做法，程式端計算
-    const [dateRows] = await db.query(
-      `SELECT hw.habit_id, htl.date
+    // 連續達標週數：與 GET /habits 相同做法，程式端計算
+    const [weekRows] = await db.query(
+      `SELECT hw.habit_id, hw.week_number, hw.start_date,
+        COALESCE(SUM(LEAST(COALESCE(l.cnt, 0), hwt.target_days)), 0)::int AS done,
+        COALESCE(SUM(hwt.target_days), 0)::int AS target
        FROM habits h
        JOIN habit_weeks hw ON hw.habit_id = h.id
-       JOIN habit_week_tasks hwt ON hwt.habit_week_id = hw.id
-       JOIN habit_task_logs htl ON htl.task_id = hwt.id
+       LEFT JOIN habit_week_tasks hwt ON hwt.habit_week_id = hw.id
+       LEFT JOIN (
+         SELECT task_id, COUNT(*)::int AS cnt
+         FROM habit_task_logs
+         WHERE is_completed = true
+         GROUP BY task_id
+       ) l ON l.task_id = hwt.id
        WHERE h.user_id = ? AND h.visibility = 'friends' AND h.is_archived = false
-         AND htl.is_completed = true
-       GROUP BY hw.habit_id, htl.date`,
+       GROUP BY hw.habit_id, hw.week_number, hw.start_date`,
       [friendId]
     );
 
-    const datesByHabit = new Map();
-    for (const row of dateRows) {
-      if (!datesByHabit.has(row.habit_id)) datesByHabit.set(row.habit_id, []);
-      datesByHabit.get(row.habit_id).push(row.date);
+    const weeksByHabit = new Map();
+    for (const row of weekRows) {
+      if (!weeksByHabit.has(row.habit_id)) weeksByHabit.set(row.habit_id, []);
+      weeksByHabit.get(row.habit_id).push(row);
     }
 
     const today = getTaiwanTodayYMD();
     const habits = rows.map((h) => ({
       ...h,
-      current_streak: computeCurrentStreak(datesByHabit.get(h.id) || [], today),
+      current_streak: computeWeeklyStreak(weeksByHabit.get(h.id) || [], today),
     }));
 
     const [friendRows] = await db.query(
@@ -355,17 +361,34 @@ router.get("/habits/:habitId", authenticate, async (req, res) => {
       0
     );
     const weeksWithTasks = new Set(tasks.map((t) => t.habit_week_id)).size;
-    const completedDates = [
-      ...new Set(
-        logs.filter((l) => l.is_completed === true).map((l) => l.date)
-      ),
-    ];
+
+    // 連續達標週數：以已撈出的資料在程式端聚合（各任務完成次數以目標封頂）
+    const completedByTask = new Map();
+    for (const l of logs) {
+      if (l.is_completed === true) {
+        completedByTask.set(l.task_id, (completedByTask.get(l.task_id) || 0) + 1);
+      }
+    }
+    const weekAgg = weeks.map((w) => {
+      const weekTasks = tasks.filter((t) => t.habit_week_id === w.id);
+      return {
+        week_number: w.week_number,
+        start_date: w.start_date,
+        done: weekTasks.reduce(
+          (sum, t) =>
+            sum + Math.min(completedByTask.get(t.id) || 0, t.target_days || 0),
+          0
+        ),
+        target: weekTasks.reduce((sum, t) => sum + (t.target_days || 0), 0),
+      };
+    });
+
     const stats = {
       total_weeks: weeks.length,
       completed_logs: completedLogs,
       total_target_days: totalTargetDays,
       weeks_with_tasks: weeksWithTasks,
-      current_streak: computeCurrentStreak(completedDates),
+      current_streak: computeWeeklyStreak(weekAgg),
     };
 
     sendResponse(res, 200, true, { habit, weeks, tasks, logs, stats });

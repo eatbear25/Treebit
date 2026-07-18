@@ -1,7 +1,8 @@
 import { PiFlameFill } from 'react-icons/pi'
 
 // 統計摘要列：全部使用真實資料（本週任務 + /stats API），不放示意數據。
-// 「本週達成」以各任務目標次數封頂，超打不灌水；「連續打卡」由後端計算。
+// 「本週達成」以各任務目標次數封頂，超打不灌水；
+// 「連續達標」由後端計算：週執行率達 85% 即算該週達標（《The 12 Week Year》標準）。
 export default function HabitStats({
   currentWeek,
   totalWeeks,
@@ -33,9 +34,9 @@ export default function HabitStats({
       unit: overallRate !== null ? ' %' : '',
     },
     {
-      label: '連續打卡',
+      label: '連續達標',
       value: currentStreak,
-      unit: ' 天',
+      unit: ' 週',
       flame: true,
     },
   ]

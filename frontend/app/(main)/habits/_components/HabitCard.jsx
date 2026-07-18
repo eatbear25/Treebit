@@ -156,14 +156,14 @@ export default function HabitCard({
           </dd>
         </div>
         <div>
-          <dt className="text-muted-foreground text-sm">連續打卡</dt>
+          <dt className="text-muted-foreground text-sm">連續達標</dt>
           <dd className="font-outfit mt-1 flex items-center gap-1.5 text-2xl font-bold md:text-3xl">
             <PiFlameFill
               className={`text-xl ${streak > 0 ? 'text-streak' : 'text-muted-foreground/40'}`}
             />
             {streak}
             <span className="text-muted-foreground text-base font-semibold">
-              天
+              週
             </span>
           </dd>
         </div>

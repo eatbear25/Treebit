@@ -12,18 +12,33 @@ export function getTaiwanTodayYMD() {
   }).format(new Date());
 }
 
-// 計算「目前連續打卡天數」：從今天（或昨天）往回數，每天至少完成一次打卡即延續。
-// 今天還沒打卡不算中斷（當天結束前都還有機會），從昨天起算。
-// dates 為 "YYYY-MM-DD" 字串陣列（不需排序）。
-export function computeCurrentStreak(dates, todayYMD = getTaiwanTodayYMD()) {
-  const set = new Set(dates);
-  let cursor = todayYMD;
-  if (!set.has(cursor)) cursor = addDaysToYMD(cursor, -1);
+// 週達標門檻：週執行率（各任務完成次數以目標封頂後加總 ÷ 目標加總）達 85% 即算該週達標。
+// 取自《The 12 Week Year》的每週執行分數標準——不要求完美，85% 以上就視為成功的一週。
+export const WEEKLY_PASS_PERCENT = 85;
+
+// 計算「連續達標週數」：從本週往回數，週週達標即延續。
+// 本週還沒結束，未達標不算中斷（從上一週起算）；已達標則計入。
+// 未開始的週（start_date 在今天之後）不計；沒建任務的週（target 為 0）視為未達標。
+// weeks 為 [{ week_number, start_date, done, target }]，start_date 為 "YYYY-MM-DD" 字串，
+// done 為該週各任務完成次數以目標封頂後的加總，target 為該週目標次數加總。
+export function computeWeeklyStreak(weeks, todayYMD = getTaiwanTodayYMD()) {
+  const started = weeks
+    .filter((w) => w.start_date <= todayYMD)
+    .sort((a, b) => a.week_number - b.week_number);
+  if (started.length === 0) return 0;
+
+  const passed = (w) =>
+    w.target > 0 && w.done * 100 >= w.target * WEEKLY_PASS_PERCENT;
+
+  let i = started.length - 1;
+  const latest = started[i];
+  const latestEnd = addDaysToYMD(latest.start_date, 6);
+  if (todayYMD <= latestEnd && !passed(latest)) i--;
 
   let streak = 0;
-  while (set.has(cursor)) {
+  for (; i >= 0; i--) {
+    if (!passed(started[i])) break;
     streak++;
-    cursor = addDaysToYMD(cursor, -1);
   }
   return streak;
 }

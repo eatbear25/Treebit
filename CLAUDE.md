@@ -46,7 +46,7 @@ users ─┬─> habits ─> habit_weeks ─┬─> habit_week_tasks ─> habit_
 
 - `index.js`：進入點（啟動前檢查 JWT_SECRET）、CORS 白名單（FRONTEND_URL，可逗號分隔多網域）
 - `routes/auth.js`：註冊、登入（authLimiter 限流）、登出、/me、會員資料、改密碼、Google OAuth
-- `routes/habits.js`：習慣 CRUD、週期、任務、打卡、週記事、統計（streak 在程式端用 `computeCurrentStreak` 算）
+- `routes/habits.js`：習慣 CRUD、週期、任務、打卡、週記事、統計（連續達標週數在程式端用 `computeWeeklyStreak` 算：週執行率＝各任務完成次數以目標封頂加總 ÷ 目標加總，達 85% 即該週達標，取自《The 12 Week Year》）
 - `routes/friends.js`：好友碼、邀請、好友列表、好友習慣唯讀檢視
 - `middlewares/authenticate.js`：`authenticate`（必須登入）/ `optionalAuthenticate`
 - `config/connect-postgresql.js`：連線池 + DATE(1082) parser 直接回字串（時區安全的關鍵）

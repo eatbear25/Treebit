@@ -21,7 +21,7 @@ export default function HeroAppPreview() {
   return (
     <div
       role="img"
-      aria-label="Treebit 打卡畫面示意：習慣「規律運動」進行到第 3 週，三個每週任務的打卡格、連續打卡 12 天、成長階段為樹苗"
+      aria-label="Treebit 打卡畫面示意：習慣「規律運動」進行到第 3 週，三個每週任務的打卡格、連續達標 3 週、成長階段為樹苗"
       className="relative mx-auto w-full max-w-xl select-none"
     >
       <div aria-hidden className="pointer-events-none">
@@ -89,7 +89,7 @@ export default function HeroAppPreview() {
           </div>
         </div>
 
-        {/* 浮動小卡：連續打卡（streak 暖色僅此處使用） */}
+        {/* 浮動小卡：連續達標（streak 暖色僅此處使用） */}
         <div
           className="animate-float bg-card absolute -top-9 -right-1 flex items-center gap-3 rounded-2xl px-4 py-3 shadow-[0_18px_40px_-18px_rgba(60,86,69,0.5)] sm:-top-10 sm:-right-8 sm:px-5 sm:py-4 dark:ring-1 dark:ring-white/10"
           style={{ animationDelay: '-2.5s' }}
@@ -97,12 +97,12 @@ export default function HeroAppPreview() {
           <PiFlameFill className="text-streak text-2xl sm:text-3xl" />
           <div className="text-left">
             <p className="text-muted-foreground text-[10px] sm:text-xs">
-              連續打卡
+              連續達標
             </p>
             <p className="font-outfit text-lg leading-tight font-bold sm:text-2xl">
-              12{' '}
+              3{' '}
               <span className="text-muted-foreground text-xs font-semibold">
-                天
+                週
               </span>
             </p>
           </div>

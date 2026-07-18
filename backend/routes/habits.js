@@ -4,7 +4,7 @@ import authenticate from "../middlewares/authenticate.js";
 import {
   getTaiwanTodayYMD,
   addDaysToYMD,
-  computeCurrentStreak,
+  computeWeeklyStreak,
 } from "../utils/date.js";
 
 const router = express.Router();
@@ -160,28 +160,35 @@ router.get("/", authenticate, async (req, res) => {
       [userId]
     );
 
-    // 連續打卡天數：一次撈出所有習慣「有完成打卡的日期」，於程式端計算 streak
-    const [dateRows] = await db.query(
-      `SELECT hw.habit_id, htl.date
+    // 連續達標週數：一次撈出所有習慣的每週執行量（各任務完成次數以目標封頂），於程式端計算 streak
+    const [weekRows] = await db.query(
+      `SELECT hw.habit_id, hw.week_number, hw.start_date,
+        COALESCE(SUM(LEAST(COALESCE(l.cnt, 0), hwt.target_days)), 0)::int AS done,
+        COALESCE(SUM(hwt.target_days), 0)::int AS target
        FROM habits h
        JOIN habit_weeks hw ON hw.habit_id = h.id
-       JOIN habit_week_tasks hwt ON hwt.habit_week_id = hw.id
-       JOIN habit_task_logs htl ON htl.task_id = hwt.id
-       WHERE h.user_id = ? AND h.is_archived = false AND htl.is_completed = true
-       GROUP BY hw.habit_id, htl.date`,
+       LEFT JOIN habit_week_tasks hwt ON hwt.habit_week_id = hw.id
+       LEFT JOIN (
+         SELECT task_id, COUNT(*)::int AS cnt
+         FROM habit_task_logs
+         WHERE is_completed = true
+         GROUP BY task_id
+       ) l ON l.task_id = hwt.id
+       WHERE h.user_id = ? AND h.is_archived = false
+       GROUP BY hw.habit_id, hw.week_number, hw.start_date`,
       [userId]
     );
 
-    const datesByHabit = new Map();
-    for (const row of dateRows) {
-      if (!datesByHabit.has(row.habit_id)) datesByHabit.set(row.habit_id, []);
-      datesByHabit.get(row.habit_id).push(row.date);
+    const weeksByHabit = new Map();
+    for (const row of weekRows) {
+      if (!weeksByHabit.has(row.habit_id)) weeksByHabit.set(row.habit_id, []);
+      weeksByHabit.get(row.habit_id).push(row);
     }
 
     const today = getTaiwanTodayYMD();
     const habits = rows.map((h) => ({
       ...h,
-      current_streak: computeCurrentStreak(datesByHabit.get(h.id) || [], today),
+      current_streak: computeWeeklyStreak(weeksByHabit.get(h.id) || [], today),
     }));
 
     sendResponse(res, 200, true, habits);
@@ -852,17 +859,24 @@ router.get("/:habitId/stats", authenticate, async (req, res) => {
       return sendResponse(res, 404, false, null, "找不到該習慣");
     }
 
-    // 連續打卡天數（每天至少完成一次即延續）
-    const [dateRows] = await db.query(
-      `SELECT htl.date
+    // 連續達標週數（每週執行率達門檻即延續，各任務完成次數以目標封頂）
+    const [weekRows] = await db.query(
+      `SELECT hw.week_number, hw.start_date,
+        COALESCE(SUM(LEAST(COALESCE(l.cnt, 0), hwt.target_days)), 0)::int AS done,
+        COALESCE(SUM(hwt.target_days), 0)::int AS target
        FROM habit_weeks hw
-       JOIN habit_week_tasks hwt ON hwt.habit_week_id = hw.id
-       JOIN habit_task_logs htl ON htl.task_id = hwt.id
-       WHERE hw.habit_id = ? AND htl.is_completed = true
-       GROUP BY htl.date`,
+       LEFT JOIN habit_week_tasks hwt ON hwt.habit_week_id = hw.id
+       LEFT JOIN (
+         SELECT task_id, COUNT(*)::int AS cnt
+         FROM habit_task_logs
+         WHERE is_completed = true
+         GROUP BY task_id
+       ) l ON l.task_id = hwt.id
+       WHERE hw.habit_id = ?
+       GROUP BY hw.week_number, hw.start_date`,
       [habitId]
     );
-    const current_streak = computeCurrentStreak(dateRows.map((r) => r.date));
+    const current_streak = computeWeeklyStreak(weekRows);
 
     sendResponse(res, 200, true, { ...stats[0], current_streak });
   } catch (error) {

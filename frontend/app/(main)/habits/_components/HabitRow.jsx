@@ -100,14 +100,14 @@ export default function HabitRow({
         </div>
 
         <div className="hidden w-20 shrink-0 text-right sm:block">
-          <p className="text-muted-foreground text-xs">連續打卡</p>
+          <p className="text-muted-foreground text-xs">連續達標</p>
           <p className="font-outfit mt-0.5 flex items-center justify-end gap-1 text-lg font-bold">
             <PiFlameFill
               className={`text-base ${streak > 0 ? 'text-streak' : 'text-muted-foreground/40'}`}
             />
             {streak}
             <span className="text-muted-foreground text-sm font-semibold">
-              天
+              週
             </span>
           </p>
         </div>
