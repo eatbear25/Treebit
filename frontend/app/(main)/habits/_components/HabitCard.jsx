@@ -22,6 +22,7 @@ export default function HabitCard({
   total_target_days,
   weeks_with_tasks,
   current_streak,
+  goal,
   id,
   onHabitsChanged,
   visibility,
@@ -97,6 +98,7 @@ export default function HabitCard({
             <HabitActionsMenu
               id={id}
               title={title}
+              goal={goal}
               visibility={visibility}
               onHabitsChanged={onHabitsChanged}
               className="-mt-1 -mr-1"

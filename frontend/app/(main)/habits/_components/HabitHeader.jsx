@@ -1,3 +1,4 @@
+import { PiTargetBold } from 'react-icons/pi'
 import WeekNavigation from './WeekNavigation'
 import GrowthStageIcon, {
   GROWTH_STAGES,
@@ -5,6 +6,8 @@ import GrowthStageIcon, {
 
 export default function HabitHeader({
   challengeName,
+  // 選填的習慣目標，僅本人詳情頁傳入（好友唯讀頁不顯示）
+  goal = null,
   totalWeeks,
   currentWeek,
   weekRange,
@@ -34,6 +37,12 @@ export default function HabitHeader({
             共 <span className="tnum">{totalWeeks}</span> 週 ·{' '}
             {GROWTH_STAGES[stage]}
           </p>
+          {goal && (
+            <p className="text-muted-foreground mt-1 flex items-center gap-1.5 text-sm">
+              <PiTargetBold className="text-brand-700 shrink-0" />
+              <span className="truncate">{goal}</span>
+            </p>
+          )}
         </div>
         {menu}
       </div>

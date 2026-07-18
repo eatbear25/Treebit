@@ -708,6 +708,7 @@ export default function HabitTracker() {
 
       <HabitHeader
         challengeName={habit.title}
+        goal={habit.goal}
         totalWeeks={habit.total_weeks}
         currentWeek={currentWeek}
         weekRange={weekRange}

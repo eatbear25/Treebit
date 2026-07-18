@@ -23,6 +23,7 @@ export default function HabitRow({
   total_target_days,
   weeks_with_tasks,
   current_streak,
+  goal,
   id,
   onHabitsChanged,
   visibility,
@@ -116,6 +117,7 @@ export default function HabitRow({
       <HabitActionsMenu
         id={id}
         title={title}
+        goal={goal}
         visibility={visibility}
         onHabitsChanged={onHabitsChanged}
         className="shrink-0"

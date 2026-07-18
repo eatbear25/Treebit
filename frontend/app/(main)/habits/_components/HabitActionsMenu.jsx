@@ -23,10 +23,11 @@ import RenameHabitDialog from './RenameHabitDialog'
 
 import { API_BASE_URL } from '@/lib/api'
 
-// 習慣的「⋯」操作選單（重新命名／分享／封存／刪除），卡片與條列檢視共用
+// 習慣的「⋯」操作選單（編輯／分享／封存／刪除），卡片與條列檢視共用
 export default function HabitActionsMenu({
   id,
   title,
+  goal,
   visibility,
   onHabitsChanged,
   className = '',
@@ -131,7 +132,7 @@ export default function HabitActionsMenu({
             className="cursor-pointer"
             onClick={() => setShowRenameDialog(true)}
           >
-            重新命名
+            編輯
           </DropdownMenuItem>
           <DropdownMenuItem
             className="cursor-pointer"
@@ -154,10 +155,11 @@ export default function HabitActionsMenu({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* 重新命名對話框 */}
+      {/* 編輯習慣對話框（名稱＋目標） */}
       <RenameHabitDialog
         habitId={id}
         currentTitle={title}
+        currentGoal={goal}
         open={showRenameDialog}
         onOpenChange={setShowRenameDialog}
         onRenamed={onHabitsChanged}

@@ -35,11 +35,16 @@ import {
 
 import { API_BASE_URL } from '@/lib/api'
 
+// 與 WeeklyNotes 相同的 textarea 樣式（專案未引入 shadcn Textarea）
+const textareaClass =
+  'w-full rounded-md border border-input bg-card px-3 py-2 text-sm shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground focus-visible:border-brand-300 focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive'
+
 const habitsSchema = z.object({
   title: z
     .string({ message: '習慣名稱為必填欄位' })
     .min(2, { message: '習慣名稱至少需 2 個字' }),
   total_weeks: z.string().min(1, { message: '總週數為必填欄位' }),
+  goal: z.string().max(500, { message: '目標最多 500 個字' }).optional(),
 })
 
 export function HabitForm({ onHabitAdded }) {
@@ -51,6 +56,7 @@ export function HabitForm({ onHabitAdded }) {
     defaultValues: {
       title: '',
       total_weeks: '',
+      goal: '',
     },
   })
 
@@ -67,6 +73,7 @@ export function HabitForm({ onHabitAdded }) {
         body: JSON.stringify({
           title: values.title,
           total_weeks: Number(values.total_weeks),
+          goal: values.goal?.trim() || null,
         }),
       })
 
@@ -106,7 +113,7 @@ export function HabitForm({ onHabitAdded }) {
         <DialogHeader>
           <DialogTitle>新增習慣</DialogTitle>
           <DialogDescription>
-            取個目標名稱，並決定要持續幾週；之後可以在每一週依需求加入不同的任務。
+            取個名稱、決定要持續幾週，也可以寫下想達成的目標；之後再逐週安排任務。
           </DialogDescription>
         </DialogHeader>
 
@@ -145,6 +152,25 @@ export function HabitForm({ onHabitAdded }) {
                         ))}
                       </SelectContent>
                     </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="goal"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>目標（選填）</FormLabel>
+                  <FormControl>
+                    <textarea
+                      rows={2}
+                      placeholder="例如：8 週後，我要能連續慢跑 5 公里"
+                      className={textareaClass}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

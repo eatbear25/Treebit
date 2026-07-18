@@ -293,7 +293,8 @@ router.get("/:friendId/habits", authenticate, async (req, res) => {
     }
 
     const today = getTaiwanTodayYMD();
-    const habits = rows.map((h) => ({
+    // goal 僅本人可見，回應前剔除
+    const habits = rows.map(({ goal, ...h }) => ({
       ...h,
       current_streak: computeWeeklyStreak(weeksByHabit.get(h.id) || [], today),
     }));
@@ -331,6 +332,7 @@ router.get("/habits/:habitId", authenticate, async (req, res) => {
       return sendResponse(res, 404, false, null, "找不到該習慣");
     }
     const habit = habits[0];
+    delete habit.goal; // goal 僅本人可見，回應前剔除
 
     const [weeks] = await db.query(
       `SELECT * FROM habit_weeks WHERE habit_id = ? ORDER BY week_number`,

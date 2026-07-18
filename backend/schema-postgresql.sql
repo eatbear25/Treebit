@@ -51,6 +51,7 @@ CREATE TABLE habits (
   user_id INTEGER NOT NULL,
   title VARCHAR(255) NOT NULL,
   total_weeks INTEGER NOT NULL,
+  goal TEXT, -- 選填的可衡量目標，僅本人可見（好友 API 會剔除）
   created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   is_archived BOOLEAN DEFAULT FALSE,
   visibility VARCHAR(10) NOT NULL DEFAULT 'private' CHECK (visibility IN ('private', 'friends')), -- 好友可見性

@@ -91,6 +91,11 @@ router.post("/", authenticate, async (req, res) => {
   // 驗證輸入
   const title = typeof req.body.title === "string" ? req.body.title.trim() : "";
   const totalWeeks = Number(req.body.total_weeks);
+  // 選填目標：空字串存 NULL
+  const goal =
+    typeof req.body.goal === "string" && req.body.goal.trim()
+      ? req.body.goal.trim()
+      : null;
 
   if (!title) {
     return sendResponse(res, 400, false, null, "標題為必填");
@@ -101,6 +106,9 @@ router.post("/", authenticate, async (req, res) => {
   if (!Number.isInteger(totalWeeks) || totalWeeks < 1 || totalWeeks > 52) {
     return sendResponse(res, 400, false, null, "總週數需為 1~52 的整數");
   }
+  if (goal && goal.length > 500) {
+    return sendResponse(res, 400, false, null, "目標最多 500 個字");
+  }
 
   // habit 與其所有週次必須一次成功，包進交易避免中途失敗留下半套資料
   const client = await db.pool.connect();
@@ -108,8 +116,8 @@ router.post("/", authenticate, async (req, res) => {
     await client.query("BEGIN");
 
     const result = await client.query(
-      `INSERT INTO habits (user_id, title, total_weeks) VALUES ($1, $2, $3) RETURNING id`,
-      [userId, title, totalWeeks]
+      `INSERT INTO habits (user_id, title, total_weeks, goal) VALUES ($1, $2, $3, $4) RETURNING id`,
+      [userId, title, totalWeeks, goal]
     );
     const habitId = result.rows[0].id;
 
@@ -320,6 +328,14 @@ router.patch("/:habitId", authenticate, async (req, res) => {
     if (title.length > 255) {
       return sendResponse(res, 400, false, null, "標題最多 255 個字");
     }
+    // 選填目標：空字串存 NULL
+    const goal =
+      typeof req.body.goal === "string" && req.body.goal.trim()
+        ? req.body.goal.trim()
+        : null;
+    if (goal && goal.length > 500) {
+      return sendResponse(res, 400, false, null, "目標最多 500 個字");
+    }
 
     const isOwner = await checkHabitOwner(habitId, userId);
     if (!isOwner) {
@@ -327,14 +343,14 @@ router.patch("/:habitId", authenticate, async (req, res) => {
     }
 
     await db.query(
-      `UPDATE habits SET title = ?, updated_at = NOW() WHERE id = ? AND user_id = ?`,
-      [title, habitId, userId]
+      `UPDATE habits SET title = ?, goal = ?, updated_at = NOW() WHERE id = ? AND user_id = ?`,
+      [title, goal, habitId, userId]
     );
 
-    sendResponse(res, 200, true, { title }, "習慣名稱已更新");
+    sendResponse(res, 200, true, { title, goal }, "習慣已更新");
   } catch (error) {
     console.error(error);
-    sendResponse(res, 500, false, null, "更新習慣名稱失敗");
+    sendResponse(res, 500, false, null, "更新習慣失敗");
   }
 });
 
