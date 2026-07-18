@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   PiCheckBold,
   PiDotsThreeBold,
@@ -22,6 +22,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import CheckBurst from './CheckBurst'
 
 export default function TaskRow({
   task,
@@ -40,6 +41,23 @@ export default function TaskRow({
   const [openConfirm, setOpenConfirm] = useState(false)
   // 只有從把手按下才允許拖曳整列，避免誤拖文字或按鈕
   const [dragArmed, setDragArmed] = useState(false)
+  // 打卡慶祝特效：記錄剛打勾的那一格（{ day, id }），動畫結束後清掉
+  const [burst, setBurst] = useState(null)
+  const burstTimerRef = useRef(null)
+
+  useEffect(() => {
+    return () => clearTimeout(burstTimerRef.current)
+  }, [])
+
+  const handleToggle = (dayIndex, completed) => {
+    // 只在「未完成 → 完成」時噴彩帶；取消打卡不慶祝
+    if (!completed) {
+      clearTimeout(burstTimerRef.current)
+      setBurst({ day: dayIndex, id: Date.now() })
+      burstTimerRef.current = setTimeout(() => setBurst(null), 800)
+    }
+    onToggleTask(task.id, dayIndex)
+  }
 
   const getCompletionRate = (task) => {
     return Math.min(
@@ -134,18 +152,27 @@ export default function TaskRow({
                 {completed && <PiCheckBold />}
               </span>
             ) : (
-              <button
-                onClick={() => onToggleTask(task.id, dayIndex)}
-                aria-label={`${task.name}：${weekDays[dayIndex]} ${completed ? '已完成' : '未完成'}`}
-                aria-pressed={completed}
-                className={`focus-visible:ring-ring/50 mx-auto flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg transition-all outline-none focus-visible:ring-[3px] active:scale-90 ${
-                  completed
-                    ? 'bg-brand-600 dark:text-brand-50 text-white shadow-[0_4px_10px_-4px_rgba(79,111,88,0.6)]'
-                    : 'border-border hover:border-brand-300 hover:bg-brand-50 border-2'
-                }`}
-              >
-                {completed && <PiCheckBold />}
-              </button>
+              <span className="relative mx-auto flex h-8 w-8">
+                <button
+                  onClick={() => handleToggle(dayIndex, completed)}
+                  aria-label={`${task.name}：${weekDays[dayIndex]} ${completed ? '已完成' : '未完成'}`}
+                  aria-pressed={completed}
+                  className={`focus-visible:ring-ring/50 flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg transition-all outline-none focus-visible:ring-[3px] active:scale-90 ${
+                    completed
+                      ? 'bg-brand-600 dark:text-brand-50 text-white shadow-[0_4px_10px_-4px_rgba(79,111,88,0.6)]'
+                      : 'border-border hover:border-brand-300 hover:bg-brand-50 border-2'
+                  }`}
+                >
+                  {completed && (
+                    <PiCheckBold
+                      className={
+                        burst?.day === dayIndex ? 'animate-check-pop' : ''
+                      }
+                    />
+                  )}
+                </button>
+                {burst?.day === dayIndex && <CheckBurst key={burst.id} />}
+              </span>
             )}
           </td>
         ))}

@@ -132,7 +132,8 @@ export default function TaskTable({
       <div className="p-5 lg:p-6">
         <h2 className="mb-6 text-lg font-bold">每日任務</h2>
 
-        <div className="overflow-x-auto">
+        {/* overflow-y-hidden：避免打卡彩帶飛出表格下緣時撐出垂直捲軸 */}
+        <div className="overflow-x-auto overflow-y-hidden">
           <table className="w-full">
             <thead>
               <tr className="border-border text-muted-foreground border-b text-sm">
