@@ -11,6 +11,7 @@ import {
   PiUsersThreeFill,
 } from 'react-icons/pi'
 import { useAuth } from '@/contexts/AuthContext'
+import { useFriendRequests } from '@/contexts/FriendRequestsContext'
 import ProfileDialog from './ProfileDialog'
 import ThemeToggle from './ThemeToggle'
 
@@ -38,6 +39,7 @@ const navItems = [
 export default function Sidebar() {
   const pathname = usePathname()
   const { user } = useAuth()
+  const { pendingCount } = useFriendRequests()
   const initial = (user?.username || '?').trim().charAt(0).toUpperCase()
 
   return (
@@ -49,6 +51,7 @@ export default function Sidebar() {
       <nav className="flex justify-around lg:flex-col lg:gap-1.5">
         {navItems.map(({ href, label, Icon, ActiveIcon }) => {
           const isActive = pathname.startsWith(href)
+          const showDot = href === '/friends' && pendingCount > 0
           return (
             <Link
               key={href}
@@ -60,10 +63,16 @@ export default function Sidebar() {
                   : 'text-muted-foreground hover:text-foreground lg:hover:bg-brand-50'
               }`}
             >
-              <span className="text-2xl lg:text-xl">
+              <span className="relative text-2xl lg:text-xl">
                 {isActive ? <ActiveIcon /> : <Icon />}
+                {showDot && (
+                  <span className="bg-destructive absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full" />
+                )}
               </span>
               <span>{label}</span>
+              {showDot && (
+                <span className="sr-only">（{pendingCount} 則待確認邀請）</span>
+              )}
             </Link>
           )
         })}

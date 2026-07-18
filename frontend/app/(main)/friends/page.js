@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/alert-dialog'
 
 import { API_BASE_URL } from '@/lib/api'
+import { useFriendRequests } from '@/contexts/FriendRequestsContext'
 
 // 選中 tab 用「白卡浮起」呈現（design-system：不用淡綠底疊暖白）
 const tabTriggerClass =
@@ -36,9 +37,10 @@ const tabTriggerClass =
 
 export default function Friends() {
   const [friends, setFriends] = useState([])
-  const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
   const [removingFriend, setRemovingFriend] = useState(null)
+  // 邀請清單放在 context，跟 Sidebar 紅點共用同一份資料
+  const { requests, refreshRequests } = useFriendRequests()
 
   const fetchFriends = useCallback(async () => {
     try {
@@ -52,26 +54,14 @@ export default function Friends() {
     }
   }, [])
 
-  const fetchRequests = useCallback(async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/friends/requests`, {
-        credentials: 'include',
-      })
-      const data = await res.json()
-      if (data.success) setRequests(data.data)
-    } catch (err) {
-      console.error('取得邀請列表錯誤:', err)
-    }
-  }, [])
-
   useEffect(() => {
     const loadData = async () => {
       setLoading(true)
-      await Promise.all([fetchFriends(), fetchRequests()])
+      await Promise.all([fetchFriends(), refreshRequests()])
       setLoading(false)
     }
     loadData()
-  }, [fetchFriends, fetchRequests])
+  }, [fetchFriends, refreshRequests])
 
   const handleRequestAction = async (requestId, action) => {
     try {
@@ -90,7 +80,7 @@ export default function Friends() {
       }
       toast.success(data.message)
       // 接受邀請會改變好友列表，兩者一起更新
-      await Promise.all([fetchFriends(), fetchRequests()])
+      await Promise.all([fetchFriends(), refreshRequests()])
     } catch (err) {
       toast.error(err.message || '操作失敗，請稍後再試')
     }
@@ -127,7 +117,7 @@ export default function Friends() {
             <span className="tnum">{friends.length}</span> 位好友
           </p>
         </div>
-        <AddFriendDialog onRequestSent={fetchRequests} />
+        <AddFriendDialog onRequestSent={refreshRequests} />
       </div>
 
       {loading ? (
@@ -143,7 +133,9 @@ export default function Friends() {
             <TabsTrigger value="requests" className={tabTriggerClass}>
               待確認邀請
               {requests.length > 0 && (
-                <span className="tnum">({requests.length})</span>
+                <span className="bg-destructive tnum flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-none font-semibold text-white">
+                  {requests.length}
+                </span>
               )}
             </TabsTrigger>
           </TabsList>
