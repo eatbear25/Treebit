@@ -79,7 +79,7 @@ export default function HabitHeader({
   menu = null,
 }) {
   return (
-    <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+    <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
       <div className="flex min-w-0 items-start gap-4">
         <div
           className="bg-card mt-[3px] flex h-14 w-14 shrink-0 items-end justify-center overflow-hidden rounded-2xl shadow-sm"
